@@ -5,7 +5,7 @@
 #include <boost/preprocessor.hpp>
 #include <fmt/format.hpp>
 #include <eggs/variant.hpp>
-#include "crossguid/guid.hpp"
+#include <spdlog/spdlog.h>
 #include "blib/utils/Singleton.hpp"
 #include "blib/utils/MD5.hpp"
 #include <memory>
@@ -19,6 +19,13 @@
 
 namespace blib {
   namespace bun {
+    inline std::shared_ptr<spdlog::logger>& l() {
+      static const size_t q_size = 1048576; //queue size must be power of 2
+      spdlog::set_async_mode( q_size );
+      static auto ret = spdlog::daily_logger_st( "async_file_logger", "async_log.txt" );
+      return ret;
+    }
+
     struct Db : public ::blib::Singleton<Db> {
       using DbConnectionType = sqlite::database;
       std::unique_ptr<DbConnectionType> _db;
@@ -344,8 +351,11 @@ namespace blib {
         return BunHelper<T>::objToJson( _obj.get(), oid );
       }
     };
+    template<typename T>
+    class Query;
 
     namespace _private {
+
       enum class OperatorE : std::uint32_t {
         kGreaterThan = 0, // >
         kGreaterThanEqualTo, // >=
@@ -377,10 +387,20 @@ namespace blib {
       template<typename T>
       class QueryHelper;
 
-    }
+      template<typename T>
+      inline std::string value( const VarInfo<T>& in_val ) {
+        return in_val::name;
+      }
 
-    template<typename T>
-    class Query;
+      inline std::string& value( std::string& in_str ) {
+        return in_str;
+      }
+
+      template<typename T>
+      inline T value( const T in_val ) {
+        return in_val;
+      }
+    }
   }
 }
 
@@ -419,18 +439,15 @@ namespace blib {
 }
 
 template<typename T>
-blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>&& operator&&( blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>::VarInfoType & in_left, T const&  in_right ) {
+blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>& operator&&( blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>& in_left, T const&  in_right ) {
   using QueryType = blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>;
-  blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )> query;
   static_assert(!(std::is_literal_type<T>::value || std::is_same<T, QueryType>::value), "Need a literal in the RHS");
-
-  if (!std::is_literal_type<T>::value) {
-    query.operators.push_back( in_val );
-    query.operators.push_back( in_var );
+  if (std::is_same<T, QueryType>::value) {
+    in_left.operators.push_back( in_right );
   }
-  query.operators.push_back( blib::bun::_private::OperatorE::kAnd );
+  in_left.operators.push_back( blib::bun::_private::OperatorE::kAnd );
 
-  return query;
+  return in_left;
 }
 
 
@@ -542,4 +559,3 @@ REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
 REGISTER_SCHEMA(CLASS_ELEMS_TUP) \
 GENERATE_QUERY_INTERFACE(CLASS_ELEMS_TUP)
-
