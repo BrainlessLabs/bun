@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <hdr/sqlite_modern_cpp.hpp>
@@ -19,11 +18,11 @@
 
 namespace blib {
   namespace bun {
-    inline std::shared_ptr<spdlog::logger>& l() {
-      static const size_t q_size = 1048576; //queue size must be power of 2
+    inline spdlog::logger& l() {
+      static const std::size_t q_size = 1048576; //queue size must be power of 2
       spdlog::set_async_mode( q_size );
-      static auto ret = spdlog::daily_logger_st( "async_file_logger", "async_log.txt" );
-      return ret;
+      static auto ret = spdlog::daily_logger_st( "async_file_logger", "query_log.txt" );
+      return *ret;
     }
 
     struct Db : public ::blib::Singleton<Db> {
@@ -55,6 +54,10 @@ namespace blib {
       }
     };
 
+    inline void dbConnect( std::string const& in_db ) {
+      Db::i().connect( in_db );
+    }
+
     struct SimpleOID {
       typedef SimpleOID SelfType;
       typedef std::array<std::uint8_t, 16> OidByteArrayType;
@@ -81,6 +84,7 @@ namespace blib {
       SelfType& operator=( SelfType const& in_other ) {
         high = in_other.high;
         low = in_other.low;
+        return *this;
       }
 
       bool operator==( SelfType const& in_other ) const {
@@ -280,7 +284,10 @@ namespace blib {
         _obj.reset( in_obj );
       }
 
-      PRef( OidType const& );
+      PRef( OidType const& in_oid ) :oid( in_oid ) {
+
+        load( oid );
+      }
 
       void reset( ObjType* in_obj ) {
         _obj.reset( in_obj );
@@ -298,6 +305,14 @@ namespace blib {
 
       ~PRef() = default;
 
+      decltype(*_obj) operator*() {
+        return *_obj;
+      }
+
+      T* operator->() {
+        return _obj.get();
+      }
+
       bool dirty() {
         const auto md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
         if (md5 != _md5) {
@@ -312,7 +327,7 @@ namespace blib {
           oid = BunHelper<ObjType>::persistObj( _obj.get() );
         }
         else {
-          BunHelper<ObjType>::updateObj( _obj.get() );
+          BunHelper<ObjType>::updateObj( _obj.get(), oid );
         }
         _md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
         _flags.reset();
@@ -351,106 +366,8 @@ namespace blib {
         return BunHelper<T>::objToJson( _obj.get(), oid );
       }
     };
-    template<typename T>
-    class Query;
-
-    namespace _private {
-
-      enum class OperatorE : std::uint32_t {
-        kGreaterThan = 0, // >
-        kGreaterThanEqualTo, // >=
-        kLessThan, // <
-        kLessThanEqualTo, // <=
-        kEqualTo, // =
-        kNotEqualTo, // !=
-        kAnd, // &&
-        kOr   // ||
-      };
-
-      template<typename T>
-      struct VarInfo {
-        const std::string name;
-        VarInfo( const std::string& in_name ) :name( in_name ) {}
-      };
-
-      using VarNameHandel = void*;
-      using OperationValues = ::eggs::variant<OperatorE, std::uint64_t, std::int64_t, std::float_t,
-        std::double_t, std::uint8_t, std::int8_t, std::string, VarNameHandel>;
-
-      template<OperatorE T>
-      struct UnaryOperation : std::false_type {
-      };
-
-      template<OperatorE T>
-      struct BinaryOperation : std::true_type {
-      };
-      template<typename T>
-      class QueryHelper;
-
-      template<typename T>
-      inline std::string value( const VarInfo<T>& in_val ) {
-        return in_val::name;
-      }
-
-      inline std::string& value( std::string& in_str ) {
-        return in_str;
-      }
-
-      template<typename T>
-      inline T value( const T in_val ) {
-        return in_val;
-      }
-    }
   }
 }
-
-/// Query generation
-#define GENERATE_VAR_VALUES_I(z, n, CLASS_ELEMS_TUP) BOOST_PP_IF(n, ",", "")VarInfo(BOOST_PP_TUPLE_ELEM(n, CLASS_ELEMS_TUP))
-#define GENERATE_VAR_VALUES(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), GENERATE_VAR_VALUES_I, CLASS_ELEMS_TUP)
-
-#define GENERATE_VAR_NAMES_I(z, n, CLASS_ELEMS_TUP) const static _private::VarNameHandel BOOST_PP_TUPLE_ELEM(n, CLASS_ELEMS_TUP){reinterpret_cast<_private::VarNameHandel>(n)};
-#define GENERATE_VAR_NAMES(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), GENERATE_VAR_NAMES_I, CLASS_ELEMS_TUP)
-#define GENERATE_QUERY_INTERFACE(CLASS_ELEMS_TUP) 
-namespace blib {
-  namespace bun {
-    namespace _private {
-      template<>
-      class QueryHelper<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )> : blib::Singleton<QueryHelper<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>> {
-      public:
-        const std::vector<VarInfo<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>> var_info;
-        QueryHelper() :var_info{ GENERATE_VAR_VALUES( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ) ) } {}
-      };
-    }
-
-    template<>
-    class Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )> {
-    public:
-      _private::QueryHelper<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )> _var_mappings;
-      std::vector<_private::OperatorE> operators;
-
-    public:
-      using VarInfoType = _private::VarInfo<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>;
-      GENERATE_VAR_NAMES( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ) );
-      Query() {}
-      Query{ Query const& in_other }:_operators( in_other._operators ), _values( in_other._values ){}
-      Query( Query&& in_other ) :_operators( std::move( in_other._operators ) ), _values( std::move( in_other._values ) ) {}
-    };
-  }
-}
-
-template<typename T>
-blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>& operator&&( blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>& in_left, T const&  in_right ) {
-  using QueryType = blib::bun::Query<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )>;
-  static_assert(!(std::is_literal_type<T>::value || std::is_same<T, QueryType>::value), "Need a literal in the RHS");
-  if (std::is_same<T, QueryType>::value) {
-    in_left.operators.push_back( in_right );
-  }
-  in_left.operators.push_back( blib::bun::_private::OperatorE::kAnd );
-
-  return in_left;
-}
-
-
 
 /// CREATE_SCHEMA_TYPES
 #define GET_DB_TYPE(CLASS_NAME, ELEMENT) cppTypeToDbTypeString<decltype(CLASS_NAME:: ## ELEMENT)>()
@@ -489,8 +406,9 @@ struct BunHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> {\
 using T = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 inline static void createTable(){\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)); \
-static const std::string sql = fmt::format( "CREATE TABLE IF NOT EXISTS {}(object_id INTEGER NOT NULL," REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} {} ) ")", \
+static const std::string sql = fmt::format( "CREATE TABLE IF NOT EXISTS '{}'(object_id INTEGER NOT NULL," REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} {} ) ")", \
   class_name CREATE_SCHEMA_TYPES( CLASS_ELEMS_TUP ));\
+l().info() << sql;\
 blib::bun::Db::i().db() << sql;\
 }\
 \
@@ -498,9 +416,10 @@ inline static SimpleOID persistObj( T* in_obj){\
 SimpleOID oid;\
 oid.populateLow();\
 const std::string sql = fmt::format(\
-"INSERT INTO {} (object_id," REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) ") VALUES({}" REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}) ")",oid.low \
+"INSERT INTO '{}' (object_id," REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) ") VALUES({}" REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}) ")",oid.low \
 GENERATE_TABLE_COLUMN_NAMES_PTR(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
+l().info() << sql;\
 Db::i().db() << sql;\
 oid.high = Db::i().db().last_insert_rowid();\
 return oid;\
@@ -508,16 +427,18 @@ return oid;\
 \
 inline static void updateObj( T* in_obj, SimpleOID const& in_oid){\
 const std::string sql = fmt::format(\
-"UPDATE {} SET " UPDATE_STATEMENT_QUERY_STR(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) "WHERE object_id {} AND rowid = {}", BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )) \
+"UPDATE '{}' SET " UPDATE_STATEMENT_QUERY_STR(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) "WHERE object_id {} AND rowid = {}", BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )) \
 UPDATE_STATEMENT_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )), in_oid.low, in_oid.high);\
+l().info() << sql;\
 Db::i().db() << sql;\
 }\
 \
 inline static std::unique_ptr<T> getObj( SimpleOID const& in_oid ){\
 const std::string sql = fmt::format(\
-  "SELECT " REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) "FROM {} WHERE object_id = {} AND rowid = {}"\
+  "SELECT " REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) "FROM '{}' WHERE object_id = {} AND rowid = {}"\
   GENERATE_TABLE_COLUMN_NAMES( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ) ), BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )), in_oid.low, in_oid.high \
 );\
+l().info() << sql;\
 std::unique_ptr<T> ret( new T );\
 Db::i().db() << sql >> std::tie(GENERATE_GETOBJ_MEMBERS(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
 return ret;\
@@ -527,6 +448,7 @@ inline static std::string objToString( T* in_obj, SimpleOID const& in_oid ){\
 const std::string ret = fmt::format(\
 "{},{},{}" REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}), BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )), in_oid.high, in_oid.low \
 OBJ_TO_STRING(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
+l().info() << ret;\
 return ret;\
 }\
 \
@@ -557,5 +479,4 @@ return true;\
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
-REGISTER_SCHEMA(CLASS_ELEMS_TUP) \
-GENERATE_QUERY_INTERFACE(CLASS_ELEMS_TUP)
+REGISTER_SCHEMA(CLASS_ELEMS_TUP)

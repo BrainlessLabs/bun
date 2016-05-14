@@ -248,6 +248,48 @@
     <ClInclude Include="..\include\spdlog\tweakme.h">
       <Filter>Header Files\spdlog</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\sqlite\sqlite3.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sqlite\sqlite3ext.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\utils\MD5.hpp">
+      <Filter>Header Files\blib\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant.hpp">
+      <Filter>Header Files\egg_variant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\bad_variant_access.hpp">
+      <Filter>Header Files\egg_variant\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\in_place.hpp">
+      <Filter>Header Files\egg_variant\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\variant.hpp">
+      <Filter>Header Files\egg_variant\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\apply.hpp">
+      <Filter>Header Files\egg_variant\variant\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\pack.hpp">
+      <Filter>Header Files\egg_variant\variant\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\storage.hpp">
+      <Filter>Header Files\egg_variant\variant\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\utility.hpp">
+      <Filter>Header Files\egg_variant\variant\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\visitor.hpp">
+      <Filter>Header Files\egg_variant\variant\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\config\prefix.hpp">
+      <Filter>Header Files\egg_variant\variant\details\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\eggs\variant\detail\config\suffix.hpp">
+      <Filter>Header Files\egg_variant\variant\details\config</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\spdlog\sinks\android_sink.h">
       <Filter>Header Files\spdlog\sinks</Filter>
     </ClInclude>
@@ -290,6 +332,9 @@
     <ClInclude Include="..\include\spdlog\details\file_helper.h">
       <Filter>Header Files\spdlog\details</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\spdlog\details\format_i.hpp">
+      <Filter>Header Files\spdlog\details</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\spdlog\details\line_logger_fwd.h">
       <Filter>Header Files\spdlog\details</Filter>
     </ClInclude>
@@ -319,48 +364,6 @@
     </ClInclude>
     <ClInclude Include="..\include\spdlog\details\spdlog_impl.h">
       <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sqlite\sqlite3.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sqlite\sqlite3ext.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\blib\utils\MD5.hpp">
-      <Filter>Header Files\blib\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant.hpp">
-      <Filter>Header Files\egg_variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\bad_variant_access.hpp">
-      <Filter>Header Files\egg_variant\variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\in_place.hpp">
-      <Filter>Header Files\egg_variant\variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\variant.hpp">
-      <Filter>Header Files\egg_variant\variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\apply.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\pack.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\storage.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\utility.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\visitor.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\config\prefix.hpp">
-      <Filter>Header Files\egg_variant\variant\details\config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\config\suffix.hpp">
-      <Filter>Header Files\egg_variant\variant\details\config</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
