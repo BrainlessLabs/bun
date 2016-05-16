@@ -75,8 +75,8 @@ namespace blib {
 
     MD5();
     MD5( const std::string& text );
-    void update( const unsigned char *buf, size_type length );
-    void update( const char *buf, size_type length );
+    void update( const unsigned char *buf, const std::size_t length );
+    void update( const char *buf, const std::size_t length );
     MD5& finalize();
     std::string hexdigest() const;
     friend std::ostream& operator<<( std::ostream&, MD5 md5 );
@@ -107,7 +107,7 @@ namespace blib {
     static inline void II( std::uint32_t &a, std::uint32_t b, std::uint32_t c, std::uint32_t d, std::uint32_t x, std::uint32_t s, std::uint32_t ac );
   };
 
-  std::string md5( const std::string& str );
+  inline std::string md5( const std::string& str );
 
   //////////////////////////////////////////////
 
@@ -154,14 +154,14 @@ namespace blib {
   //////////////////////////////////////////////
 
   // default ctor, just initailize
-  MD5::MD5() {
+  inline MD5::MD5() {
     init();
   }
 
   //////////////////////////////////////////////
 
   // nifty shortcut ctor, compute MD5 for string and finalize it right away
-  MD5::MD5( const std::string &text ) {
+  inline MD5::MD5( const std::string &text ) {
     init();
     update( text.c_str(), text.length() );
     finalize();
@@ -169,7 +169,7 @@ namespace blib {
 
   //////////////////////////////
 
-  void MD5::init() {
+  inline void MD5::init() {
     finalized = false;
 
     count[0] = 0;
@@ -185,7 +185,7 @@ namespace blib {
   //////////////////////////////
 
   // decodes input (unsigned char) into output (std::uint32_t). Assumes len is a multiple of 4.
-  void MD5::decode( std::uint32_t output[], const std::uint8_t input[], size_type len ) {
+  inline void MD5::decode( std::uint32_t output[], const std::uint8_t input[], size_type len ) {
     for (unsigned int i = 0, j = 0; j < len; i++, j += 4)
       output[i] = ((std::uint32_t)input[j]) | (((std::uint32_t)input[j + 1]) << 8) |
       (((std::uint32_t)input[j + 2]) << 16) | (((std::uint32_t)input[j + 3]) << 24);
@@ -195,7 +195,7 @@ namespace blib {
 
   // encodes input (std::uint32_t) into output (unsigned char). Assumes len is
   // a multiple of 4.
-  void MD5::encode( std::uint8_t output[], const std::uint32_t input[], size_type len ) {
+  inline void MD5::encode( std::uint8_t output[], const std::uint32_t input[], size_type len ) {
     for (size_type i = 0, j = 0; j < len; i++, j += 4) {
       output[j] = input[i] & 0xff;
       output[j + 1] = (input[i] >> 8) & 0xff;
@@ -207,7 +207,7 @@ namespace blib {
   //////////////////////////////
 
   // apply MD5 algo on a block
-  void MD5::transform( const std::uint8_t block[blocksize] ) {
+  inline void MD5::transform( const std::uint8_t block[blocksize] ) {
     std::uint32_t a = state[0], b = state[1], c = state[2], d = state[3], x[16];
     decode( x, block, blocksize );
 
@@ -296,7 +296,7 @@ namespace blib {
 
   // MD5 block update operation. Continues an MD5 message-digest
   // operation, processing another message block
-  void MD5::update( const unsigned char input[], size_type length ) {
+  inline void MD5::update( const unsigned char input[], const std::size_t length ) {
     // compute number of bytes mod 64
     size_type index = count[0] / 8 % blocksize;
 
@@ -332,7 +332,7 @@ namespace blib {
   //////////////////////////////
 
   // for convenience provide a verson with signed char
-  void MD5::update( const char input[], size_type length ) {
+  inline void MD5::update( const char input[], const std::size_t length ) {
     update( (const unsigned char*)input, length );
   }
 
@@ -340,7 +340,7 @@ namespace blib {
 
   // MD5 finalization. Ends an MD5 message-digest operation, writing the
   // the message digest and zeroizing the context.
-  MD5& MD5::finalize() {
+  inline MD5& MD5::finalize() {
     static unsigned char padding[64] = {
       0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -376,7 +376,7 @@ namespace blib {
   //////////////////////////////
 
   // return hex representation of digest as string
-  std::string MD5::hexdigest() const {
+  inline std::string MD5::hexdigest() const {
     if (!finalized)
       return "";
 
@@ -389,13 +389,13 @@ namespace blib {
 
   //////////////////////////////
 
-  std::ostream& operator<<( std::ostream& out, MD5 md5 ) {
+  inline std::ostream& operator<<( std::ostream& out, MD5 md5 ) {
     return out << md5.hexdigest();
   }
 
   //////////////////////////////
 
-  std::string md5( const std::string& str ) {
+  inline std::string md5( const std::string& str ) {
     const MD5 md5 = MD5( str );
 
     return md5.hexdigest();
