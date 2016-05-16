@@ -591,7 +591,7 @@ return ret;\
 }
 
 
-#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> bool canPersist< CLASS_NAME >(){return true;} } }
+#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> inline bool canPersist< CLASS_NAME >(){return true;} } }
 
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
