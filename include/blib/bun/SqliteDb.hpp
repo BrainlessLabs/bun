@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <hdr/sqlite_modern_cpp.hpp>
@@ -14,6 +15,7 @@
 #include <chrono>
 #include <ratio>
 #include <stack>
+#include <vector>
 #include <type_traits>
 
 namespace blib {
@@ -258,6 +260,9 @@ namespace blib {
     template<typename T>
     inline bool createSchema();
 
+    template<typename T>
+    inline std::vector<SimpleOID> getAllOids();
+
     // Query
 
     // Persistance reference holder
@@ -280,13 +285,17 @@ namespace blib {
 
     public:
       PRef() = default;
-      PRef( ObjType* in_obj ) {
-        _obj.reset( in_obj );
+      PRef( PRef& in_other ) : oid( in_other.oid ), _flags( in_other._flags ), _md5( in_other._md5 ), _obj( in_other._obj.release() ) {
       }
 
-      PRef( OidType const& in_oid ) :oid( in_oid ) {
+      PRef( ObjType* in_obj ) :_obj( in_obj ) {
+      }
 
+      PRef( OidType const& in_oid ) : oid( in_oid ) {
         load( oid );
+      }
+
+      PRef( OidType const& in_oid, ObjType* in_obj ) : oid( in_oid ), _obj( in_obj ) {
       }
 
       void reset( ObjType* in_obj ) {
@@ -334,23 +343,13 @@ namespace blib {
         return oid;
       }
 
-      void load( OidType const& in_oid ) {
-        oid = in_oid;
-        _obj = BunHelper<ObjType>::getObj( oid );
-        _md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
-        _flags.reset();
-      }
-
       PRef& operator=( ObjType* in_obj ) {
         reset( in_obj );
         return *this;
       }
 
       PRef& operator=( PRef& in_other ) {
-        oid = in_other.oid;
-        _md5 = in_other._md5;
-        _flags = in_other._flags;
-        _obj = in_other._obj;
+        copyFrom( in_other );
         return *this;
       }
 
@@ -365,7 +364,65 @@ namespace blib {
       std::string toJson() const {
         return BunHelper<T>::objToJson( _obj.get(), oid );
       }
+
+    private:
+      void load( OidType const& in_oid ) {
+        oid = in_oid;
+        _obj = BunHelper<ObjType>::getObj( oid );
+        _md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
+        _flags.reset();
+      }
+
+      void copyFrom( PRef& in_other ) {
+        oid = in_other.oid;
+        _md5 = in_other._md5;
+        _flags = in_other._flags;
+        _obj = in_other._obj;
+      }
     };
+
+    namespace _details {
+      template<typename T>
+      struct BoxingType;
+
+      template<>
+      struct BoxingType<int> {
+        using type = std::int64_t;
+      };
+
+      template<>
+      struct BoxingType<unsigned int> {
+        using type = std::uint64_t;
+      };
+
+      template<>
+      struct BoxingType<float> {
+        using type = double;
+      };
+
+      template<>
+      struct BoxingType<double> {
+        using type = double;
+      };
+
+      template<>
+      struct BoxingType<char> {
+        using type = std::int64_t;
+      };
+
+      template<>
+      struct BoxingType<unsigned char> {
+        using type = std::uint64_t;
+      };
+
+      template<>
+      struct BoxingType<std::string> {
+        using type = std::string;
+      };
+    }
+
+    template<typename T>
+    inline std::vector<PRef<T>> getAllObjects();
   }
 }
 
@@ -415,8 +472,10 @@ blib::bun::Db::i().db() << sql;\
 inline static SimpleOID persistObj( T* in_obj){\
 SimpleOID oid;\
 oid.populateLow();\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 const std::string sql = fmt::format(\
-"INSERT INTO '{}' (object_id," REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) ") VALUES({}" REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}) ")",oid.low \
+"INSERT INTO '{}' (object_id," REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) ") VALUES({}," REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}) ")", class_name \
+GENERATE_TABLE_COLUMN_NAMES(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )), oid.low \
 GENERATE_TABLE_COLUMN_NAMES_PTR(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
 l().info() << sql;\
@@ -426,8 +485,9 @@ return oid;\
 }\
 \
 inline static void updateObj( T* in_obj, SimpleOID const& in_oid){\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 const std::string sql = fmt::format(\
-"UPDATE '{}' SET " UPDATE_STATEMENT_QUERY_STR(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) "WHERE object_id {} AND rowid = {}", BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )) \
+"UPDATE '{}' SET " UPDATE_STATEMENT_QUERY_STR(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) " WHERE object_id = {} AND rowid = {}", class_name \
 UPDATE_STATEMENT_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )), in_oid.low, in_oid.high);\
 l().info() << sql;\
 Db::i().db() << sql;\
@@ -435,7 +495,7 @@ Db::i().db() << sql;\
 \
 inline static std::unique_ptr<T> getObj( SimpleOID const& in_oid ){\
 const std::string sql = fmt::format(\
-  "SELECT " REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) "FROM '{}' WHERE object_id = {} AND rowid = {}"\
+  "SELECT " REPEAT_WITH_COMMA( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {} ) " FROM '{}' WHERE object_id = {} AND rowid = {}"\
   GENERATE_TABLE_COLUMN_NAMES( BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ) ), BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )), in_oid.low, in_oid.high \
 );\
 l().info() << sql;\
@@ -446,7 +506,7 @@ return ret;\
 \
 inline static std::string objToString( T* in_obj, SimpleOID const& in_oid ){\
 const std::string ret = fmt::format(\
-"{},{},{}" REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}), BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )), in_oid.high, in_oid.low \
+"{},{},{}," REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}), BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )), in_oid.high, in_oid.low \
 OBJ_TO_STRING(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
 l().info() << ret;\
 return ret;\
@@ -475,8 +535,57 @@ return true;\
 }\
 }}
 
+/// Get all of the items (just the Oids)
+#define REGISTER_GETALLOIDS(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
+template<>\
+inline std::vector<SimpleOID> getAllOids<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>() {\
+static const std::string sql = fmt::format("SELECT rowid, object_id FROM '{}'", BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)));\
+std::vector<SimpleOID> ret;\
+l().info() << sql;\
+Db::i().db() << sql >> [&]( const std::int64_t in_high, const std::int64_t in_low ) {\
+ret.push_back(SimpleOID{static_cast<decltype(SimpleOID::high)>(in_high), static_cast<decltype(SimpleOID::low)>(in_low)});};\
+return ret;\
+}\
+}\
+}
+
+/// Get all of the items (just the Objects)
+#define EXPAND_ASSIGN_VAR_GETALLOBJ_I(z, n, CLASS_ELEMS_TUP) ;r->BOOST_PP_TUPLE_ELEM(n, CLASS_ELEMS_TUP)=BOOST_PP_TUPLE_ELEM(n, CLASS_ELEMS_TUP)
+#define EXPAND_ASSIGN_VAR_GETALLOBJ(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), EXPAND_ASSIGN_VAR_GETALLOBJ_I, CLASS_ELEMS_TUP)
+
+#define GET_OBJ_NAME_GETALLOBJ(CLASS_ELEMS_TUP, n) BOOST_PP_TUPLE_ELEM(BOOST_PP_INC(n), CLASS_ELEMS_TUP)
+#define GET_OBJ_TYPE_GETALLOBJ(CLASS_ELEMS_TUP, n) BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_INC(n), CLASS_ELEMS_TUP)
+#define EXPAND_VARS_FOR_FUN_GETALLOBJ_I(z, n, CLASS_ELEMS_TUP) ,const _details::BoxingType<decltype(GET_OBJ_TYPE_GETALLOBJ(CLASS_ELEMS_TUP, n))>::type GET_OBJ_NAME_GETALLOBJ(CLASS_ELEMS_TUP, n)
+#define EXPAND_VARS_FOR_FUN_GETALLOBJ(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP)), EXPAND_VARS_FOR_FUN_GETALLOBJ_I, CLASS_ELEMS_TUP)
+
+#define EXPAND_OBJ_FOR_GETALLOBJ_I(z, n, CLASS_ELEMS_TUP) "," BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, CLASS_ELEMS_TUP))
+#define EXPAND_OBJ_FOR_GETALLOBJ(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), EXPAND_OBJ_FOR_GETALLOBJ_I, CLASS_ELEMS_TUP)
+
+#define REGISTER_GETALLOBJECTS(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
+template<>\
+inline std::vector<PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> getAllObjects<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>(){\
+const static std::string class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+const static std::string sql = fmt::format(\
+"SELECT rowid, object_id " EXPAND_OBJ_FOR_GETALLOBJ(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) " FROM '{}'", class_name);\
+l().info() << sql;\
+std::vector<PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> ret;\
+Db::i().db() << sql >> [&](const std::int64_t in_high, const std::int64_t in_low EXPAND_VARS_FOR_FUN_GETALLOBJ(CLASS_ELEMS_TUP)){\
+const SimpleOID oid(in_high, in_low);\
+std::unique_ptr<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> r( new BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP) );\
+EXPAND_ASSIGN_VAR_GETALLOBJ(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+ret.emplace_back(oid, r.release());\
+};\
+return ret;\
+}\
+}\
+}
+
+
 #define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> bool canPersist< CLASS_NAME >(){return true;} } }
+
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
-REGISTER_SCHEMA(CLASS_ELEMS_TUP)
+REGISTER_SCHEMA(CLASS_ELEMS_TUP) \
+REGISTER_GETALLOIDS(CLASS_ELEMS_TUP) \
+REGISTER_GETALLOBJECTS(CLASS_ELEMS_TUP)
