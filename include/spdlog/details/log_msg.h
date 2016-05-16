@@ -6,7 +6,7 @@
 #pragma once
 
 #include <spdlog/common.h>
-#include <spdlog/details/format.h>
+#include <fmt/format.hpp>
 
 #include <string>
 #include <utility>

@@ -137,7 +137,7 @@
       <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_MODERN_SQLITE_BOOST_OPTIONAL_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_MODERN_SQLITE_BOOST_OPTIONAL_SUPPORT;FMT_HEADER_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -158,6 +158,7 @@
     <ClCompile Include="..\src\BoostHeaders.cpp" />
     <ClCompile Include="..\src\Bun.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
     </ClCompile>
     <ClCompile Include="..\src\sqlite\sqlite3.c" />
   </ItemGroup>
@@ -224,6 +225,7 @@
     <ClInclude Include="..\include\spdlog\details\async_logger_impl.h" />
     <ClInclude Include="..\include\spdlog\details\async_log_helper.h" />
     <ClInclude Include="..\include\spdlog\details\file_helper.h" />
+    <ClInclude Include="..\include\spdlog\details\format_i.hpp" />
     <ClInclude Include="..\include\spdlog\details\line_logger_fwd.h" />
     <ClInclude Include="..\include\spdlog\details\line_logger_impl.h" />
     <ClInclude Include="..\include\spdlog\details\logger_impl.h" />
