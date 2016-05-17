@@ -1,5 +1,6 @@
 # bun
 Bun is a simple to use C++ Object Relational Mapper (ORM) library
+<p>
 [Bun](http://brainlesslabs.github.io/bun/)
 
 #Usage
