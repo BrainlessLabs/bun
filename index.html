@@ -1,88 +1,119 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <title>Bun by BrainlessLabs</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Bun</h1>
-      <h2 class="project-tagline">Bun is a simple to use C++ Object Relational Mapper (ORM) library</h2>
-      <a href="https://github.com/BrainlessLabs/bun" class="btn">View on GitHub</a>
-      <a href="https://github.com/BrainlessLabs/bun/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/BrainlessLabs/bun/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
-    <section class="main-content">
-      <h1>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Bun by BrainlessLabs</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Bun</h1>
+        <h2>Bun is a simple to use C++ Object Relational Mapper (ORM) library</h2>
+        <a href="https://github.com/BrainlessLabs/bun" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
 <a id="bun" class="anchor" href="#bun" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>bun</h1>
 
 <p>Bun is a simple to use C++ Object Relational Mapper (ORM) library</p>
 
 <h1>
-<a id="using-the-library" class="anchor" href="#using-the-library" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Using the Library</h1>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h1>
 
-<div class="highlight highlight-source-c++"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>blib/bun/SqliteDb.hpp<span class="pl-pds">"</span></span>
+<div class="highlight highlight-source-c++"><pre><span class="pl-c">// Bun.cpp : Defines the entry point for the console application.</span>
+<span class="pl-c">//</span>
+
+#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>blib/bun/SqliteDb.hpp<span class="pl-pds">"</span></span>
+
 <span class="pl-k">namespace</span> <span class="pl-en">test</span> {
-  <span class="pl-k">struct</span> <span class="pl-en">Person</span> {
-    std::string name;
-    <span class="pl-k">int</span> age;
-    <span class="pl-k">float</span> height;
+  <span class="pl-k">struct</span> <span class="pl-en">Test</span> {
+    <span class="pl-k">int</span> one;
+    <span class="pl-k">float</span> two;
+    std::string three;
+  };
+
+  <span class="pl-k">struct</span> <span class="pl-en">SomeOtherTest</span> {
+    <span class="pl-k">int</span> one;
+    <span class="pl-k">float</span> two;
+    std::string three;
+    <span class="pl-en">SomeOtherTest</span>() = <span class="pl-k">default</span>;
   };
 }
 
-<span class="pl-en">GENERATE_BINDING</span>( (test::Person, name, age, height) );
+<span class="pl-en">GENERATE_BINDING</span>( (test::Test, one, two) );
+<span class="pl-en">GENERATE_BINDING</span>( (test::SomeOtherTest, one, two, three) );
 
 <span class="pl-k">int</span> <span class="pl-en">main</span>() {
   <span class="pl-k">namespace</span> <span class="pl-en">bun</span> <span class="pl-k">=</span> blib::bun;
-  <span class="pl-c">// Connect the db. If the db is not there it will be created.</span>
-  <span class="pl-c">// It should include the whole path</span>
   <span class="pl-c1">bun::dbConnect</span>( <span class="pl-s"><span class="pl-pds">"</span>test.db<span class="pl-pds">"</span></span> );
-  <span class="pl-c">// Create the schema. We can create the schema multile times. If its already created</span>
-  <span class="pl-c">// it will be safely ignored</span>
-  blib::bun::createSchema&lt;test::Person&gt;();
+  blib::bun::createSchema&lt;test::Test&gt;();
+  blib::bun::createSchema&lt;test::SomeOtherTest&gt;();
 
-  <span class="pl-c">// Creat some entries in the database</span>
-  <span class="pl-k">for</span> (<span class="pl-k">int</span> i = <span class="pl-c1">1</span>; i &lt; <span class="pl-c1">10</span>; ++i) {
-    <span class="pl-c">// PRef is a reference to the persistant object.</span>
-    <span class="pl-c">// PRef keeps the ownership of the memory. Release the memory when it is destroyed.</span>
-    <span class="pl-c">// Internally it holds the object in a unique_ptr</span>
-    <span class="pl-c">// PRef also has a oid associated with the object</span>
-    bun::PRef&lt;test::Person&gt; p = <span class="pl-k">new</span> test::Person;
-    <span class="pl-c">// Assign the members values</span>
-    p-&gt;age = i+<span class="pl-c1">10</span>;
-    p-&gt;height = <span class="pl-c1">5.6</span>;
-    p-&gt;name = <span class="pl-c1">fmt::format</span>(<span class="pl-s"><span class="pl-pds">"</span>Brainless_{}<span class="pl-pds">"</span></span>, i);
-    <span class="pl-c">// Persist the object and get a oid for the persisted object.</span>
-    <span class="pl-k">const</span> blib::bun::SimpleOID oid = p.<span class="pl-c1">persist</span>();
-
-    <span class="pl-c">//Getting the object from db using oid.</span>
-    bun::PRef&lt;test::Person&gt; <span class="pl-c1">p1</span>(oid);
+  <span class="pl-k">for</span> (<span class="pl-k">int</span> i = <span class="pl-c1">1</span>; i &lt; <span class="pl-c1">100</span>; ++i) {
+    bun::PRef&lt;test::SomeOtherTest&gt; t = <span class="pl-k">new</span> test::SomeOtherTest;
+    t-&gt;one = i;
+    t-&gt;two = i * i / i + <span class="pl-c1">1</span>;
+    t-&gt;three = <span class="pl-c1">std::to_string</span>( t-&gt;two );
+    t.<span class="pl-c1">persist</span>();
   }
 
-  <span class="pl-c">// To get all the object oids of a particular object.</span>
-  <span class="pl-c">// oids is a vector of tyoe std::vector&lt;blib::bun&lt;&gt;SimpleOID&lt;test::Person&gt;&gt;</span>
-  <span class="pl-k">const</span> <span class="pl-k">auto</span> person_oids = blib::bun::getAllOids&lt;test::Person&gt;();
+  <span class="pl-k">for</span> (<span class="pl-k">int</span> i = <span class="pl-c1">0</span>; i &lt; <span class="pl-c1">10</span>; ++i) {
+    bun::PRef&lt;test::Test&gt; t = <span class="pl-k">new</span> test::Test;
+    t-&gt;one = <span class="pl-c1">11</span>;
+    t-&gt;two = <span class="pl-c1">666</span>;
+    t.<span class="pl-c1">persist</span>();
+  }
 
-  <span class="pl-c">// To get the objects of a particular type</span>
-  <span class="pl-c">// std::vector&lt;blib::bun::Pref&lt;test::Person&gt;&gt;</span>
-  <span class="pl-k">const</span> <span class="pl-k">auto</span> person_objs = blib::bun::getAllObjects&lt;test::Person&gt;();
+  blib::bun::SimpleOID oid;
+  oid.<span class="pl-smi">high</span> = <span class="pl-c1">10</span>;
+  oid.<span class="pl-smi">low</span> = <span class="pl-c1">1547777240864505</span>;
+  bun::PRef&lt;test::Test&gt; <span class="pl-c1">t1</span>( oid );
+  t1-&gt;one = <span class="pl-c1">12</span>;
+  t1-&gt;two = <span class="pl-c1">667</span>;
+  t1.<span class="pl-c1">persist</span>();
+
+  <span class="pl-k">auto</span> vec_list = blib::bun::getAllOids&lt;test::Test&gt;();
+  <span class="pl-k">auto</span> objs = blib::bun::getAllObjects&lt;test::Test&gt;();
+
+  <span class="pl-k">auto</span> vec_list1 = blib::bun::getAllOids&lt;test::SomeOtherTest&gt;();
+  <span class="pl-k">auto</span> objs1 = blib::bun::getAllObjects&lt;test::SomeOtherTest&gt;();
 
   <span class="pl-k">return</span> <span class="pl-c1">0</span>;
 }</pre></div>
+        </section>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/BrainlessLabs/bun">Bun</a> is maintained by <a href="https://github.com/BrainlessLabs">BrainlessLabs</a>.</span>
+        <aside id="sidebar">
+          <a href="https://github.com/BrainlessLabs/bun/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/BrainlessLabs/bun/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
 
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
+          <p class="repo-owner"><a href="https://github.com/BrainlessLabs/bun"></a> is maintained by <a href="https://github.com/BrainlessLabs">BrainlessLabs</a>.</p>
 
-    </section>
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
 
   
   </body>
