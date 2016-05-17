@@ -2,8 +2,9 @@
 Bun is a simple to use C++ Object Relational Mapper (ORM) library
 
 
-#Using the Library
+#Usage
 
+```C++
 // Bun.cpp : Defines the entry point for the console application.
 //
 
@@ -64,4 +65,4 @@ int main() {
 
   return 0;
 }
-
+```
