@@ -436,6 +436,9 @@ namespace blib {
   }
 }
 
+///----------------------------------------------------------------------------
+/// Basic Persistance Start
+
 /// CREATE_SCHEMA_TYPES
 #define GET_DB_TYPE(CLASS_NAME, ELEMENT) cppTypeToDbTypeString<decltype(CLASS_NAME:: ## ELEMENT)>()
 #define CREATE_SCHEMA_TYPES_I(z, n, CLASS_TUP) BOOST_PP_COMMA()BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_TUP))\
@@ -593,6 +596,11 @@ return ret;\
 
 #define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> inline bool canPersist< CLASS_NAME >(){return true;} } }
 
+/// Basic Persistance End
+///----------------------------------------------------------------------------
+
+
+// Starting poing of all the registrations
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
