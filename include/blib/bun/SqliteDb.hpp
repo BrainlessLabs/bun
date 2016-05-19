@@ -1,8 +1,10 @@
 
+
 #pragma once
 
 #include <hdr/sqlite_modern_cpp.hpp>
 #include <boost/preprocessor.hpp>
+#include <boost/proto/proto.hpp>
 #include <fmt/format.hpp>
 #include <eggs/variant.hpp>
 #include <spdlog/spdlog.h>
@@ -81,6 +83,11 @@ namespace blib {
       void populateLow() {
         const auto t = std::chrono::high_resolution_clock::now();
         low = t.time_since_epoch().count();
+      }
+
+      void clear() {
+        high = 0;
+        low = 0;
       }
 
       SelfType& operator=( SelfType const& in_other ) {
@@ -251,6 +258,7 @@ namespace blib {
       inline static void createTable();
       inline static SimpleOID persistObj( T* );
       inline static void updateObj( T*, SimpleOID const& );
+      inline static void deleteObj( SimpleOID const& );
       inline static std::unique_ptr<T> getObj( SimpleOID const& );
       inline static std::string md5( T*, SimpleOID const& );
       inline static std::string objToString( T*, SimpleOID const& );
@@ -259,6 +267,9 @@ namespace blib {
 
     template<typename T>
     inline bool createSchema();
+
+    template<typename T>
+    inline bool dropSchema();
 
     template<typename T>
     inline std::vector<SimpleOID> getAllOids();
@@ -343,6 +354,17 @@ namespace blib {
         return oid;
       }
 
+      OidType save() {
+        return persist();
+      }
+
+      void del() {
+        BunHelper<ObjType>::deleteObj( oid );
+        _md5.clear();
+        oid.clear();
+        _flags.reset();
+      }
+
       PRef& operator=( ObjType* in_obj ) {
         reset( in_obj );
         return *this;
@@ -420,8 +442,9 @@ namespace blib {
         using type = std::string;
       };
 
+      /// Method to put quote around strings. This is used for the formation of the Sql String
       template<typename T>
-      inline T _E( const T in_val) {
+      inline T _E( const T in_val ) {
         return in_val;
       }
 
@@ -429,6 +452,19 @@ namespace blib {
         in_val = "'" + in_val + "'";
         return in_val;
       }
+
+      /// Query implementation details
+      namespace _details {
+        /// Index to create variable
+        template<std::size_t I>
+        struct VariableIndex {
+          static const auto index = I;
+        };
+      }
+
+      template<typename T>
+      struct Query;
+
     }
 
     template<typename T>
@@ -517,6 +553,11 @@ Db::i().db() << sql >> std::tie(GENERATE_GETOBJ_MEMBERS(BOOST_PP_TUPLE_POP_FRONT
 return ret;\
 }\
 \
+inline static void deleteObj(SimpleOID const& in_oid){ \
+static const std::string class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+const std::string sql = fmt::format("DELETE FROM '{}' WHERE object_id = {} AND rowid = {}", class_name, in_oid.low, in_oid.high);\
+}\
+\
 inline static std::string objToString( T* in_obj, SimpleOID const& in_oid ){\
 const std::string ret = fmt::format(\
 "{},{},{}," REPEAT_WITH_COMMA(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ), {}), BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )), in_oid.high, in_oid.low \
@@ -544,6 +585,15 @@ return ret;\
 template<>\
 inline bool createSchema<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>(){ \
 BunHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::createTable();\
+return true;\
+}\
+\
+template<>\
+inline bool dropSchema<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>(){ \
+static const std::string class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+static const std::string sql = fmt::format("DROP TABLE '{}'", class_name);\
+l().info() << sql;\
+Db::i().db() << sql;\
 return true;\
 }\
 }}
@@ -593,12 +643,16 @@ return ret;\
 }\
 }
 
-
+// Tells that this class can be persisted.
 #define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> inline bool canPersist< CLASS_NAME >(){return true;} } }
 
 /// Basic Persistance End
 ///----------------------------------------------------------------------------
 
+///----------------------------------------------------------------------------
+/// Query Start
+/// Query End
+///----------------------------------------------------------------------------
 
 // Starting poing of all the registrations
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
