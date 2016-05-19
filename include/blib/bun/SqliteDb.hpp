@@ -654,7 +654,7 @@ return ret;\
 /// Query End
 ///----------------------------------------------------------------------------
 
-// Starting poing of all the registrations
+// Starting doing of all the registrations
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
