@@ -213,44 +213,46 @@ namespace blib {
       return cppTypeEnumToDbTypeString<CppTypeToDbType<T>::ret>();
     }
 
-    template<typename T>
-    inline bool canPersist() {
-      return false;
-    }
+    namespace _details {
+      template<typename T>
+      struct CanPersist : std::false_type {
 
-    template<>
-    inline bool canPersist<int>() {
-      return true;
-    }
+      };
 
-    template<>
-    inline bool canPersist<unsigned int>() {
-      return true;
-    }
+      template<>
+      struct CanPersist<int> : std::true_type {
 
-    template<>
-    inline bool canPersist<char>() {
-      return true;
-    }
+      };
 
-    template<>
-    inline bool canPersist<unsigned char>() {
-      return true;
-    }
+      template<>
+      struct CanPersist<unsigned int> : std::true_type {
 
-    template<>
-    inline bool canPersist<float>() {
-      return true;
-    }
+      };
 
-    template<>
-    inline bool canPersist<double>() {
-      return true;
-    }
+      template<>
+      struct CanPersist<char> : std::true_type {
 
-    template<>
-    inline bool canPersist<std::string>() {
-      return true;
+      };
+
+      template<>
+      struct CanPersist<unsigned char> : std::true_type {
+
+      };
+
+      template<>
+      struct CanPersist<float> : std::true_type {
+
+      };
+
+      template<>
+      struct CanPersist<double> : std::true_type {
+
+      };
+
+      template<>
+      struct CanPersist<std::string> : std::true_type {
+
+      };
     }
 
     template<typename T>
@@ -644,7 +646,7 @@ return ret;\
 }
 
 // Tells that this class can be persisted.
-#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> inline bool canPersist< CLASS_NAME >(){return true;} } }
+#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ namespace _details{ template<> struct CanPersist<CLASS_NAME> : std::true_type{};} } }
 
 /// Basic Persistance End
 ///----------------------------------------------------------------------------
@@ -654,7 +656,7 @@ return ret;\
 /// Query End
 ///----------------------------------------------------------------------------
 
-// Starting doing of all the registrations
+// Start doing of all the registrations
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
