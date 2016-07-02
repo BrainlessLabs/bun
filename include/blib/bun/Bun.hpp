@@ -939,7 +939,7 @@ template<>\
 inline std::vector<blib::bun::PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> \
 getAllObjWithQuery<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>( std::string const& in_query ){\
 const static std::string class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-const static std::string sql = fmt::format(\
+const std::string sql = fmt::format(\
 "SELECT rowid, object_id " EXPAND_OBJ_FOR_GETALLOBJ(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) " FROM '{}' WHERE {}", class_name, in_query);\
 l().info() << sql;\
 std::vector<blib::bun::PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> ret;\
