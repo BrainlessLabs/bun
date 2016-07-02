@@ -159,11 +159,15 @@
     <ClCompile Include="..\src\Bun.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
+      <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessKeepComments>
     </ClCompile>
+    <ClCompile Include="..\src\Generate.cpp" />
+    <ClCompile Include="..\src\QueryExample.cpp" />
     <ClCompile Include="..\src\sqlite\sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\blib\bun\SqliteDb.hpp" />
+    <ClInclude Include="..\include\blib\bun\Bun.hpp" />
+    <ClInclude Include="..\include\blib\containers\tree\NTree.hpp" />
     <ClInclude Include="..\include\blib\utils\MD5.hpp" />
     <ClInclude Include="..\include\blib\utils\Singleton.hpp" />
     <ClInclude Include="..\include\cpplinq\cpplinq.hpp" />

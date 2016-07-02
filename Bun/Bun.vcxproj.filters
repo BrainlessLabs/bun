@@ -79,6 +79,12 @@
     <Filter Include="Header Files\egg_variant\variant\details\config">
       <UniqueIdentifier>{276a9338-d36b-4b61-9511-d2c289bdaff1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\blib\containers">
+      <UniqueIdentifier>{e2c452b2-486e-44db-806f-a6b43a215fc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\containers\tree">
+      <UniqueIdentifier>{43955acc-d625-4dc8-bc2d-ddcc2624a41b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -93,13 +99,16 @@
     <ClCompile Include="..\src\sqlite\sqlite3.c">
       <Filter>Source Files\sqlite</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\QueryExample.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Generate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\blib\utils\Singleton.hpp">
       <Filter>Header Files\blib\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\blib\bun\SqliteDb.hpp">
-      <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cpplinq\cpplinq.hpp">
       <Filter>Header Files\cpplinq</Filter>
@@ -364,6 +373,12 @@
     </ClInclude>
     <ClInclude Include="..\include\spdlog\details\spdlog_impl.h">
       <Filter>Header Files\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\bun\Bun.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\containers\tree\NTree.hpp">
+      <Filter>Header Files\blib\containers\tree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,12 +1,9 @@
-
-
 #pragma once
 
 #include <hdr/sqlite_modern_cpp.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/proto/proto.hpp>
 #include <fmt/format.hpp>
-#include <eggs/variant.hpp>
 #include <spdlog/spdlog.h>
 #include "blib/utils/Singleton.hpp"
 #include "blib/utils/MD5.hpp"
@@ -213,46 +210,44 @@ namespace blib {
       return cppTypeEnumToDbTypeString<CppTypeToDbType<T>::ret>();
     }
 
-    namespace _details {
-      template<typename T>
-      struct CanPersist : std::false_type {
+    template<typename T>
+    inline bool canPersist() {
+      return false;
+    }
 
-      };
+    template<>
+    inline bool canPersist<int>() {
+      return true;
+    }
 
-      template<>
-      struct CanPersist<int> : std::true_type {
+    template<>
+    inline bool canPersist<unsigned int>() {
+      return true;
+    }
 
-      };
+    template<>
+    inline bool canPersist<char>() {
+      return true;
+    }
 
-      template<>
-      struct CanPersist<unsigned int> : std::true_type {
+    template<>
+    inline bool canPersist<unsigned char>() {
+      return true;
+    }
 
-      };
+    template<>
+    inline bool canPersist<float>() {
+      return true;
+    }
 
-      template<>
-      struct CanPersist<char> : std::true_type {
+    template<>
+    inline bool canPersist<double>() {
+      return true;
+    }
 
-      };
-
-      template<>
-      struct CanPersist<unsigned char> : std::true_type {
-
-      };
-
-      template<>
-      struct CanPersist<float> : std::true_type {
-
-      };
-
-      template<>
-      struct CanPersist<double> : std::true_type {
-
-      };
-
-      template<>
-      struct CanPersist<std::string> : std::true_type {
-
-      };
+    template<>
+    inline bool canPersist<std::string>() {
+      return true;
     }
 
     template<typename T>
@@ -298,6 +293,10 @@ namespace blib {
 
     public:
       PRef() = default;
+      PRef( PRef const& in_other ) : oid( in_other.oid ) {
+        load( oid );
+      }
+
       PRef( PRef& in_other ) : oid( in_other.oid ), _flags( in_other._flags ), _md5( in_other._md5 ), _obj( in_other._obj.release() ) {
       }
 
@@ -454,25 +453,298 @@ namespace blib {
         in_val = "'" + in_val + "'";
         return in_val;
       }
-
-      /// Query implementation details
-      namespace _details {
-        /// Index to create variable
-        template<std::size_t I>
-        struct VariableIndex {
-          static const auto index = I;
-        };
-      }
-
-      template<typename T>
-      struct Query;
-
     }
 
     template<typename T>
     inline std::vector<PRef<T>> getAllObjects();
   }
 }
+
+///------------------------------------------------------------------------
+/// Bun Query Start
+namespace blib {
+  namespace bun {
+    namespace query {
+      namespace _details {
+        template<typename T>
+        inline std::vector<blib::bun::PRef<T>> getAllObjWithQuery( std::string const& in_query );
+
+        template<typename T>
+        inline std::string const& className();
+
+        template<std::int32_t I>
+        struct QueryVariablePlaceholderIndex : std::integral_constant <std::int32_t, I> {
+        };
+
+        // Grammar for the query Start
+        struct PlaceHoldersTerminals : boost::proto::or_ <
+          boost::proto::terminal<QueryVariablePlaceholderIndex<0>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<1>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<2>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<3>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<4>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<5>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<6>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<7>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<8>>,
+          boost::proto::or_<
+          boost::proto::terminal<QueryVariablePlaceholderIndex<9>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<10>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<11>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<12>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<13>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<14>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<15>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<16>>,
+          boost::proto::terminal<QueryVariablePlaceholderIndex<17>>
+          >
+        > {
+        };
+
+        struct QueryLiteralTerminals : boost::proto::or_<
+          boost::proto::terminal<boost::proto::convertible_to<int>>,
+          boost::proto::terminal<boost::proto::convertible_to<unsigned int>>,
+          boost::proto::terminal<boost::proto::convertible_to<char>>,
+          boost::proto::terminal<boost::proto::convertible_to<unsigned char>>,
+          boost::proto::terminal<boost::proto::convertible_to<float>>,
+          boost::proto::terminal<boost::proto::convertible_to<double>>,
+          boost::proto::terminal<boost::proto::convertible_to<bool>>,
+          boost::proto::terminal<boost::proto::convertible_to<std::string>>
+        > {
+        };
+
+        struct AllTerminals : boost::proto::or_<
+          PlaceHoldersTerminals,
+          QueryLiteralTerminals
+        > {
+        };
+
+        struct GreaterSymbols : boost::proto::or_<
+          boost::proto::greater<AllTerminals, AllTerminals>,
+          boost::proto::greater_equal<AllTerminals, AllTerminals>
+        > {
+        };
+
+        struct LessSymbols : boost::proto::or_<
+          boost::proto::less<AllTerminals, AllTerminals>,
+          boost::proto::less_equal<AllTerminals, AllTerminals>
+        > {
+        };
+
+        struct EqualSymbols : boost::proto::or_<
+          boost::proto::equal_to<AllTerminals, AllTerminals>,
+           boost::proto::not_equal_to<AllTerminals, AllTerminals>
+        > {
+        };
+
+        struct BunQueryGrammar : boost::proto::or_<
+          AllTerminals,
+          GreaterSymbols,
+          LessSymbols,
+          EqualSymbols,
+          boost::proto::logical_and<BunQueryGrammar, BunQueryGrammar>,
+          boost::proto::logical_or<BunQueryGrammar, BunQueryGrammar>
+        > {
+        };
+
+        // Grammar for the query End
+        template<typename T>
+        inline std::string const& mapping( const std::uint32_t in_index );
+        //{
+        //  static const std::vector<std::string> ret = { "name", "age", "height" };
+        //  return ret.at( in_index );
+        //}
+
+        template<typename T>
+        struct TypesUsed;
+        //boost::mpl::vector<decltype(test::Person::name), decltype(test::Person::age), decltype(test::Person::height)>;
+
+        template<typename T>
+        struct FromInternals {
+          using TypesUsed = typename TypesUsed<T>::Type;
+
+          struct BunQueryFilterContex : boost::proto::callable_context<BunQueryFilterContex> {
+            typedef std::string result_type;
+            BunQueryFilterContex() {}
+
+            template<typename T>
+            result_type operator ()( boost::proto::tag::terminal, T in_term ) const {
+              const auto ret = std::to_string( blib::bun::_details::_E(in_term) );
+              return ret;
+            }
+
+            result_type operator ()( boost::proto::tag::terminal, std::string& in_term ) const {
+              const auto ret = blib::bun::_details::_E(in_term);
+              return ret;
+            }
+
+            result_type operator ()( boost::proto::tag::terminal, char const* in_term ) const {
+              std::string str = std::string( in_term );
+              const auto ret = blib::bun::_details::_E(str);
+              return ret;
+            }
+
+            template<std::uint32_t I>
+            result_type operator()( boost::proto::tag::terminal, bun::query::_details::QueryVariablePlaceholderIndex<I> in_term ) const {
+              const auto ret = mapping<T>( I );
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::logical_and, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " AND ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::logical_or, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " OR ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::less, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " < ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::less_equal, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " <= ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::greater, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " > ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::greater_equal, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " >= ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::equal_to, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " == ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename L, typename R>
+            result_type operator()( boost::proto::tag::not_equal_to, L const& in_l, R const& in_r ) const {
+              static const std::string operator_name = " != ";
+              auto ctx = *this;
+              const auto left_string = boost::proto::eval( in_l, ctx );
+              const auto right_string = boost::proto::eval( in_r, ctx );
+              const std::string ret = left_string + operator_name + right_string;
+              return ret;
+            }
+
+            template<typename TerminalType, typename L, typename R>
+            result_type operator()( TerminalType, L const& in_l, R const& in_r ) const {
+              static_assert(false, "Operator not supported in Bun");
+              const std::string ret = "Operator not supported in Bun";
+              return ret;
+            }
+
+            template<typename TerminalType, typename L>
+            result_type operator()( TerminalType, L const& in_l ) const {
+              static_assert(false, "Operator not supported in Bun");
+              const std::string ret = "Operator not supported in Bun";
+              return ret;
+            }
+          };
+        };
+      }
+
+      // Fields for query
+      namespace {
+        template<typename T>
+        struct F;
+      }
+
+      template<typename T>
+      struct From {
+      private:
+        std::string _query;
+        decltype(_details::getAllObjWithQuery<T>( "" )) _objects;
+
+      private:
+        template<typename ExpressionType>
+        std::string eval( ExpressionType const& in_expr ) {
+          _details::FromInternals<T>::BunQueryFilterContex ctx;
+          const std::string ret = boost::proto::eval( in_expr, ctx );
+          return ret;
+        }
+
+        static std::string const& className() {
+          static const auto table_name = className<T>();
+          return table_name;
+        }
+
+      public:
+        From() = default;
+
+        From( From& in_other ) :_query( in_other._query ), _objects( in_other._objects ) {}
+
+        template<typename ExpressionType>
+        From& where( ExpressionType const& in_expr ) {
+          static_assert(boost::proto::matches<ExpressionType, _details::BunQueryGrammar>::value, "Syntax error in Bun Query");
+          const std::string query_string = eval( in_expr );
+          const std::string add_string = _query.empty() ? "" : " AND ";
+          _query += add_string + query_string;
+          return *this;
+        }
+
+        std::string const& query() const {
+          l().info() << _query;
+          return _query;
+        }
+
+        decltype(_objects)& objects() {
+          _objects = _details::getAllObjWithQuery<T>( _query );
+          return _objects;
+        }
+      };
+
+      template<typename ExpressionType>
+      struct IsValidQuery : std::integral_constant<bool, boost::proto::matches<ExpressionType, _details::BunQueryGrammar>::value> {
+      };
+    }
+  }
+}
+/// Bun Query End
+///------------------------------------------------------------------------
 
 ///----------------------------------------------------------------------------
 /// Basic Persistance Start
@@ -620,7 +892,7 @@ return ret;\
 
 #define GET_OBJ_NAME_GETALLOBJ(CLASS_ELEMS_TUP, n) BOOST_PP_TUPLE_ELEM(BOOST_PP_INC(n), CLASS_ELEMS_TUP)
 #define GET_OBJ_TYPE_GETALLOBJ(CLASS_ELEMS_TUP, n) BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_INC(n), CLASS_ELEMS_TUP)
-#define EXPAND_VARS_FOR_FUN_GETALLOBJ_I(z, n, CLASS_ELEMS_TUP) ,const _details::BoxingType<decltype(GET_OBJ_TYPE_GETALLOBJ(CLASS_ELEMS_TUP, n))>::type GET_OBJ_NAME_GETALLOBJ(CLASS_ELEMS_TUP, n)
+#define EXPAND_VARS_FOR_FUN_GETALLOBJ_I(z, n, CLASS_ELEMS_TUP) ,const blib::bun::_details::BoxingType<decltype(GET_OBJ_TYPE_GETALLOBJ(CLASS_ELEMS_TUP, n))>::type GET_OBJ_NAME_GETALLOBJ(CLASS_ELEMS_TUP, n)
 #define EXPAND_VARS_FOR_FUN_GETALLOBJ(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP)), EXPAND_VARS_FOR_FUN_GETALLOBJ_I, CLASS_ELEMS_TUP)
 
 #define EXPAND_OBJ_FOR_GETALLOBJ_I(z, n, CLASS_ELEMS_TUP) "," BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, CLASS_ELEMS_TUP))
@@ -636,7 +908,7 @@ l().info() << sql;\
 std::vector<PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> ret;\
 Db::i().db() << sql >> [&](const std::int64_t in_high, const std::int64_t in_low EXPAND_VARS_FOR_FUN_GETALLOBJ(CLASS_ELEMS_TUP)){\
 const SimpleOID oid(in_high, in_low);\
-std::unique_ptr<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> r( new BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP) );\
+auto r = std::make_unique<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>();\
 EXPAND_ASSIGN_VAR_GETALLOBJ(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
 ret.emplace_back(oid, r.release());\
 };\
@@ -646,20 +918,79 @@ return ret;\
 }
 
 // Tells that this class can be persisted.
-#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ namespace _details{ template<> struct CanPersist<CLASS_NAME> : std::true_type{};} } }
+#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> inline bool canPersist< CLASS_NAME >(){return true;} } }
 
 /// Basic Persistance End
 ///----------------------------------------------------------------------------
 
 ///----------------------------------------------------------------------------
-/// Query Start
-/// Query End
+/// Bun Query Preprocessor Start
+#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::_details::QueryVariablePlaceholderIndex<n>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
+#define DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), DEFINE_CLASS_STATIC_VARS_QUERY_I, CLASS_ELEMS_TUP)
+
+#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::_details::QueryVariablePlaceholderIndex<n>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
+#define GENERATE_CLASS_STATIC_VARS_QUERY(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), GENERATE_CLASS_STATIC_VARS_QUERY_I, ELEMS_TUP)
+
+#define GENERATE_TABLE_COLUMN_NAMES_QUERY_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n)BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
+#define GENERATE_TABLE_COLUMN_NAMES_QUERY(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), GENERATE_TABLE_COLUMN_NAMES_QUERY_I, ELEMS_TUP)
+
+#define REGISTER_QUERY_HANDLERS(CLASS_ELEMS_TUP) namespace blib { namespace bun { namespace query { namespace _details {\
+template<>\
+inline std::vector<blib::bun::PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> \
+getAllObjWithQuery<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>( std::string const& in_query ){\
+const static std::string class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+const static std::string sql = fmt::format(\
+"SELECT rowid, object_id " EXPAND_OBJ_FOR_GETALLOBJ(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) " FROM '{}' WHERE {}", class_name, in_query);\
+l().info() << sql;\
+std::vector<blib::bun::PRef<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>> ret;\
+Db::i().db() << sql >> [&](const std::int64_t in_high, const std::int64_t in_low EXPAND_VARS_FOR_FUN_GETALLOBJ(CLASS_ELEMS_TUP)){\
+const SimpleOID oid(in_high, in_low);\
+auto r = std::make_unique<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>();\
+EXPAND_ASSIGN_VAR_GETALLOBJ(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+ret.emplace_back(oid, r.release());\
+};\
+return std::move(ret);\
+}\
+\
+template<> inline std::string const& className<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>(){\
+static const std::string class_name = BOOST_PP_STRINGIZE( BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP ) ); \
+return class_name;\
+}\
+\
+template<> inline std::string const& mapping<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>( const std::uint32_t in_index ){\
+static const std::vector<std::string> class_fields = { GENERATE_TABLE_COLUMN_NAMES_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) };\
+return class_fields.at( in_index );\
+}\
+\
+template<>\
+struct TypesUsed<BOOST_PP_TUPLE_ELEM( 0, CLASS_ELEMS_TUP )> { \
+    typedef void Type;\
+};\
+\
+}\
+\
+\
+namespace {\
+template<>\
+struct F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> {\
+GENERATE_CLASS_STATIC_VARS_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
+};\
+\
+DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP)\
+\
+}\
+}\
+}\
+}
+
+/// Bun Query Preprocessor Query End
 ///----------------------------------------------------------------------------
 
-// Start doing of all the registrations
+// Starting doing of all the registrations
 #define GENERATE_BINDING(CLASS_ELEMS_TUP) \
 REGISTER_CAN_PERSIST(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)) \
 GENERATE_DB_HELPER(CLASS_ELEMS_TUP) \
 REGISTER_SCHEMA(CLASS_ELEMS_TUP) \
 REGISTER_GETALLOIDS(CLASS_ELEMS_TUP) \
-REGISTER_GETALLOBJECTS(CLASS_ELEMS_TUP)
+REGISTER_GETALLOBJECTS(CLASS_ELEMS_TUP) \
+REGISTER_QUERY_HANDLERS(CLASS_ELEMS_TUP)
