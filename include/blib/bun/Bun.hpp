@@ -1,5 +1,11 @@
 #pragma once
-
+/////////////////////////////////////////////////
+/// @file Bun.hpp
+/// @author BrainlessLabs
+/// @version 0.2
+/// @brief The include file for Bun ORM. This file includes all the source
+///        to make the class/struct persist in sqlite
+/////////////////////////////////////////////////
 #include <hdr/sqlite_modern_cpp.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/proto/proto.hpp>
@@ -19,6 +25,11 @@
 
 namespace blib {
   namespace bun {
+    /////////////////////////////////////////////////
+    /// @brief Returns the logger
+    ///        This will be logging to the logs. It uses spdlog to log to file
+    /// @return Returns the logger.
+    /////////////////////////////////////////////////
     inline spdlog::logger& l() {
       static const std::size_t q_size = 1048576; //queue size must be power of 2
       spdlog::set_async_mode( q_size );
@@ -26,6 +37,12 @@ namespace blib {
       return *ret;
     }
 
+    /////////////////////////////////////////////////
+    /// @class Db
+    /// @brief Database class. This is a singleton class.
+    ///        This class is the backend that does the persist job.
+    ///        This class should not be used directly.
+    /////////////////////////////////////////////////
     struct Db : public ::blib::Singleton<Db> {
       using DbConnectionType = sqlite::database;
       std::unique_ptr<DbConnectionType> _db;
@@ -250,6 +267,11 @@ namespace blib {
       return true;
     }
 
+    /////////////////////////////////////////////////
+    /// @class BunHelper
+    /// @brief Helper class for the persistent framework.
+    ///        This class is specialized to persist objects.
+    /////////////////////////////////////////////////
     template<typename T>
     struct BunHelper {
       inline static void createTable();
@@ -271,9 +293,10 @@ namespace blib {
     template<typename T>
     inline std::vector<SimpleOID> getAllOids();
 
-    // Query
-
-    // Persistance reference holder
+    /////////////////////////////////////////////////
+    /// @class PRef
+    /// @brief The persistent reference holder.
+    /////////////////////////////////////////////////
     template<typename T>
     class PRef {
     private:
@@ -443,7 +466,11 @@ namespace blib {
         using type = std::string;
       };
 
-      /// Method to put quote around strings. This is used for the formation of the Sql String
+      /////////////////////////////////////////////////
+      /// @fn _E
+      /// @brief Method to put quote around strings. This is used for the 
+      ///        formation of the Sql String.
+      /////////////////////////////////////////////////
       template<typename T>
       inline T _E( const T in_val ) {
         return in_val;
@@ -533,7 +560,7 @@ namespace blib {
 
         struct EqualSymbols : boost::proto::or_<
           boost::proto::equal_to<AllTerminals, AllTerminals>,
-           boost::proto::not_equal_to<AllTerminals, AllTerminals>
+          boost::proto::not_equal_to<AllTerminals, AllTerminals>
         > {
         };
 
@@ -569,18 +596,18 @@ namespace blib {
 
             template<typename T>
             result_type operator ()( boost::proto::tag::terminal, T in_term ) const {
-              const auto ret = std::to_string( blib::bun::_details::_E(in_term) );
+              const auto ret = std::to_string( blib::bun::_details::_E( in_term ) );
               return ret;
             }
 
             result_type operator ()( boost::proto::tag::terminal, std::string& in_term ) const {
-              const auto ret = blib::bun::_details::_E(in_term);
+              const auto ret = blib::bun::_details::_E( in_term );
               return ret;
             }
 
             result_type operator ()( boost::proto::tag::terminal, char const* in_term ) const {
               std::string str = std::string( in_term );
-              const auto ret = blib::bun::_details::_E(str);
+              const auto ret = blib::bun::_details::_E( str );
               return ret;
             }
 
@@ -693,6 +720,9 @@ namespace blib {
         struct F;
       }
 
+      /////////////////////////////////////////////////
+      /// ... text ...
+      /////////////////////////////////////////////////
       template<typename T>
       struct From {
       private:
