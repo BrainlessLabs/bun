@@ -36,31 +36,18 @@
 <h1>
 <a id="feature" class="anchor" href="#feature" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Feature</h1>
 
-<p>*Easy of Use
-*Object Persistence
-*EDSL Object Query Language
-*Compile time EDSL syntax check
-*Embedded Database</p>
+<ul>
+<li>Easy of Use</li>
+<li>Object Persistence</li>
+<li>EDSL Object Query Language</li>
+<li>Compile time EDSL syntax check</li>
+<li>Embedded Database</li>
+</ul>
 
 <h1>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h1>
 
 <div class="highlight highlight-source-c++"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>blib/bun/Bun.hpp<span class="pl-pds">"</span></span>
-
-<span class="pl-k">namespace</span> <span class="pl-en">test</span> {
-  <span class="pl-k">struct</span> <span class="pl-en">Test</span> {
-    <span class="pl-k">int</span> one;
-    <span class="pl-k">float</span> two;
-    std::string three;
-  };
-
-  <span class="pl-k">struct</span> <span class="pl-en">SomeOtherTest</span> {
-    <span class="pl-k">int</span> one;
-    <span class="pl-k">float</span> two;
-    std::string three;
-    <span class="pl-en">SomeOtherTest</span>() = <span class="pl-k">default</span>;
-  };
-}
 
 <span class="pl-k">namespace</span> <span class="pl-en">test</span> {
   <span class="pl-k">struct</span> <span class="pl-en">Person</span> {
