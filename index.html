@@ -50,6 +50,7 @@
 <div class="highlight highlight-source-c++"><pre>#<span class="pl-k">include</span> <span class="pl-s"><span class="pl-pds">"</span>blib/bun/Bun.hpp<span class="pl-pds">"</span></span>
 
 <span class="pl-k">namespace</span> <span class="pl-en">test</span> {
+  <span class="pl-c">// Class that needs to be persisted</span>
   <span class="pl-k">struct</span> <span class="pl-en">Person</span> {
     std::string name;
     <span class="pl-k">int</span> age;
@@ -57,20 +58,24 @@
   };
 }
 
+<span class="pl-c">/////////////////////////////////////////////////</span>
+<span class="pl-c">/// Generate the database bindings at compile time.</span>
+<span class="pl-c">/////////////////////////////////////////////////</span>
 <span class="pl-en">GENERATE_BINDING</span>( (test::Person, name, age, height) );
 
 <span class="pl-k">int</span> <span class="pl-en">main</span>() {
   <span class="pl-k">namespace</span> <span class="pl-en">bun</span> <span class="pl-k">=</span> blib::bun;
-  <span class="pl-k">namespace</span> <span class="pl-en">query</span> <span class="pl-k">=</span> blib::bun::query; 
+  <span class="pl-k">namespace</span> <span class="pl-en">query</span> <span class="pl-k">=</span> blib::bun::query;
+
   <span class="pl-c">// Connect the db. If the db is not there it will be created.</span>
   <span class="pl-c">// It should include the whole path</span>
   <span class="pl-c1">bun::dbConnect</span>( <span class="pl-s"><span class="pl-pds">"</span>test.db<span class="pl-pds">"</span></span> );
   <span class="pl-c">// Create the schema. We can create the schema multile times. If its already created</span>
   <span class="pl-c">// it will be safely ignored</span>
-  blib::bun::createSchema&lt;test::Person&gt;();
+  bun::createSchema&lt;test::Person&gt;();
 
   <span class="pl-c">// Creat some entries in the database</span>
-  <span class="pl-k">for</span> (<span class="pl-k">int</span> i = <span class="pl-c1">1</span>; i &lt; <span class="pl-c1">13</span>; ++i) {
+  <span class="pl-k">for</span> (<span class="pl-k">int</span> i = <span class="pl-c1">1</span>; i &lt; <span class="pl-c1">1000</span>; ++i) {
     <span class="pl-c">// PRef is a reference to the persistant object.</span>
     <span class="pl-c">// PRef keeps the ownership of the memory. Release the memory when it is destroyed.</span>
     <span class="pl-c">// Internally it holds the object in a unique_ptr</span>
@@ -89,36 +94,43 @@
   }
 
   <span class="pl-c">// To get all the object oids of a particular object.</span>
-  <span class="pl-c">// person_oids is a vector of type std::vector&lt;bun&lt;SimpleOID&lt;test::Person&gt;&gt;</span>
+  <span class="pl-c">// person_oids is a vector of type std::vector&lt;blib::bun&lt;&gt;SimpleOID&lt;test::Person&gt;&gt;</span>
   <span class="pl-k">const</span> <span class="pl-k">auto</span> person_oids = bun::getAllOids&lt;test::Person&gt;();
 
   <span class="pl-c">// To get the objects of a particular type</span>
-  <span class="pl-c">// std::vector&lt;bun::Pref&lt;test::Person&gt;&gt;</span>
+  <span class="pl-c">// std::vector&lt;blib::bun::Pref&lt;test::Person&gt;&gt;</span>
   <span class="pl-k">const</span> <span class="pl-k">auto</span> person_objs = bun::getAllObjects&lt;test::Person&gt;();
 
   <span class="pl-c">// EDSL QUERY LANGUAGE ----------------------</span>
   <span class="pl-c">// Powerful EDSL object query syntax that is checked for syntax at compile time.</span>
   <span class="pl-c">// The compilation fails at the compile time with a message "Syntax error in Bun Query"</span>
-  query::From&lt;test::Person&gt; FromPerson;
+  <span class="pl-k">using</span> PersonFields = query::F&lt;test::Person&gt;;
+  <span class="pl-k">using</span> FromPerson = query::From&lt;test::Person&gt;;
+  FromPerson fromPerson;
   <span class="pl-c">// Grammar are checked for validity of syntax at compile time itself.</span>
   <span class="pl-c">// Currently only &amp;&amp;, ||, &lt;, &lt;=, &gt;, &gt;=, ==, != are supported. They have their respective meaning</span>
   <span class="pl-c">// Below is a valid query grammar</span>
-  <span class="pl-k">auto</span> valid_query = query::F&lt;test::Person&gt;::age &gt; <span class="pl-c1">10</span> &amp;&amp; query::F&lt;test::Person&gt;::name != <span class="pl-s"><span class="pl-pds">"</span>Brainless_0<span class="pl-pds">"</span></span>;
+  <span class="pl-k">auto</span> valid_query = PersonFields::age &gt; <span class="pl-c1">10</span> &amp;&amp; PersonFields::name != <span class="pl-s"><span class="pl-pds">"</span>Brainless_0<span class="pl-pds">"</span></span>;
   std::cout &lt;&lt; <span class="pl-s"><span class="pl-pds">"</span>Valid Grammar?: <span class="pl-pds">"</span></span> &lt;&lt; query::IsValidQuery&lt;<span class="pl-c1">decltype</span>(valid_query)&gt;::value &lt;&lt; std::endl;
 
   <span class="pl-c">// Oops + is not a valid grammar</span>
-  <span class="pl-k">auto</span> invalid_query = query::F&lt;test::Person&gt;::age + <span class="pl-c1">10</span> &amp;&amp; query::F&lt;test::Person&gt;::name != <span class="pl-s"><span class="pl-pds">"</span>Brainless_0<span class="pl-pds">"</span></span>;
+  <span class="pl-k">auto</span> invalid_query = PersonFields::age + <span class="pl-c1">10</span> &amp;&amp; PersonFields::name != <span class="pl-s"><span class="pl-pds">"</span>Brainless_0<span class="pl-pds">"</span></span>;
   std::cout &lt;&lt; <span class="pl-s"><span class="pl-pds">"</span>Valid Grammar?: <span class="pl-pds">"</span></span> &lt;&lt; query::IsValidQuery&lt;<span class="pl-c1">decltype</span>(invalid_query)&gt;::value &lt;&lt; std::endl;
 
   <span class="pl-c">// Now let us execute the query.</span>
   <span class="pl-c">// The where function also checks for the validity of the query, and fails at compile time</span>
-  <span class="pl-k">const</span> <span class="pl-k">auto</span> objs = FromPerson.<span class="pl-c1">where</span>( valid_query ).<span class="pl-c1">objects</span>();
+  <span class="pl-k">const</span> <span class="pl-k">auto</span> objs = fromPerson.<span class="pl-c1">where</span>( valid_query ).<span class="pl-c1">where</span>( valid_query ).<span class="pl-c1">objects</span>();
+  <span class="pl-c">// Can even use following way of query</span>
+  <span class="pl-c">// As you see we can join queries </span>
+  <span class="pl-k">const</span> <span class="pl-k">auto</span> q = PersonFields::age == <span class="pl-c1">21</span> &amp;&amp; PersonFields::name == <span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>;
+  <span class="pl-k">const</span> <span class="pl-k">auto</span> objs_again = <span class="pl-c1">FromPerson</span>().<span class="pl-c1">where</span>( q ).<span class="pl-c1">objects</span>();
 
   <span class="pl-c">// Not going to compile if you enable the below line. Will get the "Syntax error in Bun Query" compile time message.</span>
   <span class="pl-c">//const auto objs1 = FromPerson.where( invalid_query ).objects();</span>
 
   <span class="pl-c">// Check the query generated. It does not give the sql query.</span>
-  std::cout &lt;&lt; FromPerson.<span class="pl-c1">query</span>() &lt;&lt; std::endl;
+  std::cout &lt;&lt; fromPerson.<span class="pl-c1">query</span>() &lt;&lt; std::endl;
+
   <span class="pl-k">return</span> <span class="pl-c1">0</span>;
 }</pre></div>
         </section>
