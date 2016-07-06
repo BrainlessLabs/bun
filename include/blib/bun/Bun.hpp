@@ -1,4 +1,5 @@
 #pragma once
+
 /////////////////////////////////////////////////
 /// @file Bun.hpp
 /// @author BrainlessLabs
@@ -33,7 +34,8 @@ namespace blib {
     inline spdlog::logger& l() {
       static const std::size_t q_size = 1048576; //queue size must be power of 2
       spdlog::set_async_mode( q_size );
-      static auto ret = spdlog::daily_logger_st( "async_file_logger", "query_log.txt" );
+      static auto ret = spdlog::daily_logger_st( "async_file_logger",
+                                                 "query_log.txt" );
       return *ret;
     }
 
@@ -296,6 +298,7 @@ namespace blib {
     /////////////////////////////////////////////////
     /// @class PRef
     /// @brief The persistent reference holder.
+    ///        This is the primary object holder.
     /////////////////////////////////////////////////
     template<typename T>
     class PRef {
