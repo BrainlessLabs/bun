@@ -84,9 +84,9 @@ int main() {
   const auto objs = fromPerson.where( valid_query ).where( valid_query ).objects();
   // Can even use following way of query
   // As you see we can join queries 
-  const auto q = PersonFields::age == 21 && PersonFields::name == "test";
+  const auto q = PersonFields::age > 21 && PersonFields::name == "test";
   const auto objs_again = FromPerson().where( q ).objects();
-
+  const auto objs_again_q = FromPerson().where( PersonFields::age > 21 && PersonFields::name == "test" ).objects();
   // Not going to compile if you enable the below line. Will get the "Syntax error in Bun Query" compile time message.
   //const auto objs1 = FromPerson.where( invalid_query ).objects();
 
