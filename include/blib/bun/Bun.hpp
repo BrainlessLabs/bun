@@ -7,18 +7,21 @@
 /// @brief The include file for Bun ORM. This file includes all the source
 ///        to make the class/struct persist in sqlite
 /////////////////////////////////////////////////
-#include <hdr/sqlite_modern_cpp.hpp>
-#include <boost/preprocessor.hpp>
-#include <boost/proto/proto.hpp>
-#include <fmt/format.hpp>
-#include <spdlog/spdlog.h>
 #include "blib/utils/Singleton.hpp"
 #include "blib/utils/MD5.hpp"
+#include "blib/utils/TypeUtils.hpp"
+#include "blib/bun/CppTypeToSQLString.hpp"
+#include "blib/bun/SimpleOID.hpp"
+#include <blib/hdr/sqlite_modern_cpp.hpp>
+#include <boost/preprocessor.hpp>
+#include <boost/proto/proto.hpp>
+#include <blib/fmt/format.hpp>
+#include <blib/spdlog/spdlog.h>
+#include <blib/rapidjson/rapidjson.h>
 #include <memory>
 #include <tuple>
 #include <bitset>
 #include <array>
-#include <chrono>
 #include <ratio>
 #include <stack>
 #include <vector>
@@ -35,7 +38,7 @@ namespace blib {
       static const std::size_t q_size = 1048576; //queue size must be power of 2
       spdlog::set_async_mode( q_size );
       static auto ret = spdlog::daily_logger_st( "async_file_logger",
-                                                 "query_log.txt" );
+        "query_log.txt" );
       return *ret;
     }
 
@@ -76,197 +79,6 @@ namespace blib {
 
     inline void dbConnect( std::string const& in_db ) {
       Db::i().connect( in_db );
-    }
-
-    struct SimpleOID {
-      typedef SimpleOID SelfType;
-      typedef std::array<std::uint8_t, 16> OidByteArrayType;
-      std::uint64_t high;
-      std::uint64_t low;
-
-      SimpleOID() = default;
-      SimpleOID( const std::uint64_t in_high ) :
-        high( in_high ),
-        low( 0 ) {
-        populateLow();
-      }
-
-      SimpleOID( const std::uint64_t in_high, const std::uint64_t in_low ) :
-        high( in_high ),
-        low( in_low ) {
-      }
-
-      void populateLow() {
-        const auto t = std::chrono::high_resolution_clock::now();
-        low = t.time_since_epoch().count();
-      }
-
-      void clear() {
-        high = 0;
-        low = 0;
-      }
-
-      SelfType& operator=( SelfType const& in_other ) {
-        high = in_other.high;
-        low = in_other.low;
-        return *this;
-      }
-
-      bool operator==( SelfType const& in_other ) const {
-        return high == in_other.high && low == in_other.low;
-      }
-
-      bool operator!=( SelfType const& in_other ) const {
-        return !operator==( in_other );
-      }
-
-      OidByteArrayType toByteArray() const {
-        union Convert {
-          std::uint64_t var;
-          std::uint8_t convert[8];
-        };
-        OidByteArrayType ret{ 0 };
-        const Convert hc = { high };
-        for (int i = 0; i < 8; ++i) {
-          ret[i] = hc.convert[i];
-        }
-
-        const Convert lc = { low };
-        for (int i = 0, j = 8; i < 8; ++i, ++j) {
-          ret[j] = lc.convert[i];
-        }
-
-        return ret;
-      }
-    };
-
-    enum class DbTypes : std::uint32_t {
-      kUnknown = 0,
-      kInteger,
-      kReal,
-      kNumeric,
-      kText
-    };
-
-    template<typename T>
-    struct CppTypeToDbType {
-      static const DbTypes ret = DbTypes::kUnknown;
-    };
-
-    template<>
-    struct CppTypeToDbType<int> {
-      static const DbTypes ret = DbTypes::kInteger;
-    };
-
-    template<>
-    struct CppTypeToDbType<unsigned int> {
-      static const DbTypes ret = DbTypes::kInteger;
-    };
-
-    template<>
-    struct CppTypeToDbType<char> {
-      static const DbTypes ret = DbTypes::kInteger;
-    };
-
-    template<>
-    struct CppTypeToDbType<unsigned char> {
-      static const DbTypes ret = DbTypes::kInteger;
-    };
-
-    template<>
-    struct CppTypeToDbType<float> {
-      static const DbTypes ret = DbTypes::kReal;
-    };
-
-    template<>
-    struct CppTypeToDbType<double> {
-      static const DbTypes ret = DbTypes::kReal;
-    };
-
-    template<>
-    struct CppTypeToDbType<std::string> {
-      static const DbTypes ret = DbTypes::kText;
-    };
-
-    template<>
-    struct CppTypeToDbType<std::wstring> {
-      static const DbTypes ret = DbTypes::kText;
-    };
-
-    // Convert cpp type to sqlite type
-    template<DbTypes N = DbTypes::kUnknown>
-    inline std::string const& cppTypeEnumToDbTypeString() {
-      const static std::string ret = "UNKNOWN";
-      return ret;
-    }
-
-    template<>
-    inline std::string const& cppTypeEnumToDbTypeString<DbTypes::kInteger>() {
-      const static std::string ret = "INTEGER";
-      return ret;
-    }
-
-    template<>
-    inline std::string const& cppTypeEnumToDbTypeString<DbTypes::kNumeric>() {
-      const static std::string ret = "NUMERIC";
-      return ret;
-    }
-
-    template<>
-    inline std::string const& cppTypeEnumToDbTypeString<DbTypes::kReal>() {
-      const static std::string ret = "REAL";
-      return ret;
-    }
-
-    template<>
-    inline std::string const& cppTypeEnumToDbTypeString<DbTypes::kText>() {
-      const static std::string ret = "TEXT";
-      return ret;
-    }
-
-    template<typename T>
-    inline std::string const& cppTypeToDbTypeString() {
-      return cppTypeEnumToDbTypeString<CppTypeToDbType<T>::ret>();
-    }
-
-    template<typename T>
-    inline bool canPersist() {
-      return false;
-    }
-
-    template<>
-    inline bool canPersist<int>() {
-      return true;
-    }
-
-    template<>
-    inline bool canPersist<unsigned int>() {
-      return true;
-    }
-
-    template<>
-    inline bool canPersist<char>() {
-      return true;
-    }
-
-    template<>
-    inline bool canPersist<unsigned char>() {
-      return true;
-    }
-
-    template<>
-    inline bool canPersist<float>() {
-      return true;
-    }
-
-    template<>
-    inline bool canPersist<double>() {
-      return true;
-    }
-
-    template<>
-    inline bool canPersist<std::string>() {
-      return true;
     }
 
     /////////////////////////////////////////////////
@@ -951,7 +763,7 @@ return ret;\
 }
 
 // Tells that this class can be persisted.
-#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> inline bool canPersist< CLASS_NAME >(){return true;} } }
+#define REGISTER_CAN_PERSIST(CLASS_NAME) namespace blib{namespace bun{ template<> struct IsPersistant<CLASS_NAME> : std::true_type {}; } }
 
 /// Basic Persistance End
 ///----------------------------------------------------------------------------

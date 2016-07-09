@@ -25,65 +25,50 @@
     <Filter Include="Header Files\blib\bun">
       <UniqueIdentifier>{3cb3e6ad-02ca-4e13-b3ff-6148e7b3a330}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\cpplinq">
-      <UniqueIdentifier>{07e4a44c-fa87-4f92-a36b-075a9aef9215}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\fmt">
-      <UniqueIdentifier>{2e76642a-7f8e-4685-9daa-204a6b86a52d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\hdr">
-      <UniqueIdentifier>{ead0ed82-be2c-4fee-9fb6-f2fdfa3b42f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\hdr\sqlite_modern_cpp">
-      <UniqueIdentifier>{f68d3805-b823-446d-ac10-0ca97bae95db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\hdr\sqlite_modern_cpp\utility">
-      <UniqueIdentifier>{8ede89b2-1845-4b22-804a-9f53ba530e12}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\hdr\sqlite_modern_cpp\extensions">
-      <UniqueIdentifier>{1abb2836-3bf0-416d-8de9-89f8800983e8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\rapidjson">
-      <UniqueIdentifier>{6e201290-13e7-41a1-a6e0-43e6b2c4b532}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\rapidjson\msinttypes">
-      <UniqueIdentifier>{9d888974-d7f1-4dcd-955a-c67ed70ff8a1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\rapidjson\internal">
-      <UniqueIdentifier>{12ec15b3-f24a-4350-b165-3809fedc37f3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\rapidjson\error">
-      <UniqueIdentifier>{e6cfc9d1-4a24-42c0-a1d0-4529cbd63871}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\spdlog">
-      <UniqueIdentifier>{f3597ef8-d744-453a-90fe-290627f6caa3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\spdlog\sinks">
-      <UniqueIdentifier>{85f6ed9c-6fdc-4c30-891a-d3177abf85e6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\spdlog\details">
-      <UniqueIdentifier>{cd204916-e738-46c0-8822-d63ea3125e73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\sqlite">
-      <UniqueIdentifier>{5b722a65-57af-4137-8e02-a98d281defd5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\egg_variant">
-      <UniqueIdentifier>{f51df1aa-acd0-4cc7-a6c2-606abcdc83c7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\egg_variant\variant">
-      <UniqueIdentifier>{4ef4a31a-22ef-4162-aeeb-2389f68a3046}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\egg_variant\variant\details">
-      <UniqueIdentifier>{b1f47684-f4c4-4bcc-a077-0a9cb95762cf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\egg_variant\variant\details\config">
-      <UniqueIdentifier>{276a9338-d36b-4b61-9511-d2c289bdaff1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\blib\containers">
       <UniqueIdentifier>{e2c452b2-486e-44db-806f-a6b43a215fc7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\blib\containers\tree">
       <UniqueIdentifier>{43955acc-d625-4dc8-bc2d-ddcc2624a41b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\fmt">
+      <UniqueIdentifier>{2e76642a-7f8e-4685-9daa-204a6b86a52d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\hdr">
+      <UniqueIdentifier>{ead0ed82-be2c-4fee-9fb6-f2fdfa3b42f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\hdr\sqlite_modern_cpp">
+      <UniqueIdentifier>{f68d3805-b823-446d-ac10-0ca97bae95db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\hdr\sqlite_modern_cpp\utility">
+      <UniqueIdentifier>{8ede89b2-1845-4b22-804a-9f53ba530e12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\hdr\sqlite_modern_cpp\extensions">
+      <UniqueIdentifier>{1abb2836-3bf0-416d-8de9-89f8800983e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\rapidjson">
+      <UniqueIdentifier>{6e201290-13e7-41a1-a6e0-43e6b2c4b532}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\rapidjson\msinttypes">
+      <UniqueIdentifier>{9d888974-d7f1-4dcd-955a-c67ed70ff8a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\rapidjson\internal">
+      <UniqueIdentifier>{12ec15b3-f24a-4350-b165-3809fedc37f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\rapidjson\error">
+      <UniqueIdentifier>{e6cfc9d1-4a24-42c0-a1d0-4529cbd63871}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\spdlog">
+      <UniqueIdentifier>{f3597ef8-d744-453a-90fe-290627f6caa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\spdlog\sinks">
+      <UniqueIdentifier>{85f6ed9c-6fdc-4c30-891a-d3177abf85e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\spdlog\details">
+      <UniqueIdentifier>{cd204916-e738-46c0-8822-d63ea3125e73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\blib\sqlite">
+      <UniqueIdentifier>{5b722a65-57af-4137-8e02-a98d281defd5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,275 +95,248 @@
     <ClInclude Include="..\include\blib\utils\Singleton.hpp">
       <Filter>Header Files\blib\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cpplinq\cpplinq.hpp">
-      <Filter>Header Files\cpplinq</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\fmt\format.hpp">
-      <Filter>Header Files\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\fmt\format_impl.hpp">
-      <Filter>Header Files\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\hdr\sqlite_modern_cpp.hpp">
-      <Filter>Header Files\hdr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\hdr\sqlite_modern_cpp\utility\function_traits.hpp">
-      <Filter>Header Files\hdr\sqlite_modern_cpp\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\hdr\sqlite_modern_cpp\extensions\boost_json_spirit.hpp">
-      <Filter>Header Files\hdr\sqlite_modern_cpp\extensions</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\hdr\sqlite_modern_cpp\extensions\boost_uuid.hpp">
-      <Filter>Header Files\hdr\sqlite_modern_cpp\extensions</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\hdr\sqlite_modern_cpp\extensions\std_time_t.hpp">
-      <Filter>Header Files\hdr\sqlite_modern_cpp\extensions</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\allocators.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\document.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\encodedstream.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\encodings.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\filereadstream.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\filewritestream.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\fwd.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\istreamwrapper.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\memorybuffer.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\memorystream.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\ostreamwrapper.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\pointer.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\prettywriter.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\rapidjson.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\reader.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\schema.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\stream.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\stringbuffer.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\writer.h">
-      <Filter>Header Files\rapidjson</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\msinttypes\inttypes.h">
-      <Filter>Header Files\rapidjson\msinttypes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\msinttypes\stdint.h">
-      <Filter>Header Files\rapidjson\msinttypes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\biginteger.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\diyfp.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\dtoa.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\ieee754.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\itoa.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\meta.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\pow10.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\regex.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\stack.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\strfunc.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\strtod.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\internal\swap.h">
-      <Filter>Header Files\rapidjson\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\error\en.h">
-      <Filter>Header Files\rapidjson\error</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\rapidjson\error\error.h">
-      <Filter>Header Files\rapidjson\error</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\async_logger.h">
-      <Filter>Header Files\spdlog</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\common.h">
-      <Filter>Header Files\spdlog</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\formatter.h">
-      <Filter>Header Files\spdlog</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\logger.h">
-      <Filter>Header Files\spdlog</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\spdlog.h">
-      <Filter>Header Files\spdlog</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\tweakme.h">
-      <Filter>Header Files\spdlog</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sqlite\sqlite3.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sqlite\sqlite3ext.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\blib\utils\MD5.hpp">
       <Filter>Header Files\blib\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant.hpp">
-      <Filter>Header Files\egg_variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\bad_variant_access.hpp">
-      <Filter>Header Files\egg_variant\variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\in_place.hpp">
-      <Filter>Header Files\egg_variant\variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\variant.hpp">
-      <Filter>Header Files\egg_variant\variant</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\apply.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\pack.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\storage.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\utility.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\visitor.hpp">
-      <Filter>Header Files\egg_variant\variant\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\config\prefix.hpp">
-      <Filter>Header Files\egg_variant\variant\details\config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\eggs\variant\detail\config\suffix.hpp">
-      <Filter>Header Files\egg_variant\variant\details\config</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\android_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\ansicolor_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\base_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\dist_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\file_sinks.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\msvc_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\null_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\ostream_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\stdout_sinks.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\sinks\syslog_sink.h">
-      <Filter>Header Files\spdlog\sinks</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\async_log_helper.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\async_logger_impl.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\file_helper.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\format_i.hpp">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\line_logger_fwd.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\line_logger_impl.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\log_msg.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\logger_impl.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\mpmc_bounded_q.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\null_mutex.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\os.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\pattern_formatter_impl.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\registry.h">
-      <Filter>Header Files\spdlog\details</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\spdlog\details\spdlog_impl.h">
-      <Filter>Header Files\spdlog\details</Filter>
     </ClInclude>
     <ClInclude Include="..\include\blib\bun\Bun.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
     <ClInclude Include="..\include\blib\containers\tree\NTree.hpp">
       <Filter>Header Files\blib\containers\tree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\utils\TypeUtils.hpp">
+      <Filter>Header Files\blib\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\bun\CppTypeToSQLString.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\fmt\format.hpp">
+      <Filter>Header Files\blib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\fmt\format_impl.hpp">
+      <Filter>Header Files\blib\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\hdr\sqlite_modern_cpp.hpp">
+      <Filter>Header Files\blib\hdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\hdr\sqlite_modern_cpp\extensions\std_time_t.hpp">
+      <Filter>Header Files\blib\hdr\sqlite_modern_cpp\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\hdr\sqlite_modern_cpp\extensions\boost_json_spirit.hpp">
+      <Filter>Header Files\blib\hdr\sqlite_modern_cpp\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\hdr\sqlite_modern_cpp\extensions\boost_uuid.hpp">
+      <Filter>Header Files\blib\hdr\sqlite_modern_cpp\extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\hdr\sqlite_modern_cpp\utility\function_traits.hpp">
+      <Filter>Header Files\blib\hdr\sqlite_modern_cpp\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\allocators.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\document.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\encodedstream.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\encodings.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\filereadstream.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\filewritestream.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\fwd.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\istreamwrapper.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\memorybuffer.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\memorystream.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\ostreamwrapper.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\pointer.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\prettywriter.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\rapidjson.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\reader.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\schema.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\stream.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\stringbuffer.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\writer.h">
+      <Filter>Header Files\blib\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\error\en.h">
+      <Filter>Header Files\blib\rapidjson\error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\error\error.h">
+      <Filter>Header Files\blib\rapidjson\error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\biginteger.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\diyfp.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\dtoa.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\ieee754.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\itoa.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\meta.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\pow10.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\regex.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\stack.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\strfunc.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\strtod.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\internal\swap.h">
+      <Filter>Header Files\blib\rapidjson\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\msinttypes\inttypes.h">
+      <Filter>Header Files\blib\rapidjson\msinttypes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\rapidjson\msinttypes\stdint.h">
+      <Filter>Header Files\blib\rapidjson\msinttypes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\async_logger.h">
+      <Filter>Header Files\blib\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\common.h">
+      <Filter>Header Files\blib\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\formatter.h">
+      <Filter>Header Files\blib\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\logger.h">
+      <Filter>Header Files\blib\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\spdlog.h">
+      <Filter>Header Files\blib\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\tweakme.h">
+      <Filter>Header Files\blib\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\async_log_helper.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\async_logger_impl.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\file_helper.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\format_i.hpp">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\line_logger_fwd.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\line_logger_impl.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\log_msg.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\logger_impl.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\mpmc_bounded_q.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\null_mutex.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\os.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\pattern_formatter_impl.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\registry.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\details\spdlog_impl.h">
+      <Filter>Header Files\blib\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\android_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\ansicolor_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\base_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\dist_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\file_sinks.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\msvc_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\null_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\ostream_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\stdout_sinks.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\spdlog\sinks\syslog_sink.h">
+      <Filter>Header Files\blib\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\sqlite\sqlite3.h">
+      <Filter>Header Files\blib\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\sqlite\sqlite3ext.h">
+      <Filter>Header Files\blib\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\bun\SimpleOID.hpp">
+      <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
