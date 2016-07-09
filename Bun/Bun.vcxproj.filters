@@ -338,5 +338,17 @@
     <ClInclude Include="..\include\blib\bun\SimpleOID.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\blib\bun\Query.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\bun\PRef.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\bun\DbBackend.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\blib\bun\DbLogger.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
