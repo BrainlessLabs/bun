@@ -1,0 +1,10 @@
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////
+/// @file Bun.hpp
+/// @author BrainlessLabs
+/// @version 0.3
+/// @brief The include file for Bun ORM. This file includes all the source
+///        to make the class/struct persist in sqlite. Users need to include
+///        only this file.
+///////////////////////////////////////////////////////////////////////////////
