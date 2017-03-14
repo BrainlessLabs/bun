@@ -7,13 +7,13 @@
 //
 // base sink templated over a mutex (either dummy or realy)
 // concrete implementation should only overrid the _sink_it method.
-// all locking is taken care of here so no locking needed by the implementors..
+// all locking is taken care of here so no locking needed by the implementers..
 //
 
-#include <blib/spdlog/sinks/sink.h>
-#include <blib/spdlog/formatter.h>
-#include <blib/spdlog/common.h>
-#include <blib/spdlog/details/log_msg.h>
+#include <spdlog/sinks/sink.h>
+#include <spdlog/formatter.h>
+#include <spdlog/common.h>
+#include <spdlog/details/log_msg.h>
 
 #include <mutex>
 

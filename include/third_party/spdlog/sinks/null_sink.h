@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <blib/spdlog/sinks/base_sink.h>
-#include <blib/spdlog/details/null_mutex.h>
+#include <spdlog/sinks/base_sink.h>
+#include <spdlog/details/null_mutex.h>
 
 #include <mutex>
 
@@ -27,7 +27,7 @@ protected:
 
 };
 typedef null_sink<details::null_mutex> null_sink_st;
-typedef null_sink<std::mutex> null_sink_mt;
+typedef null_sink<details::null_mutex> null_sink_mt;
 
 }
 }

@@ -22,6 +22,11 @@ RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(effc++)
 #endif
 
+#if defined(__clang__)
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(c++98-compat)
+#endif
+
 RAPIDJSON_NAMESPACE_BEGIN
 
 //! Combination of PrettyWriter format flags.
@@ -57,6 +62,11 @@ public:
     explicit PrettyWriter(StackAllocator* allocator = 0, size_t levelDepth = Base::kDefaultLevelDepth) : 
         Base(allocator, levelDepth), indentChar_(' '), indentCharCount_(4) {}
 
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+    PrettyWriter(PrettyWriter&& rhs) :
+        Base(std::forward<PrettyWriter>(rhs)), indentChar_(rhs.indentChar_), indentCharCount_(rhs.indentCharCount_), formatOptions_(rhs.formatOptions_) {}
+#endif
+
     //! Set custom indentation.
     /*! \param indentChar       Character for indentation. Must be whitespace character (' ', '\\t', '\\n', '\\r').
         \param indentCharCount  Number of indent characters for each indentation level.
@@ -91,12 +101,15 @@ public:
     bool Double(double d)       { PrettyPrefix(kNumberType); return Base::WriteDouble(d); }
 
     bool RawNumber(const Ch* str, SizeType length, bool copy = false) {
+        RAPIDJSON_ASSERT(str != 0);
         (void)copy;
         PrettyPrefix(kNumberType);
         return Base::WriteString(str, length);
     }
 
-    bool String(const Ch* str, SizeType length, bool copy = false) {
+	template <typename T>
+    RAPIDJSON_ENABLEIF_RETURN((internal::IsSame<Ch, T>), (bool)) String(const T* str, SizeType length, bool copy = false) {
+        RAPIDJSON_ASSERT(str != 0);
         (void)copy;
         PrettyPrefix(kStringType);
         return Base::WriteString(str, length);
@@ -114,12 +127,21 @@ public:
         return Base::WriteStartObject();
     }
 
-    bool Key(const Ch* str, SizeType length, bool copy = false) { return String(str, length, copy); }
+    template <typename T>
+    RAPIDJSON_ENABLEIF_RETURN((internal::IsSame<Ch, T>), (bool)) Key(const T* str, SizeType length, bool copy = false) { return String(str, length, copy); }
+
+#if RAPIDJSON_HAS_STDSTRING
+    bool Key(const std::basic_string<Ch>& str) {
+        return Key(str.data(), SizeType(str.size()));
+    }
+#endif
 	
     bool EndObject(SizeType memberCount = 0) {
         (void)memberCount;
-        RAPIDJSON_ASSERT(Base::level_stack_.GetSize() >= sizeof(typename Base::Level));
-        RAPIDJSON_ASSERT(!Base::level_stack_.template Top<typename Base::Level>()->inArray);
+        RAPIDJSON_ASSERT(Base::level_stack_.GetSize() >= sizeof(typename Base::Level)); // not inside an Object
+        RAPIDJSON_ASSERT(!Base::level_stack_.template Top<typename Base::Level>()->inArray); // currently inside an Array, not Object
+        RAPIDJSON_ASSERT(0 == Base::level_stack_.template Top<typename Base::Level>()->valueCount % 2); // Object has a Key without a Value
+       
         bool empty = Base::level_stack_.template Pop<typename Base::Level>(1)->valueCount == 0;
 
         if (!empty) {
@@ -164,8 +186,22 @@ public:
     //@{
 
     //! Simpler but slower overload.
-    bool String(const Ch* str) { return String(str, internal::StrLen(str)); }
-    bool Key(const Ch* str) { return Key(str, internal::StrLen(str)); }
+    template <typename T>
+    RAPIDJSON_ENABLEIF_RETURN((internal::IsSame<Ch, T>), (bool)) String(const T* const& str) { return String(str, internal::StrLen(str)); }
+    template <typename T>
+    RAPIDJSON_ENABLEIF_RETURN((internal::IsSame<Ch, T>), (bool)) Key(const T* const& str) { return Key(str, internal::StrLen(str)); }
+    
+    //! The compiler can give us the length of quoted strings for free.
+    template <typename T, size_t N>
+    RAPIDJSON_ENABLEIF_RETURN((internal::IsSame<Ch, T>), (bool)) String(const T (&str)[N]) {
+        RAPIDJSON_ASSERT(str[N-1] == '\0'); // you must pass in a null-terminated string (quoted constant strings are always null-terminated)
+        return String(str, N-1);
+    }
+    template <typename T, size_t N>
+    RAPIDJSON_ENABLEIF_RETURN((internal::IsSame<Ch, T>), (bool)) Key(const T (&str)[N]) {
+        RAPIDJSON_ASSERT(str[N-1] == '\0'); // you must pass in a null-terminated string (quoted constant strings are always null-terminated)
+        return Key(str, N-1);
+    }
 
     //@}
 
@@ -178,7 +214,11 @@ public:
         \param type Type of the root of json.
         \note When using PrettyWriter::RawValue(), the result json may not be indented correctly.
     */
-    bool RawValue(const Ch* json, size_t length, Type type) { PrettyPrefix(type); return Base::WriteRawValue(json, length); }
+    bool RawValue(const Ch* json, size_t length, Type type) {
+        RAPIDJSON_ASSERT(json != 0);
+        PrettyPrefix(type);
+        return Base::WriteRawValue(json, length);
+    }
 
 protected:
     void PrettyPrefix(Type type) {
@@ -227,7 +267,7 @@ protected:
 
     void WriteIndent()  {
         size_t count = (Base::level_stack_.GetSize() / sizeof(typename Base::Level)) * indentCharCount_;
-        PutN(*Base::os_, static_cast<typename TargetEncoding::Ch>(indentChar_), count);
+        PutN(*Base::os_, static_cast<typename OutputStream::Ch>(indentChar_), count);
     }
 
     Ch indentChar_;
@@ -241,6 +281,10 @@ private:
 };
 
 RAPIDJSON_NAMESPACE_END
+
+#if defined(__clang__)
+RAPIDJSON_DIAG_POP
+#endif
 
 #ifdef __GNUC__
 RAPIDJSON_DIAG_POP

@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <blib/spdlog/details/null_mutex.h>
-#include <blib/spdlog/sinks/base_sink.h>
+#include <spdlog/details/null_mutex.h>
+#include <spdlog/sinks/base_sink.h>
 
 #include <ostream>
 #include <mutex>
