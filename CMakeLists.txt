@@ -30,8 +30,12 @@ include_directories($ENV{SOCI_INCLUDE})
 
 link_directories($ENV{LIB_DIR})
 
-message(Print Dir:)
-add_library(libsoci_sqlite3.a STATIC IMPORTED)
+message("Print Dir : " $ENV{LIB_DIR})
+add_library(libsoci_sqlite3 STATIC IMPORTED)
+add_library(libsoci_core STATIC IMPORTED)
 
+#set(LIBS ${LIBS} $ENV{LIB_DIR})
+#find_library (SOCI_LIB NAME libsoci_sqlite3 HINTS $ENV{LIB_DIR})
+message("Lib = $ENV{LD_LIBRARY_PATH}")
 add_executable(bun ${SOURCE_FILES})
-target_link_libraries(bun libsoci_sqlite3)
+target_link_libraries(bun $ENV{LIB_DIR}/libsoci_sqlite3.a $ENV{LIB_DIR}/libsoci_core.a)

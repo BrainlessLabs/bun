@@ -7,6 +7,7 @@
 /// @brief The include file for Bun ORM. This file includes all the source
 ///        to make the class/struct persist in sqlite
 /////////////////////////////////////////////////
+
 #include "blib/utils/Singleton.hpp"
 #include "blib/utils/MD5.hpp"
 #include "blib/utils/TypeUtils.hpp"
