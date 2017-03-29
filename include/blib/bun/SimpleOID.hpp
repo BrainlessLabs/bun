@@ -96,18 +96,22 @@ namespace blib {
             /// @brief Convert the OID to byte array and then return.
             ///        The byte representation is not stored, so every time
             ///        this function is called this will generate again.
-            /// @return OidByteArrayType 26 Byte representation of the OID
+            /// @return OidByteArrayType 16 Byte representation of the OID
             OidByteArrayType toByteArray() const {
+                /// @class Convert
+                /// @brief Union to convert a uint64 into 8 uint8 bytes
                 union Convert {
                     std::uint64_t var;
                     std::uint8_t convert[8];
                 };
                 OidByteArrayType ret{0};
+                // Convert the high value
                 const Convert hc = {high};
                 for (int i = 0; i < 8; ++i) {
                     ret[i] = hc.convert[i];
                 }
 
+                // Convert the low value and append
                 const Convert lc = {low};
                 for (int i = 0, j = 8; i < 8; ++i, ++j) {
                     ret[j] = lc.convert[i];

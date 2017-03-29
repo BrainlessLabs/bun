@@ -28,7 +28,7 @@ int main() {
   // it will be safely ignored
   bun::createSchema<test::Person>();
 
-  // Creat some entries in the database
+  // Create some entries in the database
   for (int i = 1; i < 1000; ++i) {
     // PRef is a reference to the persistant object.
     // PRef keeps the ownership of the memory. Release the memory when it is destroyed.

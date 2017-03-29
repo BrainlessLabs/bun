@@ -19,9 +19,9 @@ set(SOURCE_FILES
         include/blib/utils/TypeUtils.hpp
         include/blib/bun/PRef.hpp
         include/blib/bun/BunHelper.hpp
-        include/blib/bun/DBBackend.hpp)
+        include/blib/bun/DbBackend.hpp)
 
-#include_directories(include)
+include_directories(include)
 include_directories($ENV{BOOST_HEADER})
 include_directories($ENV{BLIB_HEADER})
 include_directories($ENV{THIRD_PARTY_HEADER})
