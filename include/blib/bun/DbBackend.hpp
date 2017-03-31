@@ -47,8 +47,7 @@ namespace blib {
 namespace blib {
     namespace bun {
         namespace _private {
-            ///
-
+            /// @brief This is the backend class for sqlite that will create the connections.
             template<>
             class DbBackend<DbTypeSqlite> : blib::Singleton<DbBackend<DbTypeSqlite>> {
             public:

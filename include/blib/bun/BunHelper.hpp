@@ -10,6 +10,7 @@
 #include "blib/bun/SimpleOID.hpp"
 #include <string>
 #include <memory>
+#include "blib/utils/MD5.hpp"
 
 namespace blib{
     namespace bun{
