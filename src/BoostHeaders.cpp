@@ -5,6 +5,9 @@
 #include "blib/utils/MD5.hpp"
 #include <soci/soci.h>
 #include <sqlite3/soci-sqlite3.h>
+#include <boost/preprocessor.hpp>
+#include <third_party/fmt/format.hpp>
+#include "blib/bun/DbLogger.hpp"
 
 using namespace soci;
 using namespace std;
@@ -20,7 +23,9 @@ int main(){
         cerr << "Error: "<<e.what() << "\n";
     }
 
-    std::cout << "Ending Program"<< std::endl;
+    auto t = BOOST_PP_TUPLE_ELEM(5, (1,2,3,4,5,6));
+    std::cout << "Ending Program: "<<t<< std::endl;
+    blib::bun::l().info("test");
 
     return 1;
 }

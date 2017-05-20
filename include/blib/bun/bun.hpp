@@ -10,32 +10,56 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <string>
 #include <boost/preprocessor.hpp>
+#include <third_party/fmt/format.hpp>
 #include "blib/bun/BunHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
+/// @details We will be using the Bun class for all the examples
+///          struct Bun {
+///            std::string bun_name,
+///            float sugar_quantity;
+///            float flour_quantity;
+///            float milk_quantity;
+///            float yeast_quantity;
+///            float butter_quantity;
+///            int bun_length;
+///          };
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @basic Create schema
-/// @details Create the schema is essentially creating a table.
-///          For each class there will be a different schema that will be created.
-
+///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros Start
+///////////////////////////////////////////////////////////////////////////////
 
+/// @brief createSchema Helper Macros
+/// @details We need to pass only the data members as a tuple to this macro
+/// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
+#define EXPAND_CLASS_MEMBERS_createSchemaI(z, n, ELEMS_TUP) BOOST_PP_COMMA()BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)
+#define EXPAND_CLASS_MEMBERS_createSchema(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_MEMBERS_createSchemaI, ELEMS_TUP)
+
+///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros End
+///////////////////////////////////////////////////////////////////////////////
 /// SPECIALIZE_BUN_HELPER Start
-
 #define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
 template<>\
-struct BunHelper<BOOST_PP_TUPLE_ELEM()>{\
+struct BunHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
+inline static void createSchema(){\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+static std::string const query = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTEGER PRIMARY KEY, oid_low INTEGER NOT NULL"\
+BOOST_PP_STRINGIZE(EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )))\
+ ")"\
+static std::string const sql = fmt::format(query);\
+l().info(sql)\
+}\
 };\
 }\
 }\
 
-SPECIALIZE_BUN_HELPER(())
+SPECIALIZE_BUN_HELPER((1));
 /// SPECIALIZE_BUN_HELPER End
 
 

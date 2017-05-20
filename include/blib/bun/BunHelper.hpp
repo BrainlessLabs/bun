@@ -21,7 +21,8 @@ namespace blib{
         /////////////////////////////////////////////////
         template<typename T>
         struct BunHelper {
-            inline static void createTable();
+            inline static void createSchema();
+            inline static void deleteSchema();
             inline static SimpleOID persistObj( T* );
             inline static void updateObj( T*, SimpleOID const& );
             inline static void deleteObj( SimpleOID const& );
