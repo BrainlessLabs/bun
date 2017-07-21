@@ -30,7 +30,7 @@ include_directories($ENV{SOCI_INCLUDE})
 
 link_directories($ENV{LIB_DIR})
 
-message("Print Dir : " $ENV{LIB_DIR})
+message("Print Dir: " $ENV{LIB_DIR})
 add_library(libsoci_sqlite3 STATIC IMPORTED)
 add_library(libsoci_core STATIC IMPORTED)
 
