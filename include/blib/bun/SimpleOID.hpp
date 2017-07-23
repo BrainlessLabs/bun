@@ -58,7 +58,16 @@ namespace blib {
             ///        Uses the std::crono for getting the time.
             void populateLow() {
                 const auto t = std::chrono::high_resolution_clock::now();
-                low = t.time_since_epoch().count();
+                low = static_cast<std::uint64_t>(t.time_since_epoch().count());
+            }
+
+            /// @fn populateAll
+            /// @brief Get the current time and populate high and low both.
+            ///        Uses the std::crono for getting the time.
+            void populateAll() {
+                const auto t = std::chrono::high_resolution_clock::now();
+                low = static_cast<std::uint64_t>(t.time_since_epoch().count());
+                high = static_cast<std::uint64_t>(t.time_since_epoch().count());
             }
 
             /// @fn clear

@@ -8,9 +8,22 @@
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/DbLogger.hpp"
+#include "blib/bun/bun.hpp"
 
 using namespace soci;
 using namespace std;
+
+struct Bun {
+  std::string bun_name,
+  float sugar_quantity;
+  float flour_quantity;
+  float milk_quantity;
+  float yeast_quantity;
+  float butter_quantity;
+  int bun_length;
+};
+
+SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
 
 int main(){
     try{
@@ -24,7 +37,7 @@ int main(){
     }
 
     auto t = BOOST_PP_TUPLE_ELEM(5, (1,2,3,4,5,6));
-    std::cout << "Ending Program: "<<t<< std::endl;
+    std::cout << "Tuple Out: "<<t<< std::endl;
     blib::bun::l().info("test");
 
     return 1;

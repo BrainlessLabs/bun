@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.6)
 project(bun)
 
 set(CMAKE_CXX_STANDARD 11)
-
+set(CMAKE_VERBOSE_MAKEFILE ON)
+SET(CMAKE_CXX_FLAGS_DISTRIBUTION "-E")
+SET(CMAKE_C_FLAGS_DISTRIBUTION "-E")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -E")
 set(SOURCE_FILES
         src/sqlite/sqlite3.c
         src/BoostHeaders.cpp
@@ -35,7 +38,7 @@ add_library(libsoci_sqlite3 STATIC IMPORTED)
 add_library(libsoci_core STATIC IMPORTED)
 
 #set(LIBS ${LIBS} $ENV{LIB_DIR})
-#find_library (SOCI_LIB NAME libsoci_sqlite3 HINTS $ENV{LIB_DIR})
+find_library (SOCI_LIB NAME libsoci_sqlite3 HINTS $ENV{LIB_DIR})
 message("Lib = $ENV{LD_LIBRARY_PATH}")
 add_executable(bun ${SOURCE_FILES})
 target_link_libraries(bun $ENV{LIB_DIR}/libsoci_sqlite3.a $ENV{LIB_DIR}/libsoci_core.a)
