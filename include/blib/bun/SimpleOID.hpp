@@ -35,6 +35,8 @@ namespace blib {
 
             SimpleOID() = default;
 
+            ~SimpleOID() = default;
+
             /// @fn SimpleOID
             /// @brief Populates the low automatically. high should be passed
             /// @param in_high Pass the param to put it into high
