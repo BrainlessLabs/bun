@@ -119,9 +119,15 @@ static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, 
 static std::string const query = "UPDATE {} SET " \
 EXPAND_BRACES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 " WHERE oid_low={} AND oid_high={}";\
-static std::string const sql = fmt::format(query, class_name \
+std::string const sql = fmt::format(query, class_name \
 EXPAND_VARIABLES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 ,oid.low, oid.high);\
+}\
+inline static void deleteObj( SimpleOID const& oid ){\
+BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
+std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 }\
 };\
 }\
