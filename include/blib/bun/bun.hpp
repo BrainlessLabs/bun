@@ -9,6 +9,7 @@
 ///        only this file.
 ///////////////////////////////////////////////////////////////////////////////
 #include <string>
+#include <memory>
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/BunHelper.hpp"
@@ -66,6 +67,10 @@
 #define EXPAND_VARIABLES_updateObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA()BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))BOOST_PP_COMMA()obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)
 #define EXPAND_VARIABLES_updateObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_updateObj_I, ELEMS_TUP)
 
+/// @brief getObj Helper Macros
+/// @brief getObj will get a autoptr to
+
+/// @brief Assorted Helper Macros
 /// @brief Create n number of string
 #define Repeat_N_String_With_Precomma_I(z, n, text)  BOOST_PP_IDENTITY(",")() BOOST_STRINGIZE(text)
 #define Repeat_N_String_With_Precomma(n, text) BOOST_PP_REPEAT(n, Repeat_N_String_With_Precomma_I, text)
@@ -128,6 +133,15 @@ BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
+}\
+inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
+BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+static std::string const query = "SELECT "\
+EXPAND_QUERY_VARIABLES_getObj()\
+" FROM {} WHERE oid_high={} AND oid_low={}";\
+std::unique_ptr<T> obj = std::make_unique<T>();;\
+return obj.release();\
 }\
 };\
 }\
