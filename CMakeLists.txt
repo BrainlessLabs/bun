@@ -22,7 +22,7 @@ set(SOURCE_FILES
         include/blib/utils/TypeUtils.hpp
         include/blib/bun/PRef.hpp
         include/blib/bun/BunHelper.hpp
-        include/blib/bun/DbBackend.hpp)
+        include/blib/bun/DbBackend.hpp include/blib/bun/SqliteBackend.hpp)
 
 include_directories(include)
 include_directories($ENV{BOOST_HEADER})

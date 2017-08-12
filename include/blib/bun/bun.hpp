@@ -94,12 +94,15 @@ EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
  ")";\
 static std::string const sql = fmt::format(query, class_name, EXPAND_CLASS_TYPE_MEMBERS_createSchema(CLASS_ELEMS_TUP));\
 l().info(sql);\
+blib::bun::_private::DbBackend().i().session() << sql;\
 }\
 \
 inline static void deleteSchema(){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteSchema for deleting the schema of an object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const sql = fmt::format("DROP TABLE '{}'", class_name);\
+l().info(sql);\
+blib::bun::_private::DbBackend().i().session() << sql;\
 }\
 \
 inline static SimpleOID persistObj( T* obj ){\
@@ -116,6 +119,7 @@ Repeat_N_String_With_Precomma(BOOST_PP_TUPLE_SIZE(BOOST_PP_TUPLE_POP_FRONT( CLAS
 std::string const sql = fmt::format(query, class_name, oid.low,\
 EXPAND_VARIABLES_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
+l().info(sql);\
 return oid;\
 }\
 inline static void updateObj( T* obj, SimpleOID const& oid ){\
@@ -141,7 +145,7 @@ static std::string const query = "SELECT "\
 EXPAND_QUERY_VARIABLES_getObj()\
 " FROM {} WHERE oid_high={} AND oid_low={}";\
 std::unique_ptr<T> obj = std::make_unique<T>();;\
-return obj.release();\
+return std::move(obj);\
 }\
 };\
 }\

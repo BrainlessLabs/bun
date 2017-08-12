@@ -8,13 +8,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <soci.h>
 #include "blib/utils/Singleton.hpp"
+#include "blib/bun/DbLogger.hpp"
+#include <memory>
 
 #define BUN_SQLITE
+
 #ifdef BUN_SQLITE
-
 #include <sqlite3/soci-sqlite3.h>
-
+#elif BUN_POSTGRES
+#include <postgresql/soci-postgresql.h>
+#elif BUN_MYSQL
+#include <mysql/soci-mysql.h>
 #endif
+
 
 namespace blib {
     namespace bun {
@@ -29,53 +35,40 @@ namespace blib {
             };
 
             template<typename T>
-            class DbBackend {
-                bool ok();
-
-                bool connect(const std::string const &in_params);
-
-                soci::session &session();
-            };
-        }
-    }
-}
-
-#ifdef BUN_SQLITE
-
-#include <sqlite3/soci-sqlite3.h>
-
-namespace blib {
-    namespace bun {
-        namespace _private {
-            /// @brief This is the backend class for sqlite that will create the connections.
-            template<>
-            class DbBackend<DbTypeSqlite> : blib::Singleton<DbBackend<DbTypeSqlite>> {
-            public:
-                soci::session session;
-
+            class DbBackend : blib::Singleton<DbBackend<T>>{
             private:
                 bool _ok;
+                soci::session _sql_session;
 
-            private:
-                DbBackend() : _ok(false) {
-                }
+                DbBackend() = default;
 
             public:
-                bool open(const std::string const &in_params) {
-                    try {
-                        session.open(soci::sqlite3, in_params);
-                        _ok = true;
-                    } catch (std::exception const &except) {
-                        _ok = false;
-                    }
+                bool ok() const{
                     return _ok;
                 }
 
-                bool ok() const {
-                    return _ok;
+                bool connect(const std::string const &in_params){
+                    const soci::backend_factory backend_factory =
+#ifdef BUN_SQLITE
+                    soci::sqlite3;
+#elif BUN_POSTGRES
+                    soci::postgresql;
+#elif BUN_MYSQL
+                    soci::mysql;
+#endif
+                    try{
+                        _sql_session.open(backend_factory, in_params);
+                        _ok = true;
+                    }
+                    catch (std::exception const &except){
+                        _ok = false;
+                    }
+                }
+
+                soci::session &session(){
+                    return _sql_session;
                 }
             };
         }
     }
 }
-#endif
