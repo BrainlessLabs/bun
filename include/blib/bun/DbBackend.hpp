@@ -47,7 +47,7 @@ namespace blib {
                     return _ok;
                 }
 
-                bool connect(const std::string const &in_params){
+                bool connect(std::string const &in_params){
                     const soci::backend_factory backend_factory =
 #ifdef BUN_SQLITE
                     soci::sqlite3;

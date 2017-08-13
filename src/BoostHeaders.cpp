@@ -15,31 +15,31 @@ using namespace soci;
 using namespace std;
 
 struct Bun {
-  std::string bun_name,
-  float sugar_quantity;
-  float flour_quantity;
-  float milk_quantity;
-  float yeast_quantity;
-  float butter_quantity;
-  int bun_length;
+	std::string bun_name;
+	float sugar_quantity;
+	float flour_quantity;
+	float milk_quantity;
+	float yeast_quantity;
+	float butter_quantity;
+	int bun_length;
 };
 
 SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
 
-int main(){
-    try{
-        session sql(sqlite3, "database_filename");
-        connection_parameters c;
-        int count;
-        sql << "select * from sqlite_master";
-    }
-    catch(exception const & e){
-        cerr << "Error: "<<e.what() << "\n";
-    }
+int main1() {
+	try {
+		session sql(sqlite3, "database_filename");
+		connection_parameters c;
+		int count;
+		sql << "select * from sqlite_master";
+	}
+	catch (exception const & e) {
+		cerr << "Error: " << e.what() << "\n";
+	}
 
-    auto t = BOOST_PP_TUPLE_ELEM(5, (1,2,3,4,5,6));
-    std::cout << "Tuple Out: "<<t<< std::endl;
-    blib::bun::l().info("test");
+	auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
+	std::cout << "Tuple Out: " << t << std::endl;
+	blib::bun::l().info("test");
 
-    return 1;
+	return 1;
 }

@@ -149,9 +149,6 @@
     <ClCompile Include="..\..\src\BoostHeaders.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreprocessToFile>
     </ClCompile>
-    <ClCompile Include="..\..\src\Bun.cpp" />
-    <ClCompile Include="..\..\src\Generate.cpp" />
-    <ClCompile Include="..\..\src\QueryExample.cpp" />
     <ClCompile Include="bun.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +162,9 @@
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />
     <ClInclude Include="..\..\include\blib\utils\Singleton.hpp" />
     <ClInclude Include="..\..\include\blib\utils\TypeUtils.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
