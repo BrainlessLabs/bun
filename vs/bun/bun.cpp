@@ -28,11 +28,12 @@ struct Bun {
 	int bun_length;
 };
 
-SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
+//SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
 
-int main1() {
+int main() {
 	try {
-		session sql(sqlite3, "database_filename");
+		session sql(sqlite3, "database_filename.db");
+		blib::bun::_private::DbBackend().i().connect("");
 		connection_parameters c;
 		int count;
 		sql << "select * from sqlite_master";

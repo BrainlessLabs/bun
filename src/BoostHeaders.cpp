@@ -24,7 +24,7 @@ struct Bun {
 	int bun_length;
 };
 
-SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
+//SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
 
 int main1() {
 	try {

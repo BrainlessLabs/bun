@@ -111,15 +111,19 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\code\bun\include;C:\code\bun\include\third_party;C:\code\boost_1_64_0;C:\code\soci-master\install\include\;C:\code\sqlite-amalgamation-3200000</AdditionalIncludeDirectories>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\code\soci-master\install\lib;C:\code\sqlite-amalgamation-3200000;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sqlite.lib;libsoci_core_4_0.lib;libsoci_sqlite3_4_0.lib;libsoci_empty_4_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -148,6 +152,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\BoostHeaders.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreprocessToFile>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="bun.cpp" />
   </ItemGroup>
