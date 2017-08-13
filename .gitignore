@@ -29,3 +29,7 @@
 /cmake-build-debug/
 /.idea/*
 .DS_Store
+*.suo
+*.db
+.vs
+x64

@@ -4,7 +4,8 @@
 #include <boost/proto/proto.hpp>
 #include "blib/utils/MD5.hpp"
 #include <soci/soci.h>
-#include <sqlite3/soci-sqlite3.h>
+#include <string>
+#include <soci/sqlite3/soci-sqlite3.h>
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/DbLogger.hpp"

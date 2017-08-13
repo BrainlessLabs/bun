@@ -6,7 +6,7 @@
 /// @version 0.3
 /// @brief Implements the database backend.
 ///////////////////////////////////////////////////////////////////////////////
-#include <soci.h>
+#include <soci/soci.h>
 #include "blib/utils/Singleton.hpp"
 #include "blib/bun/DbLogger.hpp"
 #include <memory>
@@ -14,11 +14,11 @@
 #define BUN_SQLITE
 
 #ifdef BUN_SQLITE
-#include <sqlite3/soci-sqlite3.h>
+#include <soci/sqlite3/soci-sqlite3.h>
 #elif BUN_POSTGRES
-#include <postgresql/soci-postgresql.h>
+#include <soci/postgresql/soci-postgresql.h>
 #elif BUN_MYSQL
-#include <mysql/soci-mysql.h>
+#include <soci/mysql/soci-mysql.h>
 #endif
 
 

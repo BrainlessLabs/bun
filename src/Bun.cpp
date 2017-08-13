@@ -17,7 +17,7 @@ namespace test {
 /////////////////////////////////////////////////
 GENERATE_BINDING( (test::Person, name, age, height) );
 
-int main() {
+int main1() {
   namespace bun = blib::bun;
   namespace query = blib::bun::query;
 
