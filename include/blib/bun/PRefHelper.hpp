@@ -1,26 +1,26 @@
 #pragma once
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @file BunHelper.hpp
+/// @file PRefHelper.hpp
 /// @author BrainlessLabs
 /// @version 0.3
-/// @brief Some helper function definitions for Bun.
+/// @brief Some helper function definitions for PRef
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "blib/bun/SimpleOID.hpp"
+#include "blib/utils/MD5.hpp"
 #include <string>
 #include <memory>
-#include "blib/utils/MD5.hpp"
 
 namespace blib{
     namespace bun{
         /////////////////////////////////////////////////
-        /// @class BunHelper
+        /// @class PRefHelper
         /// @brief Helper class for the persistent framework.
         ///        This class is specialized to persist objects.
         /////////////////////////////////////////////////
         template<typename T>
-        struct BunHelper {
+        struct PRefHelper {
             inline static void createSchema();
             inline static void deleteSchema();
             inline static SimpleOID persistObj( T* );

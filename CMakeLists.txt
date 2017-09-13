@@ -21,8 +21,9 @@ set(SOURCE_FILES
         include/blib/utils/Singleton.hpp
         include/blib/utils/TypeUtils.hpp
         include/blib/bun/PRef.hpp
-        include/blib/bun/BunHelper.hpp
-        include/blib/bun/DbBackend.hpp include/blib/bun/SqliteBackend.hpp)
+        include/blib/bun/PRefHelper.hpp
+        include/blib/bun/DbBackend.hpp
+        include/blib/bun/SqliteBackend.hpp)
 
 include_directories(include)
 include_directories($ENV{BOOST_HEADER})
@@ -35,7 +36,7 @@ link_directories($ENV{LIB_DIR})
 
 message("Print Dir: " $ENV{LIB_DIR})
 add_library(libsoci_sqlite3 STATIC IMPORTED)
-add_library(libsoci_core STATIC IMPORTED)
+add_library(libsoci_core STATIC IMPORTED include/blib/bun/QueryHelper.hpp)
 
 #set(LIBS ${LIBS} $ENV{LIB_DIR})
 find_library (SOCI_LIB NAME libsoci_sqlite3 HINTS $ENV{LIB_DIR})

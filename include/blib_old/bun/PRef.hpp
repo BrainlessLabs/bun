@@ -2,6 +2,7 @@
 
 #include "blib/bun/SimpleOID.hpp"
 #include "blib/utils/MD5.hpp"
+#include "blib/bun/PRefHelper.hpp"
 #include <cstdint>
 #include <cstddef>
 #include <memory>
@@ -76,7 +77,7 @@ namespace blib {
       }
 
       bool dirty() {
-        const auto md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
+        const auto md5 = PRefHelper<ObjType>::md5( _obj.get(), oid );
         if (md5 != _md5) {
           _flags[static_cast<std::uint8_t>(FlagsE::kDirty)] = 1;
         }
@@ -86,12 +87,12 @@ namespace blib {
 
       OidType persist() {
         if (_md5.empty()) {
-          oid = BunHelper<ObjType>::persistObj( _obj.get() );
+          oid = PRefHelper<ObjType>::persistObj( _obj.get() );
         }
         else {
-          BunHelper<ObjType>::updateObj( _obj.get(), oid );
+          PRefHelper<ObjType>::updateObj( _obj.get(), oid );
         }
-        _md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
+        _md5 = PRefHelper<ObjType>::md5( _obj.get(), oid );
         _flags.reset();
         return oid;
       }
@@ -101,7 +102,7 @@ namespace blib {
       }
 
       void del() {
-        BunHelper<ObjType>::deleteObj( oid );
+        PRefHelper<ObjType>::deleteObj( oid );
         _md5.clear();
         oid.clear();
         _flags.reset();
@@ -132,8 +133,8 @@ namespace blib {
     private:
       void load( OidType const& in_oid ) {
         oid = in_oid;
-        _obj = BunHelper<ObjType>::getObj( oid );
-        _md5 = BunHelper<ObjType>::md5( _obj.get(), oid );
+        _obj = PRefHelper<ObjType>::getObj( oid );
+        _md5 = PRefHelper<ObjType>::md5( _obj.get(), oid );
         _flags.reset();
       }
 

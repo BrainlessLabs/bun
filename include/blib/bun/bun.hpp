@@ -12,7 +12,7 @@
 #include <memory>
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
-#include "blib/bun/BunHelper.hpp"
+#include "blib/bun/PRefHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
@@ -83,7 +83,7 @@
 /// SPECIALIZE_BUN_HELPER Start
 #define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
 template<>\
-struct BunHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+struct PRefHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 \
 inline static void createSchema(){\
@@ -144,6 +144,7 @@ static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, 
 static std::string const query = "SELECT "\
 EXPAND_QUERY_VARIABLES_getObj()\
 " FROM {} WHERE oid_high={} AND oid_low={}";\
+std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 std::unique_ptr<T> obj = std::make_unique<T>();;\
 return std::move(obj);\
 }\
