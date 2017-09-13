@@ -14,7 +14,9 @@
 #define BUN_SQLITE
 
 #ifdef BUN_SQLITE
+
 #include <soci/sqlite3/soci-sqlite3.h>
+
 #elif BUN_POSTGRES
 #include <soci/postgresql/soci-postgresql.h>
 #elif BUN_MYSQL
@@ -35,7 +37,7 @@ namespace blib {
             };
 
             template<typename T>
-            class DbBackend : blib::Singleton<DbBackend<T>>{
+            class DbBackend : blib::Singleton<DbBackend<T>> {
             private:
                 bool _ok;
                 soci::session _sql_session;
@@ -43,11 +45,11 @@ namespace blib {
                 DbBackend() = default;
 
             public:
-                bool ok() const{
+                bool ok() const {
                     return _ok;
                 }
 
-                bool connect(std::string const &in_params){
+                bool connect(std::string const &in_params) {
                     const soci::backend_factory backend_factory =
 #ifdef BUN_SQLITE
                     soci::sqlite3;
@@ -56,16 +58,16 @@ namespace blib {
 #elif BUN_MYSQL
                     soci::mysql;
 #endif
-                    try{
+                    try {
                         _sql_session.open(backend_factory, in_params);
                         _ok = true;
                     }
-                    catch (std::exception const &except){
+                    catch (std::exception const &except) {
                         _ok = false;
                     }
                 }
 
-                soci::session &session(){
+                soci::session &session() {
                     return _sql_session;
                 }
             };

@@ -81,7 +81,8 @@
 /// Helper Macros End
 ///////////////////////////////////////////////////////////////////////////////
 /// SPECIALIZE_BUN_HELPER Start
-#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
+#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{namespace __private{\
+BLIB_MACRO_COMMENTS_IF("@brief --Specialization for PRefHelper Start---");\
 template<>\
 struct PRefHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
@@ -131,12 +132,14 @@ EXPAND_BRACES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 std::string const sql = fmt::format(query, class_name \
 EXPAND_VARIABLES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 ,oid.low, oid.high);\
+l().info(sql);\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
+l().info(sql);\
 }\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
@@ -145,10 +148,22 @@ static std::string const query = "SELECT "\
 EXPAND_QUERY_VARIABLES_getObj()\
 " FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
+l().info(sql);\
 std::unique_ptr<T> obj = std::make_unique<T>();;\
 return std::move(obj);\
 }\
 };\
+BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for PRefHelper End---");\
+BLIB_MACRO_COMMENTS_IF("@brief ---===---");\
+BLIB_MACRO_COMMENTS_IF("@brief --Specialization for QueryHelper Start---");\
+template<>\
+struct QueryHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
+inline static std::vector <SimpleOID> getAllOids(){\
+}\
+};\
+BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
+}\
 }\
 }\
 
