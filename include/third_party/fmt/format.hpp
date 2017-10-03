@@ -3824,7 +3824,7 @@ namespace fmt {
 
 #ifdef FMT_HEADER_ONLY
 # define FMT_FUNC inline
-# include "format_impl.hpp"
+# include "fmt/format_impl.hpp"
 #else
 # define FMT_FUNC
 #endif

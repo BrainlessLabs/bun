@@ -11,7 +11,7 @@ For the license information refer to format.h.
 #define FMT_OSTREAM_H_
 
 // commented out by spdlog
-// #include "format.h"
+#include "fmt/format.hpp"
 #include <ostream>
 
 namespace fmt

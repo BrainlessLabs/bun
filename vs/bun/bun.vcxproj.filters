@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="..\..\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bun.cpp">
@@ -99,13 +100,13 @@
     <ClCompile Include="..\..\src\sqlite\sqlite3.c">
       <Filter>Source Files\sqlite</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Bun.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Generate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\QueryExample.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Bun.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -338,12 +339,6 @@
     <ClInclude Include="..\..\include\third_party\spdlog\fmt\ostr.h">
       <Filter>Header Files\third_party\spdlog\fmt</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\format.hpp">
-      <Filter>Header Files\third_party\spdlog\fmt\bundled</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\format_impl.hpp">
-      <Filter>Header Files\third_party\spdlog\fmt\bundled</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\ostream.h">
       <Filter>Header Files\third_party\spdlog\fmt\bundled</Filter>
     </ClInclude>
@@ -410,5 +405,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />
+    <None Include="..\..\LICENSE" />
+    <None Include="..\..\README.md" />
   </ItemGroup>
 </Project>
