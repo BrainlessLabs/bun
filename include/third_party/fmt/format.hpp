@@ -57,7 +57,7 @@ typedef __int64          intmax_t;
 #else
 #include <stdint.h>
 #endif
-#define FMT_HEADER_ONLY
+// #define FMT_HEADER_ONLY
 #if !defined(FMT_HEADER_ONLY) && defined(_WIN32)
 # ifdef FMT_EXPORT
 #  define FMT_API __declspec(dllexport)

@@ -26,7 +26,7 @@ struct Bun {
 
 //SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
 
-int main1() {
+int main() {
 	try {
 		session sql(sqlite3, "database_filename");
 		connection_parameters c;
