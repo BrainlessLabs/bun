@@ -135,7 +135,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\code\bun\include;C:\code\bun\include\third_party;C:\code\boost_1_64_0;C:\code\soci-master\install\include\;C:\code\sqlite-amalgamation-3200000</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\code\bun\include;C:\code\bun\include\third_party;C:\code\boost_1_64_0;C:\code\soci-master\install\include\</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -150,23 +150,117 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\include\third_party\spdlog\fmt\bundled\ostream.cc" />
     <ClCompile Include="..\..\src\BoostHeaders.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreprocessToFile>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\Bun.cpp" />
+    <ClCompile Include="..\..\src\Generate.cpp" />
+    <ClCompile Include="..\..\src\QueryExample.cpp" />
+    <ClCompile Include="..\..\src\sqlite\sqlite3.c" />
     <ClCompile Include="bun.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\blib\bun\bun.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\BunHelper.hpp" />
     <ClInclude Include="..\..\include\blib\bun\CppTypeToSQLString.hpp" />
     <ClInclude Include="..\..\include\blib\bun\DbBackend.hpp" />
     <ClInclude Include="..\..\include\blib\bun\DbLogger.hpp" />
     <ClInclude Include="..\..\include\blib\bun\PRef.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\PRefHelper.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\QueryHelper.hpp" />
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />
     <ClInclude Include="..\..\include\blib\utils\Singleton.hpp" />
     <ClInclude Include="..\..\include\blib\utils\TypeUtils.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\Bun.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\CppTypeToSQLString.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\DbBackend.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\DbLogger.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\PRef.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\Query.hpp" />
+    <ClInclude Include="..\..\include\blib_old\bun\SimpleOID.hpp" />
+    <ClInclude Include="..\..\include\blib_old\containers\tree\NTree.hpp" />
+    <ClInclude Include="..\..\include\blib_old\utils\MD5.hpp" />
+    <ClInclude Include="..\..\include\blib_old\utils\Singleton.hpp" />
+    <ClInclude Include="..\..\include\blib_old\utils\TypeUtils.hpp" />
+    <ClInclude Include="..\..\include\third_party\fmt\format.hpp" />
+    <ClInclude Include="..\..\include\third_party\fmt\format_impl.hpp" />
+    <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp.hpp" />
+    <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\boost_json_spirit.hpp" />
+    <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\boost_uuid.hpp" />
+    <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\std_time_t.hpp" />
+    <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\utility\function_traits.hpp" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\allocators.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\document.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\encodedstream.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\encodings.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\error\en.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\error\error.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\filereadstream.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\filewritestream.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\fwd.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\itoa.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\meta.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\pow10.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\regex.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\stack.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\strtod.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\internal\swap.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\memorybuffer.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\memorystream.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\msinttypes\stdint.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\pointer.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\prettywriter.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\rapidjson.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\reader.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\schema.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\stream.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\stringbuffer.h" />
+    <ClInclude Include="..\..\include\third_party\rapidjson\writer.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\async_logger.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\common.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\async_logger_impl.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\async_log_helper.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\file_helper.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\logger_impl.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\log_msg.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\mpmc_bounded_q.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\null_mutex.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\os.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\pattern_formatter_impl.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\registry.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\details\spdlog_impl.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\format.hpp" />
+    <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\format_impl.hpp" />
+    <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\ostream.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\printf.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\fmt\fmt.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\fmt\ostr.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\formatter.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\logger.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\android_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\ansicolor_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\base_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\dist_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\file_sinks.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\msvc_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\null_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\ostream_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\stdout_sinks.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\syslog_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\sinks\wincolor_sink.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\spdlog.h" />
+    <ClInclude Include="..\..\include\third_party\spdlog\tweakme.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />
