@@ -24,13 +24,13 @@ struct Bun {
 	int bun_length;
 };
 
-//SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
+SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
 
 int main() {
 	try {
 		session sql(sqlite3, "database_filename");
 		connection_parameters c;
-		int count;
+		int count = 0;
 		sql << "select * from sqlite_master";
 	}
 	catch (exception const & e) {

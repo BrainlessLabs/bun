@@ -36,6 +36,11 @@
 /// Helper Macros Start
 ///////////////////////////////////////////////////////////////////////////////
 
+/// @brief Make this 0 if no log is needed, else make it 1
+#define QUERY_LOG_ON 1
+/// @brief Log the query
+#define QUERY_LOG(log_string) BOOST_PP_EXPR_IF(QUERY_LOG_ON, l().info(log_string))
+
 /// @brief createSchema Helper Macros
 /// @details We need to pass only the data members as a tuple to this macro
 /// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
@@ -94,7 +99,7 @@ static std::string const query = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTE
 EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
  ")";\
 static std::string const sql = fmt::format(query, class_name, EXPAND_CLASS_TYPE_MEMBERS_createSchema(CLASS_ELEMS_TUP));\
-l().info(sql);\
+QUERY_LOG(sql);\
 blib::bun::_private::DbBackend().i().session() << sql;\
 }\
 \
@@ -102,7 +107,7 @@ inline static void deleteSchema(){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteSchema for deleting the schema of an object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const sql = fmt::format("DROP TABLE '{}'", class_name);\
-l().info(sql);\
+QUERY_LOG(sql);\
 blib::bun::_private::DbBackend().i().session() << sql;\
 }\
 \
@@ -120,7 +125,7 @@ Repeat_N_String_With_Precomma(BOOST_PP_TUPLE_SIZE(BOOST_PP_TUPLE_POP_FRONT( CLAS
 std::string const sql = fmt::format(query, class_name, oid.low,\
 EXPAND_VARIABLES_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
-l().info(sql);\
+QUERY_LOG(sql);\
 return oid;\
 }\
 inline static void updateObj( T* obj, SimpleOID const& oid ){\
@@ -132,14 +137,14 @@ EXPAND_BRACES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 std::string const sql = fmt::format(query, class_name \
 EXPAND_VARIABLES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 ,oid.low, oid.high);\
-l().info(sql);\
+QUERY_LOG(sql);\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
-l().info(sql);\
+QUERY_LOG(sql);\
 }\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
@@ -148,7 +153,7 @@ static std::string const query = "SELECT "\
 EXPAND_QUERY_VARIABLES_getObj()\
 " FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
-l().info(sql);\
+QUERY_LOG(sql);\
 std::unique_ptr<T> obj = std::make_unique<T>();;\
 return std::move(obj);\
 }\
