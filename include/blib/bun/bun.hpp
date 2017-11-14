@@ -149,12 +149,12 @@ QUERY_LOG(sql);\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+std::unique_ptr<T> obj = std::make_unique<T>();\
 static std::string const query = "SELECT "\
 EXPAND_QUERY_VARIABLES_getObj()\
 " FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
-std::unique_ptr<T> obj = std::make_unique<T>();;\
 return std::move(obj);\
 }\
 };\
