@@ -73,7 +73,7 @@
 #define EXPAND_VARIABLES_updateObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_updateObj_I, ELEMS_TUP)
 
 /// @brief getObj Helper Macros
-/// @brief getObj will get a autoptr to
+/// @brief getObj will get a autoptr to 
 
 /// @brief Assorted Helper Macros
 /// @brief Create n number of string
