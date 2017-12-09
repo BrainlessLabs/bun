@@ -41,6 +41,12 @@
 /// @brief Log the query
 #define QUERY_LOG(log_string) BOOST_PP_EXPR_IF(QUERY_LOG_ON, l().info(log_string))
 
+/// @brief SOCI ORM Helper Macros
+/// @details from_base
+/// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
+#define EXPAND_MEMBER_ASSIGNENTS_from_base_I(z, n, ELEMS_TUP) c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP) = v.get<decltype(c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))>(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)));
+#define EXPAND_MEMBER_ASSIGNENTS_from_base(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_MEMBER_ASSIGNENTS_from_base_I, ELEMS_TUP)
+
 /// @brief createSchema Helper Macros
 /// @details We need to pass only the data members as a tuple to this macro
 /// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
@@ -85,8 +91,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros End
 ///////////////////////////////////////////////////////////////////////////////
+
 /// SPECIALIZE_BUN_HELPER Start
-#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{namespace __private{\
+#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace soci{\
+BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
+template<>\
+struct type_conversion<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+typedef values base_type;\
+using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
+static void from_base(values const& v, indicator ind, ClassType& c){\
+BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
+EXPAND_MEMBER_ASSIGNENTS_from_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+}\
+};\
+BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM End---");\
+}\
+namespace blib{namespace bun{namespace __private{\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for PRefHelper Start---");\
 template<>\
 struct PRefHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
