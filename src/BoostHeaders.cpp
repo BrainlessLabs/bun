@@ -14,17 +14,19 @@
 using namespace soci;
 using namespace std;
 
-struct Bun {
-	std::string bun_name;
-	float sugar_quantity;
-	float flour_quantity;
-	float milk_quantity;
-	float yeast_quantity;
-	float butter_quantity;
-	int bun_length;
-};
+namespace backery {
+	struct Bun {
+		std::string bun_name;
+		float sugar_quantity;
+		float flour_quantity;
+		float milk_quantity;
+		float yeast_quantity;
+		float butter_quantity;
+		int bun_length;
+	};
+}
 
-SPECIALIZE_BUN_HELPER((Bun, bun_name, sugar_quantity));
+SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity));
 
 int main() {
 	try {
