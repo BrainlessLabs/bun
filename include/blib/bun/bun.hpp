@@ -109,10 +109,10 @@ BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
 EXPAND_MEMBER_ASSIGNENTS_from_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
 }\
 static void to_base(const ClassType& c, values& v, indicator& ind){\
-EXPAND_MEMBER_ASSIGNENTS_to_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));
+BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db");\
+EXPAND_MEMBER_ASSIGNENTS_to_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
 }\
 };\
-BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM End---");\
 }\
 namespace blib{namespace bun{namespace __private{\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for PRefHelper Start---");\
