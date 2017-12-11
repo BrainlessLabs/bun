@@ -11,6 +11,7 @@
 #include <string>
 #include <memory>
 #include <boost/preprocessor.hpp>
+#include "blib/bun/PRef.hpp"
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/PRefHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
