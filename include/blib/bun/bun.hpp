@@ -91,7 +91,9 @@
 #define Repeat_N_String_With_Precomma_I(z, n, text)  BOOST_PP_IDENTITY(",")() BOOST_STRINGIZE(text)
 #define Repeat_N_String_With_Precomma(n, text) BOOST_PP_REPEAT(n, Repeat_N_String_With_Precomma_I, text)
 
-#define BLIB_MACRO_COMMENTS_IF(a) BOOST_PP_EXPR_IF(1, a)
+/// @brief Macro to output comments
+#define BLIB_MACRO_COMMENTS_ENABLED 1
+#define BLIB_MACRO_COMMENTS_IF(a) BOOST_PP_EXPR_IF(BLIB_MACRO_COMMENTS_ENABLED, a)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros End
