@@ -46,8 +46,6 @@ namespace blib {
                 bool _ok;
                 soci::session _sql_session;
 
-                DbBackend() = default;
-
             public:
                 bool ok() const {
                     return _ok;
