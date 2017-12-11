@@ -198,11 +198,11 @@ BLIB_MACRO_COMMENTS_IF("@brief --Specialization for QueryHelper Start---");\
 template<>\
 struct QueryHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
-inline static std::vector <SimpleOID> getAllOids(){\
+inline static std::vector<SimpleOID> getAllOids(){\
 BLIB_MACRO_COMMENTS_IF("@brief getAllOids for getting all oids of the persistant objects for this class.");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 }\
-inline static std::vector <PRef<T>> getAllObjects(){\
+inline static std::vector<PRef<T>> getAllObjects(){\
 BLIB_MACRO_COMMENTS_IF("@brief getAllObjects for getting all objects of the persistant objects for this class.");\
 }\
 };\
