@@ -106,11 +106,11 @@ template<>\
 struct type_conversion<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 typedef values base_type;\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
-static void from_base(values const& v, indicator ind, ClassType& c){\
+inline static void from_base(values const& v, indicator ind, ClassType& c){\
 BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
 EXPAND_MEMBER_ASSIGNENTS_from_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
 }\
-static void to_base(const ClassType& c, values& v, indicator& ind){\
+inline static void to_base(const ClassType& c, values& v, indicator& ind){\
 BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db");\
 EXPAND_MEMBER_ASSIGNENTS_to_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
 }\
@@ -148,7 +148,7 @@ SimpleOID oid;\
 oid.populateLow();\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const query = "INSERT INTO '{}' (oid_low" \
-EXPAND_FIELDS_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
+EXPAND_FIELDS_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEM S_TUP ))\
 ") VALUES ({}" \
 Repeat_N_String_With_Precomma(BOOST_PP_TUPLE_SIZE(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )), {})\
 ;\
@@ -156,6 +156,7 @@ std::string const sql = fmt::format(query, class_name, oid.low,\
 EXPAND_VARIABLES_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
 QUERY_LOG(sql);\
+blib::bun::_private::DbBackend().i().session() << sql, use(*obj);\
 return oid;\
 }\
 inline static void updateObj( T* obj, SimpleOID const& oid ){\
@@ -168,6 +169,7 @@ std::string const sql = fmt::format(query, class_name \
 EXPAND_VARIABLES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 ,oid.low, oid.high);\
 QUERY_LOG(sql);\
+blib::bun::_private::DbBackend().i().session() << sql, use(*obj);\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
@@ -175,6 +177,7 @@ static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, 
 static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
+blib::bun::_private::DbBackend().i().session() << sql;\
 }\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
@@ -185,6 +188,7 @@ EXPAND_QUERY_VARIABLES_getObj()\
 " FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
+blib::bun::_private::DbBackend().i().session() << sql, into(*obj);\
 return std::move(obj);\
 }\
 };\
