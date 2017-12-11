@@ -27,16 +27,20 @@
 namespace blib {
     namespace bun {
         namespace _private {
-            struct DbTypeSqlite {
+            struct DbGenericType{
+            };
+            
+            struct DbTypeSqlite : DbGenericType{
             };
 
-            struct DbTypePostgres {
+            struct DbTypePostgres : DbGenericType{
             };
 
-            struct DbTypeMySql {
+            struct DbTypeMySql : DbGenericType{
             };
+            
 
-            template<typename T>
+            template<typename T = DbGenericType>
             class DbBackend : blib::Singleton<DbBackend<T>> {
             private:
                 bool _ok;
