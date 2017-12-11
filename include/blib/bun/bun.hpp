@@ -120,7 +120,7 @@ namespace blib{namespace bun{namespace __private{\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for PRefHelper Start---");\
 template<>\
 struct PRefHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
-using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
+using T = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 \
 inline static void createSchema(){\
 BLIB_MACRO_COMMENTS_IF("@brief createSchema for creating the schema of an object");\
