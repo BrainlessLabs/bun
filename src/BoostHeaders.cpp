@@ -54,14 +54,13 @@ namespace soci {
 		using ClassType = backery::Bun;
 		
 		inline static void from_base(values const& v, indicator ind, ClassType& c) {
-			c.bun_name = v.get<decltype(c.bun_name)>("bun_name"); 
-			c.sugar_quantity = v.get<decltype(c.sugar_quantity)>("sugar_quantity");; 
-			
+			c.bun_name = v.get<decltype(c.bun_name)>("bun_name");
+			c.sugar_quantity = v.get<decltype(c.sugar_quantity)>("sugar_quantity");
 		}
 		
 		inline static void to_base(const ClassType& c, values& v, indicator& ind) {
-			v.set("bun_name", c.bun_name); 
-			v.set("sugar_quantity", c.sugar_quantity);; 
+			v.set("bun_name", c.bun_name);
+			v.set("sugar_quantity", c.sugar_quantity);
 		}
 	};
 }
@@ -123,21 +122,21 @@ namespace blib { namespace bun { namespace __private {
 		}
 	};
 	
-	template<>
-	struct QueryHelper<backery::Bun> {
-		using T = backery::Bun;
-		
-		inline static std::vector<SimpleOID> getAllOids() {
-			static std::string const class_name = "backery::Bun";
-			return std::vector<SimpleOID>(); 
-		}
-		
-		inline static std::vector<blib::bun::PRef<T>> getAllObjects() {
-			static std::string const class_name = "backery::Bun";
-			std::vector<blib::bun::PRef<T>> v;
-			return v;
-		}
-	};
+	//template<>
+	//struct QueryHelper<backery::Bun> {
+	//	using T = backery::Bun;
+	//	
+	//	inline static std::vector<SimpleOID> getAllOids() {
+	//		static std::string const class_name = "backery::Bun";
+	//		return std::vector<SimpleOID>(); 
+	//	}
+	//	
+	//	inline static std::vector<blib::bun::PRef<backery::Bun>> getAllObjects() {
+	//		static std::string const class_name = "backery::Bun";
+	//		std::vector<blib::bun::PRef<backery::Bun>> v;
+	//		return std::move(v);
+	//	}
+	//};
 }
 }
 };
