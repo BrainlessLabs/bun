@@ -26,7 +26,7 @@
 
 namespace blib {
     namespace bun {
-        namespace _private {
+        namespace __private {
             struct DbGenericType{
             };
             
@@ -45,6 +45,8 @@ namespace blib {
             private:
                 bool _ok;
                 soci::session _sql_session;
+
+                DbBackend() = default;
 
             public:
                 bool ok() const {
