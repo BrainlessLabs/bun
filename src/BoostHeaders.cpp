@@ -26,7 +26,7 @@ namespace backery {
 	};
 }
 
-SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity));
+//SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity));
 
 int main() {
 	try {
@@ -75,14 +75,14 @@ namespace blib { namespace bun { namespace __private {
 			static std::string const query = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL" "bun_name" " {}" "sugar_quantity" " {}" ")";
 			static std::string const sql = fmt::format(query, class_name, blib::bun::cppTypeToDbTypeString<decltype(backery::Bun::bun_name)>(), blib::bun::cppTypeToDbTypeString<decltype(backery::Bun::sugar_quantity)>()); 
 			l().info(sql);
-			blib::bun::_private::DbBackend.i().session() << sql; 
+			DbBackend<>::i().session() << sql; 
 		}
 		
 		inline static void deleteSchema() {
 			static std::string const class_name = "backery::Bun";
 			static std::string const sql = fmt::format("DROP TABLE '{}'", class_name);
 			l().info(sql);
-			blib::bun::_private::DbBackend.i().session() << sql;
+			DbBackend<>::i().session() << sql;
 		}
 		
 		inline static SimpleOID persistObj(T* obj) {
@@ -92,7 +92,7 @@ namespace blib { namespace bun { namespace __private {
 			static std::string const query = "INSERT INTO '{}' (oid_low" ","  "bun_name" ","  "sugar_quantity"") VALUES ({}" ","  "{}" ","  "{}";
 			std::string const sql = fmt::format(query, class_name, oid.low, obj->bun_name, obj->sugar_quantity);
 			l().info(sql);
-			blib::bun::_private::DbBackend.i().session() << sql, use(*obj);
+			DbBackend<>::i().session() << sql, use(*obj);
 			return oid;
 		}
 		
@@ -101,7 +101,7 @@ namespace blib { namespace bun { namespace __private {
 			static std::string const query = "UPDATE {} SET " "{} = {}" ",""{} = {}" " WHERE oid_low={} AND oid_high={}";
 			std::string const sql = fmt::format(query, class_name, "bun_name", obj->bun_name, "sugar_quantity", obj->sugar_quantity, oid.low, oid.high);
 			l().info(sql);
-			blib::bun::_private::DbBackend.i().session() << sql, use(*obj);
+			DbBackend<>::i().session() << sql, use(*obj);
 		}
 		
 		inline static void deleteObj(SimpleOID const& oid) {
@@ -109,7 +109,7 @@ namespace blib { namespace bun { namespace __private {
 			static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";
 			std::string const sql = fmt::format(query, class_name, oid.high, oid.low);
 			l().info(sql);
-			blib::bun::_private::DbBackend.i().session() << sql;
+			DbBackend<>::i().session() << sql;
 		}
 		
 		inline static std::unique_ptr<T> getObj(SimpleOID const& oid) {
@@ -118,7 +118,7 @@ namespace blib { namespace bun { namespace __private {
 			static std::string const query = "SELECT * FROM {} WHERE oid_high={} AND oid_low={}";
 			std::string const sql = fmt::format(query, class_name, oid.high, oid.low);
 			l().info(sql);
-			blib::bun::_private::DbBackend.i().session() << sql, into(*obj);
+			DbBackend<>::i().session() << sql, into(*obj);
 			return std::move(obj); 
 		}
 	};
@@ -132,9 +132,10 @@ namespace blib { namespace bun { namespace __private {
 			return std::vector<SimpleOID>(); 
 		}
 		
-		inline static std::vector<PRef<T>> getAllObjects() {
+		inline static std::vector<blib::bun::PRef<T>> getAllObjects() {
 			static std::string const class_name = "backery::Bun";
-			return std::vector<PRef<T>>(); 
+			std::vector<blib::bun::PRef<T>> v;
+			return v;
 		}
 	};
 }

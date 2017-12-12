@@ -41,12 +41,12 @@ namespace blib {
             
 
             template<typename T = DbGenericType>
-            class DbBackend : blib::Singleton<DbBackend<T>> {
+            class DbBackend : public blib::Singleton<DbBackend<T>> {
             private:
                 bool _ok;
                 soci::session _sql_session;
 
-                DbBackend() = default;
+                //DbBackend() = default;
 
             public:
                 bool ok() const {

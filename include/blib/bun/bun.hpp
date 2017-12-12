@@ -16,6 +16,7 @@
 #include "blib/bun/PRefHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
+#include "blib/bun/QueryHelper.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
