@@ -213,7 +213,6 @@ BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
 }\
 }\
 
-
 /// SPECIALIZE_BUN_HELPER End
 
 
