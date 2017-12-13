@@ -92,9 +92,15 @@ namespace blib {
 				using type = double;
 			};
 
+			/// @brief Works for all stuff where the default type conversion operator is overloaded.
 			template<typename T>
 			typename ConvertToSOCIType<T>::type convertToSOCIType(T const & val) {
-				return static_cast<ConvertToSOCIType<T>::type>(val);
+				return (ConvertToSOCIType<T>::type)(val);
+			}
+
+			std::string convertToSOCIType( char const* val) {
+				std::string ret = val;
+				return std::move(ret);
 			}
         }
     }
