@@ -60,7 +60,7 @@ namespace soci {
 		
 		inline static void to_base(const ClassType& c, values& v, indicator& ind) {
 			v.set("bun_name", c.bun_name);
-			v.set("sugar_quantity", c.sugar_quantity);
+			v.set("sugar_quantity", blib::bun::__private::convertToSOCIType(c.sugar_quantity));
 		}
 	};
 }

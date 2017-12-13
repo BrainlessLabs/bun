@@ -75,6 +75,27 @@ namespace blib {
                     return _sql_session;
                 }
             };
+
+			/////////////////////////////////////////////////
+			/// @class ConvertToSOCIType
+			/// @brief Convert a basic type to a type available for soci.
+			/// @details Supported type can be found in http://soci.sourceforge.net/doc/master/types/
+			///          So all basic C++ types will be converted to closest type. By default same type is returned.
+			/////////////////////////////////////////////////
+			template<typename T>
+			struct ConvertToSOCIType {
+				using type = T;
+			};
+
+			template<>
+			struct ConvertToSOCIType<float> {
+				using type = double;
+			};
+
+			template<typename T>
+			typename ConvertToSOCIType<T>::type convertToSOCIType(T const & val) {
+				return static_cast<ConvertToSOCIType<T>::type>(val);
+			}
         }
     }
 }
