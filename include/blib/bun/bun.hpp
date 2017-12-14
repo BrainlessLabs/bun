@@ -103,7 +103,6 @@
 
 /// SPECIALIZE_BUN_HELPER Start
 #define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace soci{\
-"@brief --Specialization for SOCI ORM Start---";\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
 template<>\
 struct type_conversion<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
@@ -133,7 +132,7 @@ EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
  ")";\
 static std::string const sql = fmt::format(query, class_name, EXPAND_CLASS_TYPE_MEMBERS_createSchema(CLASS_ELEMS_TUP));\
 QUERY_LOG(sql);\
-blib::bun::__private::DbBackend<>.i().session() << sql;\
+blib::bun::__private::DbBackend<>::i().session() << sql;\
 }\
 \
 inline static void deleteSchema(){\
@@ -141,7 +140,7 @@ BLIB_MACRO_COMMENTS_IF("@brief deleteSchema for deleting the schema of an object
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const sql = fmt::format("DROP TABLE '{}'", class_name);\
 QUERY_LOG(sql);\
-blib::bun::__private::DbBackend<>.i().session() << sql;\
+blib::bun::__private::DbBackend<>::i().session() << sql;\
 }\
 \
 inline static SimpleOID persistObj( T* obj ){\
@@ -158,7 +157,7 @@ std::string const sql = fmt::format(query, class_name, oid.low,\
 EXPAND_VARIABLES_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
 QUERY_LOG(sql);\
-blib::bun::__private::DbBackend<>.i().session() << sql, use(*obj);\
+blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
 return oid;\
 }\
 inline static void updateObj( T* obj, SimpleOID const& oid ){\
@@ -171,7 +170,7 @@ std::string const sql = fmt::format(query, class_name \
 EXPAND_VARIABLES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 ,oid.low, oid.high);\
 QUERY_LOG(sql);\
-blib::bun::__private::DbBackend<>.i().session() << sql, use(*obj);\
+blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
@@ -179,7 +178,7 @@ static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, 
 static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
-blib::bun::__private::DbBackend<>.i().session() << sql;\
+blib::bun::__private::DbBackend<>::i().session() << sql;\
 }\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
@@ -188,7 +187,7 @@ std::unique_ptr<T> obj = std::make_unique<T>();\
 static std::string const query = "SELECT * FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
-blib::bun::__private::DbBackend<>.i().session() << sql, into(*obj);\
+blib::bun::__private::DbBackend<>::i().session() << sql, into(*obj);\
 return std::move(obj);\
 }\
 };\
