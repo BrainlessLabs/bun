@@ -40,6 +40,7 @@ int main() {
 	}
 
 	auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
+	blib::bun::PRef<backery::Bun> bun = new backery::Bun;
 	std::cout << "Tuple Out: " << t << std::endl;
 	blib::bun::l().info("test");
 
