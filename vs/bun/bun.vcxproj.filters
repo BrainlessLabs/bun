@@ -402,6 +402,9 @@
     <ClInclude Include="..\..\include\blib_old\containers\tree\NTree.hpp">
       <Filter>Header Files\blib_old\containers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\GlobalFunc.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />

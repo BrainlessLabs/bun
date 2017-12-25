@@ -18,6 +18,7 @@
 #include "blib/bun/DbLogger.hpp"
 #include "blib/bun/QueryHelper.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
+#include "blib/bun/GlobalFunc.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -58,7 +59,7 @@
 /// @details We need to pass only the data members as a tuple to this macro
 /// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
 /// @brief Expands the class members for CREATE TABLE
-#define EXPAND_CLASS_MEMBERS_createSchema_I(z, n, ELEMS_TUP) BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)) " {}"
+#define EXPAND_CLASS_MEMBERS_createSchema_I(z, n, ELEMS_TUP) ", " BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)) " {}"
 #define EXPAND_CLASS_MEMBERS_createSchema(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_MEMBERS_createSchema_I, ELEMS_TUP)
 
 /// @brief Expands the class members for CREATE TABLE to get the type info
@@ -189,6 +190,10 @@ std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
 blib::bun::__private::DbBackend<>::i().session() << sql, into(*obj);\
 return std::move(obj);\
+}\
+inline static std::string md5(T *, SimpleOID const &){\
+BLIB_MACRO_COMMENTS_IF("@brief md5 getting the md5 string of object");\
+return "";\
 }\
 };\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for PRefHelper End---");\

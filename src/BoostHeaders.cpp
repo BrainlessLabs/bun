@@ -39,8 +39,12 @@ int main() {
 		cerr << "Error: " << e.what() << "\n";
 	}
 
-	auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
+	const auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
+	blib::bun::createSchema<backery::Bun>();
 	blib::bun::PRef<backery::Bun> bun = new backery::Bun;
+	bun->bun_length = 10;
+	bun->bun_name = "test";
+	bun.save();
 	std::cout << "Tuple Out: " << t << std::endl;
 	blib::bun::l().info("test");
 

@@ -11,6 +11,7 @@
 
 #include "blib/bun/SimpleOID.hpp"
 //#include "blib/bun/BunHelper.hpp"
+#include "blib/bun/PRefHelper.hpp"
 #include "blib/utils/MD5.hpp"
 #include <cstdint>
 #include <cstddef>
@@ -112,7 +113,7 @@ namespace blib {
             ///          If the MD5 are different then it returns true else
             ///          it returns false.
             bool dirty() {
-                const auto md5 = BunHelper<ObjType>::md5(_obj.get(), oid);
+                const auto md5 = blib::bun::__private::PRefHelper<ObjType>::md5(_obj.get(), oid);
                 if (md5 != _md5) {
                     _flags[static_cast<std::uint8_t>(FlagsE::kDirty)] = 1;
                 }
@@ -128,11 +129,11 @@ namespace blib {
             /// @return OidType Returns the OID of the persisted object.
             OidType persist() {
                 if (_md5.empty()) {
-                    oid = BunHelper<ObjType>::persistObj(_obj.get());
+                    oid = blib::bun::__private::PRefHelper<ObjType>::persistObj(_obj.get());
                 } else {
-                    BunHelper<ObjType>::updateObj(_obj.get(), oid);
+					blib::bun::__private::PRefHelper<ObjType>::updateObj(_obj.get(), oid);
                 }
-                _md5 = BunHelper<ObjType>::md5(_obj.get(), oid);
+                _md5 = blib::bun::__private::PRefHelper<ObjType>::md5(_obj.get(), oid);
                 _flags.reset();
                 return oid;
             }
@@ -147,7 +148,7 @@ namespace blib {
             /// @brief Delets the persistent object.
             ///        Clears the MD5 and the flags.
             void del() {
-                BunHelper<ObjType>::deleteObj(oid);
+				blib::bun::__private::PRefHelper<ObjType>::deleteObj(oid);
                 _md5.clear();
                 oid.clear();
                 _flags.reset();
@@ -174,7 +175,7 @@ namespace blib {
             /// @fn toJson
             /// @brief Returns a JSON representation of the object.
             std::string toJson() const {
-                return BunHelper<T>::objToJson(_obj.get(), oid);
+                return PRefHelper<T>::objToJson(_obj.get(), oid);
             }
 
         private:
@@ -183,8 +184,8 @@ namespace blib {
             /// @param in_oid A valid OID for the object.
             void load(OidType const &in_oid) {
                 oid = in_oid;
-                _obj = BunHelper<ObjType>::getObj(oid);
-                _md5 = BunHelper<ObjType>::md5(_obj.get(), oid);
+                _obj = blib::bun::__private::PRefHelper<ObjType>::getObj(oid);
+                _md5 = blib::bun::__private::PRefHelper<ObjType>::md5(_obj.get(), oid);
                 _flags.reset();
             }
 
