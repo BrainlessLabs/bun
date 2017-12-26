@@ -133,7 +133,11 @@ EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
  ")";\
 static std::string const sql = fmt::format(query, class_name, EXPAND_CLASS_TYPE_MEMBERS_createSchema(CLASS_ELEMS_TUP));\
 QUERY_LOG(sql);\
+try{\
 blib::bun::__private::DbBackend<>::i().session() << sql;\
+}catch(std::exception const & e){\
+l().error(e.what());\
+}\
 }\
 \
 inline static void deleteSchema(){\
@@ -141,7 +145,11 @@ BLIB_MACRO_COMMENTS_IF("@brief deleteSchema for deleting the schema of an object
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const sql = fmt::format("DROP TABLE '{}'", class_name);\
 QUERY_LOG(sql);\
+try{\
 blib::bun::__private::DbBackend<>::i().session() << sql;\
+}catch(std::exception const & e){\
+l().error(e.what());\
+}\
 }\
 \
 inline static SimpleOID persistObj( T* obj ){\
@@ -158,7 +166,11 @@ std::string const sql = fmt::format(query, class_name, oid.low,\
 EXPAND_VARIABLES_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\
 QUERY_LOG(sql);\
+try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
+}catch(std::exception const & e){\
+l().error(e.what());\
+}\
 return oid;\
 }\
 inline static void updateObj( T* obj, SimpleOID const& oid ){\

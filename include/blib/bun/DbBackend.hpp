@@ -54,7 +54,7 @@ namespace blib {
                 }
 
                 bool connect(std::string const &in_params) {
-                    const soci::backend_factory backend_factory =
+                    const auto backend_factory =
 #ifdef BUN_SQLITE
                     soci::sqlite3;
 #elif BUN_POSTGRES
@@ -63,12 +63,16 @@ namespace blib {
                     soci::mysql;
 #endif
                     try {
-                        _sql_session.open(backend_factory, in_params);
-                        _ok = true;
+						if (!_ok) {
+							_sql_session.open(backend_factory, in_params);
+							_ok = true;
+						}
                     }
                     catch (std::exception const &except) {
+						l().error(except.what());
                         _ok = false;
                     }
+					return _ok;
                 }
 
                 soci::session &session() {

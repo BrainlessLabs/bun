@@ -40,6 +40,7 @@ int main() {
 	}
 
 	const auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
+	blib::bun::connect("objects.db");
 	blib::bun::createSchema<backery::Bun>();
 	blib::bun::PRef<backery::Bun> bun = new backery::Bun;
 	bun->bun_length = 10;
