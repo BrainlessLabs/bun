@@ -19,6 +19,7 @@
 #include "blib/bun/QueryHelper.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
 #include "blib/bun/GlobalFunc.hpp"
+#include "blib/utils/JSONUtils.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -202,6 +203,16 @@ std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
 blib::bun::__private::DbBackend<>::i().session() << sql, into(*obj);\
 return std::move(obj);\
+}\
+inline static std::string objToJson(T *, SimpleOID const &){\
+BLIB_MACRO_COMMENTS_IF("@brief objToJson getting the string representation of object");\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+static std::string const obj_json_str = "{}";\
+return "";\
+}\
+inline static std::string objToString(T *, SimpleOID const &){\
+BLIB_MACRO_COMMENTS_IF("@brief objToString getting the JSON representation of object");\
+return std::move(objToJson());\
 }\
 inline static std::string md5(T *, SimpleOID const &){\
 BLIB_MACRO_COMMENTS_IF("@brief md5 getting the md5 string of object");\
