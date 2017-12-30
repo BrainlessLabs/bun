@@ -398,7 +398,7 @@ namespace blib {
   inline std::string md5( const std::string& str ) {
     const MD5 md5 = MD5( str );
 
-    return md5.hexdigest();
+    return std::move(md5.hexdigest());
   }
 
 }

@@ -26,11 +26,11 @@ namespace backery {
 	};
 }
 
-SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity));
+SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, flour_quantity));
 
 int main() {
 	try {
-		session sql(sqlite3, "database_filename");
+		session sql(sqlite3, "objects.db");
 		connection_parameters c;
 		int count = 0;
 		sql << "select * from sqlite_master";
@@ -45,10 +45,11 @@ int main() {
 	blib::bun::PRef<backery::Bun> bun = new backery::Bun;
 	bun->bun_length = 10;
 	bun->bun_name = "test";
-	bun.save();
+	const std::string bun_json = bun.toJson();
+	blib::bun::l().info("bun json: {}", bun_json);
+	//bun.save();
 	std::cout << "Tuple Out: " << t << std::endl;
-	blib::bun::l().info("test");
+
 
 	return 1;
 }
-

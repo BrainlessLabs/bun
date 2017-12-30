@@ -87,8 +87,14 @@
 #define EXPAND_VARIABLES_updateObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA()BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))BOOST_PP_COMMA()obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)
 #define EXPAND_VARIABLES_updateObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_updateObj_I, ELEMS_TUP)
 
-/// @brief getObj Helper Macros
-/// @brief getObj will get a autoptr to 
+/// @brief objToJson Helper Macros
+/// @brief objToJson Generate the static string format
+#define EXPAND_VARIABLES_objToJson_static_I(z, n, ELEMS_TUP) "," BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)) ":{}"
+#define EXPAND_VARIABLES_objToJson_static(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_objToJson_static_I, ELEMS_TUP)
+
+/// @brief objToJson Expand the object
+#define EXPAND_VARIABLES_objToJson_expand_obj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n) blib::bun::tojson_string(obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
+#define EXPAND_VARIABLES_objToJson_expand_obj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_objToJson_expand_obj_I, ELEMS_TUP)
 
 /// @brief Assorted Helper Macros
 /// @brief Create n number of string
@@ -184,7 +190,11 @@ std::string const sql = fmt::format(query, class_name \
 EXPAND_VARIABLES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 ,oid.low, oid.high);\
 QUERY_LOG(sql);\
+try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
+}catch(std::exception const & e){\
+l().error(e.what());\
+}\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
@@ -192,7 +202,11 @@ static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, 
 static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
+try{\
 blib::bun::__private::DbBackend<>::i().session() << sql;\
+}catch(std::exception const & e){\
+l().error(e.what());\
+}\
 }\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief getObj for getting a persisted object with the oid");\
@@ -201,22 +215,35 @@ std::unique_ptr<T> obj = std::make_unique<T>();\
 static std::string const query = "SELECT * FROM {} WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
+try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, into(*obj);\
+}catch(std::exception const & e){\
+l().error(e.what());\
+}\
 return std::move(obj);\
 }\
-inline static std::string objToJson(T *, SimpleOID const &){\
+inline static std::string objToJson(T *obj, SimpleOID const &oid){\
 BLIB_MACRO_COMMENTS_IF("@brief objToJson getting the string representation of object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-static std::string const obj_json_str = "{}";\
-return "";\
+static std::string const obj_json_str = std::string("class:{},oid_high: {},oid_low:{}") + std::string(EXPAND_VARIABLES_objToJson_static(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
+QUERY_LOG(obj_json_str);\
+std::string obj_json;\
+try{\
+obj_json = fmt::format(obj_json_str, class_name, oid.high, oid.low, EXPAND_VARIABLES_objToJson_expand_obj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
+}catch(std::exception const & e){\
+l().error(e.what());\
 }\
-inline static std::string objToString(T *, SimpleOID const &){\
+obj_json = "{" + obj_json + "}";\
+return std::move(obj_json);\
+}\
+inline static std::string objToString(T *obj, SimpleOID const & oid){\
 BLIB_MACRO_COMMENTS_IF("@brief objToString getting the JSON representation of object");\
-return std::move(objToJson());\
+return std::move(objToJson(obj, oid));\
 }\
-inline static std::string md5(T *, SimpleOID const &){\
+inline static std::string md5(T *obj, SimpleOID const & oid){\
 BLIB_MACRO_COMMENTS_IF("@brief md5 getting the md5 string of object");\
-return "";\
+const std::string md5 = blib::md5(objToString(obj, oid));\
+return std::move(md5);\
 }\
 };\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for PRefHelper End---");\

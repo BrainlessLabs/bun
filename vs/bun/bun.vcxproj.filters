@@ -405,6 +405,9 @@
     <ClInclude Include="..\..\include\blib\bun\GlobalFunc.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp">
+      <Filter>Header Files\blib\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />

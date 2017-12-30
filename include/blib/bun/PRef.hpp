@@ -175,7 +175,7 @@ namespace blib {
             /// @fn toJson
             /// @brief Returns a JSON representation of the object.
             std::string toJson() const {
-                return PRefHelper<T>::objToJson(_obj.get(), oid);
+                return blib::bun::__private::PRefHelper<T>::objToJson(_obj.get(), oid);
             }
 
         private:
