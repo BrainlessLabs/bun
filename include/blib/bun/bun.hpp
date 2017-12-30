@@ -168,7 +168,7 @@ static std::string const query = "INSERT INTO '{}' (oid_low" \
 EXPAND_FIELDS_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 ") VALUES ({}" \
 Repeat_N_String_With_Precomma(BOOST_PP_TUPLE_SIZE(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )), {})\
-;\
+")";\
 std::string const sql = fmt::format(query, class_name, oid.low,\
 EXPAND_VARIABLES_persistObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 );\

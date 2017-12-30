@@ -47,7 +47,7 @@ int main() {
 	bun->bun_name = "test";
 	const std::string bun_json = bun.toJson();
 	blib::bun::l().info("bun json: {}", bun_json);
-	//bun.save();
+	bun.save();
 	std::cout << "Tuple Out: " << t << std::endl;
 
 
