@@ -19,7 +19,8 @@ namespace blib {
 		}
 
 		auto tojson_string(std::string& value)->std::string {
-			const std::string ret = "\"" + value + "\"";
+			std::string& quote = std::string("'");
+			const std::string ret = quote + value + quote;
 			return std::move(ret);
 		}
 	}

@@ -74,7 +74,7 @@
 #define EXPAND_FIELDS_persistObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_FIELDS_persistObj_I, ELEMS_TUP)
 
 /// @brief Expand the variables for persistObj
-#define EXPAND_VARIABLES_persistObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n)obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)
+#define EXPAND_VARIABLES_persistObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n)blib::bun::tojson_string(obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
 #define EXPAND_VARIABLES_persistObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_persistObj_I, ELEMS_TUP)
 
 /// @brief updateObj Helper Macros
@@ -143,7 +143,7 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql;\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("createSchema: {} ", e.what());\
 }\
 }\
 \
@@ -155,7 +155,7 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql;\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("deleteSchema: {} ", e.what());\
 }\
 }\
 \
@@ -176,7 +176,7 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("persistObj: {} ", e.what());\
 }\
 return oid;\
 }\
@@ -193,7 +193,7 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("updateObj: {} ", e.what());throw;\
 }\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
@@ -205,7 +205,7 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql;\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("deleteObj: {} ", e.what());\
 }\
 }\
 inline static std::unique_ptr<T> getObj( SimpleOID const& oid ){\
@@ -218,7 +218,7 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, into(*obj);\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("getObj: {} ", e.what());\
 }\
 return std::move(obj);\
 }\
@@ -231,7 +231,7 @@ std::string obj_json;\
 try{\
 obj_json = fmt::format(obj_json_str, class_name, oid.high, oid.low, EXPAND_VARIABLES_objToJson_expand_obj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
 }catch(std::exception const & e){\
-l().error(e.what());\
+l().error("objToJson: {} ", e.what());\
 }\
 obj_json = "{" + obj_json + "}";\
 return std::move(obj_json);\

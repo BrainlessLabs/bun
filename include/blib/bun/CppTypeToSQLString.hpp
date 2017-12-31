@@ -109,7 +109,7 @@ namespace blib {
 
         template<>
         inline std::string const &cppTypeEnumToDbTypeString<DbTypes::kText>() {
-            const static std::string ret = "TEXT";
+            const static std::string ret = "VARCHAR";
             return ret;
         }
 
