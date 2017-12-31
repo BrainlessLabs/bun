@@ -74,7 +74,7 @@
 #define EXPAND_FIELDS_persistObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_FIELDS_persistObj_I, ELEMS_TUP)
 
 /// @brief Expand the variables for persistObj
-#define EXPAND_VARIABLES_persistObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n)blib::bun::tojson_string(obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
+#define EXPAND_VARIABLES_persistObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n) ":" BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
 #define EXPAND_VARIABLES_persistObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_persistObj_I, ELEMS_TUP)
 
 /// @brief updateObj Helper Macros
