@@ -87,23 +87,24 @@ namespace blib {
 			///          So all basic C++ types will be converted to closest type. By default same type is returned.
 			/////////////////////////////////////////////////
 			template<typename T>
-			struct ConvertToSOCIType {
+			struct ConvertCPPTypeToSOCISupportType {
 				using type = T;
 			};
 
 			template<>
-			struct ConvertToSOCIType<float> {
+			struct ConvertCPPTypeToSOCISupportType<float> {
 				using type = double;
 			};
 
 			/// @brief Works for all stuff where the default type conversion operator is overloaded.
 			template<typename T>
-			typename ConvertToSOCIType<T>::type convertToSOCIType(T const & val) {
-				return (ConvertToSOCIType<T>::type)(val);
+			typename ConvertCPPTypeToSOCISupportType<T>::type convertToSOCISupportedType(T const & val) {
+				const auto ret = (ConvertCPPTypeToSOCISupportType<T>::type)(val);
+				return ret;
 			}
 
 			std::string convertToSOCIType( char const* val) {
-				std::string ret = val;
+				const std::string ret = val;
 				return std::move(ret);
 			}
         }

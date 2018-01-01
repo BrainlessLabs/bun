@@ -85,6 +85,7 @@
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
+    <OutDir>$(SolutionDir)..\bin</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -142,7 +143,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\include\third_party;$(SolutionDir)..\include\third_party\sqlite;$(BOOST_DIR);$(SOCI_DIR)\include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnablePREfast>true</EnablePREfast>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
@@ -162,7 +163,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\BoostHeaders.cpp">
-      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreprocessToFile>
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\Bun.cpp">
@@ -196,6 +197,7 @@
     <ClInclude Include="..\..\include\blib\bun\PRefHelper.hpp" />
     <ClInclude Include="..\..\include\blib\bun\QueryHelper.hpp" />
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp" />
+    <ClInclude Include="..\..\include\blib\utils\debug.hpp" />
     <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />
     <ClInclude Include="..\..\include\blib\utils\Singleton.hpp" />

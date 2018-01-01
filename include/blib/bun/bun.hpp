@@ -53,7 +53,7 @@
 
 /// @details to_base
 /// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
-#define EXPAND_MEMBER_ASSIGNENTS_to_base_I(z, n, ELEMS_TUP) v.set(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)), blib::bun::__private::convertToSOCIType(c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)));
+#define EXPAND_MEMBER_ASSIGNENTS_to_base_I(z, n, ELEMS_TUP) v.set(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)), blib::bun::__private::convertToSOCISupportedType(c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)));
 #define EXPAND_MEMBER_ASSIGNENTS_to_base(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_MEMBER_ASSIGNENTS_to_base_I, ELEMS_TUP)
 
 /// @brief createSchema Helper Macros
@@ -84,7 +84,7 @@
 #define EXPAND_BRACES_updateObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_BRACES_updateObj_I, ELEMS_TUP)
 
 /// @brief Expand the variables for updateObj
-#define EXPAND_VARIABLES_updateObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA()BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))BOOST_PP_COMMA()obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)
+#define EXPAND_VARIABLES_updateObj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA()BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))BOOST_PP_COMMA() ":" BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
 #define EXPAND_VARIABLES_updateObj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_updateObj_I, ELEMS_TUP)
 
 /// @brief objToJson Helper Macros
@@ -183,7 +183,7 @@ return oid;\
 inline static void updateObj( T* obj, SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief updateObj for updating a persisted object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-static std::string const query = "UPDATE {} SET " \
+static std::string const query = "UPDATE '{}' SET " \
 EXPAND_BRACES_updateObj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 " WHERE oid_low={} AND oid_high={}";\
 std::string const sql = fmt::format(query, class_name \
@@ -193,13 +193,13 @@ QUERY_LOG(sql);\
 try{\
 blib::bun::__private::DbBackend<>::i().session() << sql, use(*obj);\
 }catch(std::exception const & e){\
-l().error("updateObj: {} ", e.what());throw;\
+l().error("updateObj: {} ", e.what());\
 }\
 }\
 inline static void deleteObj( SimpleOID const& oid ){\
 BLIB_MACRO_COMMENTS_IF("@brief deleteObj for deleting a persisted object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-static std::string const query = "DELETE FROM {} WHERE oid_high={} AND oid_low={}";\
+static std::string const query = "DELETE FROM '{}' WHERE oid_high={} AND oid_low={}";\
 std::string const sql = fmt::format(query, class_name, oid.high, oid.low);\
 QUERY_LOG(sql);\
 try{\

@@ -408,6 +408,9 @@
     <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp">
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\blib\utils\debug.hpp">
+      <Filter>Header Files\blib\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />
