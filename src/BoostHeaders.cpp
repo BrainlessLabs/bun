@@ -73,6 +73,8 @@ int main() {
 		int count = 0;
 		int oid_low = 666;
 		Person p;
+		const float val_f = 6.66;
+		const auto val = blib::bun::__private::convertToSOCISupportedType(val_f);
 		sql << "select * from sqlite_master";
 		sql << "CREATE TABLE IF NOT EXISTS Person (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER, name VARCHAR, age INTEGER, account_balance REAL, gender INTEGER)";
 		sql << "INSERT INTO 'backery::Bun' (oid_low,bun_name,sugar_quantity,bun_length) VALUES (666,\"test\",666, 666)";

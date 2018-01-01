@@ -47,7 +47,7 @@ namespace blib {
 						")";
 					static std::string const sql = fmt::format(
 						query, class_name,
-						blib::bun::cppTypeToDbTypeString<decltype(backery::Bun::bun_name)>(),
+						blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<decltype(backery::Bun::bun_name)>::type>(),
 						blib::bun::cppTypeToDbTypeString<decltype(
 							backery::Bun::sugar_quantity)>(),
 						blib::bun::cppTypeToDbTypeString<decltype(backery::Bun::bun_length)>());

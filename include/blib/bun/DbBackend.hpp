@@ -103,7 +103,7 @@ namespace blib {
 				return ret;
 			}
 
-			std::string convertToSOCIType( char const* val) {
+			std::string convertToSOCISupportedType( char const* val) {
 				const std::string ret = val;
 				return std::move(ret);
 			}
