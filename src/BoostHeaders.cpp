@@ -26,8 +26,8 @@ namespace backery {
 	};
 }
 
-//SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length));
-#include "blib/utils/debug.hpp"
+SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length));
+//#include "blib/utils/debug.hpp"
 
 struct Person
 {
@@ -77,7 +77,7 @@ int main() {
 		const auto val = blib::bun::__private::convertToSOCISupportedType(val_f);
 		sql << "select * from sqlite_master";
 		sql << "CREATE TABLE IF NOT EXISTS Person (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER, name VARCHAR, age INTEGER, account_balance REAL, gender INTEGER)";
-		sql << "INSERT INTO 'backery::Bun' (oid_low,bun_name,sugar_quantity,bun_length) VALUES (666,\"test\",666, 666)";
+		sql << "INSERT INTO 'backery::Bun' (oid_low,bun_name,sugar_quantity,bun_length) VALUES (666,'Manual',666, 666)";
 		sql << "INSERT INTO Person (oid_low, name, age, account_balance, gender) VALUES(666, :name, :age, :account_balance, :gender)", soci::use(p);
 		p.age = 12;
 		sql << "UPDATE Person SET name =  :name, age = :age, account_balance = :account_balance, gender = :gender WHERE oid_low = 666 and oid_high = 2", soci::use(p);
@@ -87,7 +87,7 @@ int main() {
 		bun->sugar_quantity = 10;
 		bun->bun_name = "test";
 		const std::string bun_json = bun.toJson();
-		blib::bun::l().info("bun json: {}", bun_json);
+		//blib::bun::l().info("bun json: {}", bun_json);
 		const auto oid = bun.save();
 		bun->bun_length = 12;
 		bun.save();

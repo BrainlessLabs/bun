@@ -226,7 +226,6 @@ inline static std::string objToJson(T *obj, SimpleOID const &oid){\
 BLIB_MACRO_COMMENTS_IF("@brief objToJson getting the string representation of object");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 static std::string const obj_json_str = std::string("class:{},oid_high: {},oid_low:{}") + std::string(EXPAND_VARIABLES_objToJson_static(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
-QUERY_LOG(obj_json_str);\
 std::string obj_json;\
 try{\
 obj_json = fmt::format(obj_json_str, class_name, oid.high, oid.low, EXPAND_VARIABLES_objToJson_expand_obj(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )));\
