@@ -36,6 +36,9 @@ struct Person
 	double account_balance;
 	int gender;
 	Person() :name("test"), age(10), account_balance(10.10), gender('M') {}
+	std::string toStr()const {
+		return fmt::format("Person: name: {}, age: {}, account_balance: {}, gender: {}", name, age, account_balance, gender);
+	}
 };
 
 namespace soci
@@ -81,6 +84,13 @@ int main() {
 		sql << "INSERT INTO Person (oid_low, name, age, account_balance, gender) VALUES(666, :name, :age, :account_balance, :gender)", soci::use(p);
 		p.age = 12;
 		sql << "UPDATE Person SET name =  :name, age = :age, account_balance = :account_balance, gender = :gender WHERE oid_low = 666 and oid_high = 2", soci::use(p);
+		
+		soci::row r;
+		sql << "SELECT * FROM Person", soci::into(r);
+		for (std::size_t i = 0; i != r.size(); ++i) {
+			const column_properties & props = r.get_properties(i);
+			std::cout << "get_name: " << props.get_name() <<" Get type: "<< props.get_data_type()<< std::endl;
+		}
 		const auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
 		blib::bun::PRef<backery::Bun> bun = new backery::Bun;
 		bun->bun_length = 10;
