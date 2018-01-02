@@ -6,19 +6,15 @@ namespace soci {
 		typedef values base_type;
 		using ClassType = backery::Bun;
 		inline static void from_base(values const& v, indicator ind, ClassType& c) {
-			;
-			c.bun_name = v.get<decltype(c.bun_name)>("bun_name");
-			c.sugar_quantity = v.get<decltype(c.sugar_quantity)>("sugar_quantity");
-			c.bun_length = v.get<decltype(c.bun_length)>("bun_length");
-			;
+			c.bun_name = v.get<blib::bun::__private::ConvertCPPTypeToSOCISupportType<decltype(c.bun_name)>::type>("bun_name");
+			c.sugar_quantity = v.get<blib::bun::__private::ConvertCPPTypeToSOCISupportType<decltype(c.sugar_quantity)>::type>("sugar_quantity");
+			c.bun_length = v.get<blib::bun::__private::ConvertCPPTypeToSOCISupportType<decltype(c.bun_length)>::type>("bun_length");
 		}
 		inline static void to_base(const ClassType& c, values& v, indicator& ind) {
-			;
 			v.set("bun_name", blib::bun::__private::convertToSOCISupportedType(c.bun_name));
 			v.set("sugar_quantity",
 				blib::bun::__private::convertToSOCISupportedType(c.sugar_quantity));
 			v.set("bun_length", blib::bun::__private::convertToSOCISupportedType(c.bun_length));
-			;
 		}
 	};
 }
@@ -47,10 +43,9 @@ namespace blib {
 						")";
 					static std::string const sql = fmt::format(
 						query, class_name,
-						blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<decltype(backery::Bun::bun_name)>::type>(),
-						blib::bun::cppTypeToDbTypeString<decltype(
-							backery::Bun::sugar_quantity)>(),
-						blib::bun::cppTypeToDbTypeString<decltype(backery::Bun::bun_length)>());
+						blib::bun::cppTypeToDbTypeString<ConvertCPPTypeToSOCISupportType<decltype(backery::Bun::bun_name)>::type>(),
+						blib::bun::cppTypeToDbTypeString<ConvertCPPTypeToSOCISupportType<decltype(backery::Bun::sugar_quantity)>::type>(),
+						blib::bun::cppTypeToDbTypeString<ConvertCPPTypeToSOCISupportType<decltype(backery::Bun::bun_length)>::type>());
 					l().info(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
