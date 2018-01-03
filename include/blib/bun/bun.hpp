@@ -261,6 +261,11 @@ BLIB_MACRO_COMMENTS_IF("@brief getAllObjects for getting all objects of the pers
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 return std::vector<PRef<T>>();\
 }\
+inline static std::vector<PRef<T>> getAllObjWithQuery(std::string const &in_query){\
+BLIB_MACRO_COMMENTS_IF("@brief getAllObjWithQuery for getting all objects of the persistant objects for this class with the provided query.");\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+return std::vector<PRef<T>>();\
+}\
 };\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
 }\

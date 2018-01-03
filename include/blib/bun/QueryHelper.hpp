@@ -29,7 +29,7 @@ namespace blib {
 
                 inline static std::vector <PRef<T>> getAllObjects();
 
-                inline static std::vector <blib::bun::PRef<T>> getAllObjWithQuery(std::string const &in_query);
+                inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query);
             };
         }
     }
