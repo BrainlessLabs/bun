@@ -89,7 +89,7 @@ int main() {
 		sql << "SELECT * FROM Person", soci::into(r);
 		for (std::size_t i = 0; i != r.size(); ++i) {
 			const column_properties & props = r.get_properties(i);
-			std::cout << "get_name: " << props.get_name() <<" Get type: "<< props.get_data_type()<< std::endl;
+			std::cout << "get_name: " << props.get_name() <<" ;Get type: "<< props.get_data_type()<< std::endl;
 		}
 		const auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
 		blib::bun::PRef<backery::Bun> bun = new backery::Bun;

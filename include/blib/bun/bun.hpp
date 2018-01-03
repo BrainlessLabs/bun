@@ -281,7 +281,7 @@ const std::string sql = fmt::format(query, class_name, where_clasue);\
 QUERY_LOG(sql);\
 row r;\
 blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(r);\
-const blib::bun::SimpleOID oid();
+const blib::bun::SimpleOID oid();\
 }\
 catch (std::exception const & e) {\
 l().error("objToJson: {} ", e.what());\
