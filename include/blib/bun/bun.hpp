@@ -96,6 +96,12 @@
 #define EXPAND_VARIABLES_objToJson_expand_obj_I(z, n, ELEMS_TUP) BOOST_PP_COMMA_IF(n) blib::bun::tojson_string(obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
 #define EXPAND_VARIABLES_objToJson_expand_obj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_objToJson_expand_obj_I, ELEMS_TUP)
 
+/// @brief QueryHelper Macros
+/// @brief Expand the member for the query in getAllObjWithQuery
+/// @brief EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery
+#define EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery_I(z, n, ELEMS_TUP) "," BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
+#define EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery_I, ELEMS_TUP)
+
 /// @brief Assorted Helper Macros
 /// @brief Create n number of string
 #define Repeat_N_String_With_Precomma_I(z, n, text)  BOOST_PP_IDENTITY(",")() BOOST_STRINGIZE(text)
@@ -259,12 +265,17 @@ return std::vector<SimpleOID>();\
 inline static std::vector<PRef<T>> getAllObjects(){\
 BLIB_MACRO_COMMENTS_IF("@brief getAllObjects for getting all objects of the persistant objects for this class.");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-return std::vector<PRef<T>>();\
+return std::move(std::vector<PRef<T>>());\
 }\
 inline static std::vector<PRef<T>> getAllObjWithQuery(std::string const &in_query){\
 BLIB_MACRO_COMMENTS_IF("@brief getAllObjWithQuery for getting all objects of the persistant objects for this class with the provided query.");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-return std::vector<PRef<T>>();\
+const std::string query = "SELECT oid_high, oid_low" \
+EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
+"FROM {} {}";\
+const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;\
+const std::string sql = fmt::format(query, class_name, where_clasue);\
+return std::move(std::vector<PRef<T>>());\
 }\
 };\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
