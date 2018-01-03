@@ -265,7 +265,8 @@ return std::vector<SimpleOID>();\
 inline static std::vector<PRef<T>> getAllObjects(){\
 BLIB_MACRO_COMMENTS_IF("@brief getAllObjects for getting all objects of the persistant objects for this class.");\
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-return std::move(std::vector<PRef<T>>());\
+const std::vector<PRef<T>> ret = getAllObjWithQuery("");\
+return std::move(ret);\
 }\
 inline static std::vector<PRef<T>> getAllObjWithQuery(std::string const &in_query){\
 BLIB_MACRO_COMMENTS_IF("@brief getAllObjWithQuery for getting all objects of the persistant objects for this class with the provided query.");\
@@ -274,8 +275,18 @@ const std::string query = "SELECT oid_high, oid_low" \
 EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
 "FROM {} {}";\
 const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;\
+std::vector<PRef<T>> ret;\
+try{\
 const std::string sql = fmt::format(query, class_name, where_clasue);\
-return std::move(std::vector<PRef<T>>());\
+QUERY_LOG(sql);\
+row r;\
+blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(r);\
+const blib::bun::SimpleOID oid();
+}\
+catch (std::exception const & e) {\
+l().error("objToJson: {} ", e.what());\
+}\
+return std::move(ret);\
 }\
 };\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
