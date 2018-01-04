@@ -279,7 +279,7 @@ std::vector<PRef<T>> ret;\
 try{\
 const std::string sql = fmt::format(query, class_name, where_clasue);\
 QUERY_LOG(sql);\
-row r;\
+soci::rowset<soci::row> rows;\
 blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(r);\
 const blib::bun::SimpleOID oid();\
 }\
