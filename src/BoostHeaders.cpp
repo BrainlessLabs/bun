@@ -85,11 +85,15 @@ int main() {
 		p.age = 12;
 		sql << "UPDATE Person SET name =  :name, age = :age, account_balance = :account_balance, gender = :gender WHERE oid_low = 666 and oid_high = 2", soci::use(p);
 		
-		soci::row r;
-		sql << "SELECT * FROM Person", soci::into(r);
-		for (std::size_t i = 0; i != r.size(); ++i) {
-			const column_properties & props = r.get_properties(i);
-			std::cout << "get_name: " << props.get_name() <<" ;Get type: "<< props.get_data_type()<< std::endl;
+		soci::rowset<soci::row> rows = (sql.prepare << "SELECT gender, name, age, account_balance, gender FROM Person");
+		for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
+			auto const& row = *row_itr;
+			for (std::size_t i = 0; i != row.size(); ++i) {
+				const soci::column_properties & props = row.get_properties(i);
+				std::cout << "Name:" << props.get_name() << "; Data Type:" <<props.get_data_type() <<std::endl;
+			}
+			break;
+			//std::cout << "get_name: " << row.get<int>(0) <<" ;Get type: "<< props.get_data_type()<< std::endl;
 		}
 		const auto t = BOOST_PP_TUPLE_ELEM(5, (1, 2, 3, 4, 5, 6));
 		blib::bun::PRef<backery::Bun> bun = new backery::Bun;
@@ -101,6 +105,11 @@ int main() {
 		const auto oid = bun.save();
 		bun->bun_length = 12;
 		bun.save();
+		auto objs = blib::bun::getAllObjects<backery::Bun>();
+		for (auto it = objs.begin(); it != objs.end(); ++it) {
+			auto obj = *it;
+			std::cout << "Obj = " << obj.toJson() << std::endl;
+		}
 		std::cout << "Tuple Out: " << t << std::endl;
 	}
 	catch (exception const & e) {

@@ -97,10 +97,15 @@
 #define EXPAND_VARIABLES_objToJson_expand_obj(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_VARIABLES_objToJson_expand_obj_I, ELEMS_TUP)
 
 /// @brief QueryHelper Macros
-/// @brief Expand the member for the query in getAllObjWithQuery
+/// @brief Expand the class member for the query in getAllObjWithQuery
 /// @brief EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery
 #define EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery_I(z, n, ELEMS_TUP) "," BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
 #define EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery_I, ELEMS_TUP)
+
+/// @brief Expand the object member for the query in getAllObjWithQuery
+/// @brief EXPAND_OBJ_MEMBERS_getAllObjWithQuery
+#define EXPAND_OBJ_MEMBERS_getAllObjWithQuery_I(z, n, ELEMS_TUP) obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP) = row.get<ConvertCPPTypeToSOCISupportType<decltype(obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))>::type>(n + 2);
+#define EXPAND_OBJ_MEMBERS_getAllObjWithQuery(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_OBJ_MEMBERS_getAllObjWithQuery_I, ELEMS_TUP)
 
 /// @brief Assorted Helper Macros
 /// @brief Create n number of string
@@ -273,18 +278,24 @@ BLIB_MACRO_COMMENTS_IF("@brief getAllObjWithQuery for getting all objects of the
 static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 const std::string query = "SELECT oid_high, oid_low" \
 EXPAND_CLASS_TYPE_MEMBERS_getAllObjWithQuery(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
-"FROM {} {}";\
+" FROM '{}' {}";\
 const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;\
 std::vector<PRef<T>> ret;\
 try{\
 const std::string sql = fmt::format(query, class_name, where_clasue);\
 QUERY_LOG(sql);\
-soci::rowset<soci::row> rows;\
-blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(r);\
-const blib::bun::SimpleOID oid();\
+soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare <<sql);\
+for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {\
+auto const& row = *row_itr;\
+const blib::bun::SimpleOID oid(row.get<long long>(0), row.get<long long>(1));\
+T* obj = new T;\
+EXPAND_OBJ_MEMBERS_getAllObjWithQuery(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+const PRef<T> pref_obj(oid, obj);\
+ret.push_back(pref_obj);\
+}\
 }\
 catch (std::exception const & e) {\
-l().error("objToJson: {} ", e.what());\
+l().error("getAllObjWithQuery: {} ", e.what());\
 }\
 return std::move(ret);\
 }\

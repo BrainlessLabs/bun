@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "blib/bun/PRefHelper.hpp"
+#include "blib/bun/QueryHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
 
 namespace blib {
@@ -29,6 +30,21 @@ namespace blib {
 		template<typename T>
 		inline static void deleteSchema() {
 			blib::bun::__private::PRefHelper<T>::deleteSchema<T>();
+		}
+
+		template<typename T>
+		inline static std::vector <SimpleOID> getAllOids() {
+			return blib::bun::__private::QueryHelper<T>::getAllOids();
+		}
+
+		template<typename T>
+		inline static std::vector <PRef<T>> getAllObjects() {
+			return blib::bun::__private::QueryHelper<T>::getAllObjects();
+		}
+
+		template<typename T>
+		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
+			return blib::bun::__private::QueryHelper<T>::getAllObjWithQuery(in_query);
 		}
 
 		bool connect(std::string const& connection_string) {
