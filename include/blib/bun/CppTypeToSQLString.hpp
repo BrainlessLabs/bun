@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 namespace blib {
     namespace bun {
@@ -38,6 +39,12 @@ namespace blib {
             /// @brief Holds one of the values of the enum DbTypes
             static const DbTypes ret = DbTypes::kUnknown;
         };
+        
+        template<typename T>
+        struct CppTypeToDbType<std::vector<T>>{
+            /// @brief All the vectors are converted to strings
+            static const DbTypes ret = DbTypes::kText;
+        }
 
         template<>
         struct CppTypeToDbType<int> {

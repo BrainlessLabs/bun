@@ -20,6 +20,7 @@
 #include "blib/bun/CppTypeToSQLString.hpp"
 #include "blib/bun/GlobalFunc.hpp"
 #include "blib/utils/JSONUtils.hpp"
+#include "blib/utils/TypeUtils.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -287,11 +288,11 @@ QUERY_LOG(sql);\
 soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare <<sql);\
 for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {\
 auto const& row = *row_itr;\
-const blib::bun::SimpleOID oid(row.get<long long>(0), row.get<long long>(1));\
-T* obj = new T;\
+const blib::bun::SimpleOID oid(row.get<ConvertCPPTypeToSOCISupportType<blib::bun::SimpleOID::OidHighType>::type>(0),\
+row.get<ConvertCPPTypeToSOCISupportType<blib::bun::SimpleOID::OidLowType>::type>(1));\
+auto obj = std::make_unique<T>();\
 EXPAND_OBJ_MEMBERS_getAllObjWithQuery(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
-const PRef<T> pref_obj(oid, obj);\
-ret.push_back(pref_obj);\
+ret.emplace_back(oid, obj.release());\
 }\
 }\
 catch (std::exception const & e) {\
@@ -304,6 +305,8 @@ BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
 }\
 }\
 }\
+BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for IsPersistant---");\
+namespace blib{namespace bun{ template<> struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP))> : std::true_type {}; } }\
 
 /// SPECIALIZE_BUN_HELPER End
 
