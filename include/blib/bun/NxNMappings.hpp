@@ -6,50 +6,27 @@ namespace blib{
     namespace bun{
         namespace __private{
             template<typename T>
-            struct OneToNCreation{
-                std::string parent_table(){
-                    return "";
-                }
-                
-                std::string table_name(){
-                    return "";
-                }
-                
-                std::string sql(){
-                    return "";
-                }
-                
-                private:
-                std::string __parent_table(const std::string& /*parent_table*/){
-                    return "";
-                }
-                
-                std::string __table_name(const std::string& /*table-name*/){
+            struct NxNMappingTables{
+                static std::string base_table_name();
+                static std::string table_name();
+            }
+            
+            template<typename T>
+            struct OneToNCreationSql{
+                static std::string sql(){
                     return "";
                 }
             }
             
             template<typename T>
-            struct OneToNCreation<std::vector<T>>{
-                std::string parent_table(){
-                    return "";
+            struct OneToNCreationSql<std::vector<T>>{
+                static std::string const& table_name(){
+                    static const std::string table_name = NxNMappingTables<std::vector<T>>::base_table_name() + "_" + NxNMappingTables<std::vector<T>>::table_name()
+                    return table_name;
                 }
                 
-                std::string table_name(){
-                    return "";
-                }
-                
-                std::string sql(){
-                    return "";
-                }
-                
-                private:
-                std::string __parent_table(const std::string& parent_table){
-                    return "";
-                }
-                
-                std::string __table_name(const std::string& /*table-name*/){
-                    return "";
+                static std::string sql(){
+                    static std::string sql = "CREATE TABLE '" + table_name() + "' WITH "
                 }
             }
         }
