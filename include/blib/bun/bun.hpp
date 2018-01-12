@@ -21,6 +21,7 @@
 #include "blib/bun/GlobalFunc.hpp"
 #include "blib/utils/JSONUtils.hpp"
 #include "blib/utils/TypeUtils.hpp"
+#include "blib/utils/NxNMappingTables.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -305,8 +306,13 @@ BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
 }\
 }\
 }\
-BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for IsPersistant---");\
+BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for IsPersistant Start---");\
 namespace blib{namespace bun{ template<> struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP))> : std::true_type {}; } }\
+BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for NxNMappings---");\
+namespace blib{namespace bun{namespace __private{\
+template<>struct TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>\
+}}}\
+BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for NxNMappings End---");\
 
 /// SPECIALIZE_BUN_HELPER End
 
