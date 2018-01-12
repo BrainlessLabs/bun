@@ -411,6 +411,9 @@
     <ClInclude Include="..\..\include\blib\utils\debug.hpp">
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\NxNMappings.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />

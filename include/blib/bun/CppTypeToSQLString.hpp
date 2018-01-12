@@ -44,7 +44,7 @@ namespace blib {
         struct CppTypeToDbType<std::vector<T>>{
             /// @brief All the vectors are converted to strings
             static const DbTypes ret = DbTypes::kText;
-        }
+		};
 
         template<>
         struct CppTypeToDbType<int> {

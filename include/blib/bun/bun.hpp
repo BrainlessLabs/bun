@@ -21,7 +21,7 @@
 #include "blib/bun/GlobalFunc.hpp"
 #include "blib/utils/JSONUtils.hpp"
 #include "blib/utils/TypeUtils.hpp"
-#include "blib/utils/NxNMappingTables.hpp"
+#include "blib/bun/NxNMappings.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -108,6 +108,10 @@
 /// @brief EXPAND_OBJ_MEMBERS_getAllObjWithQuery
 #define EXPAND_OBJ_MEMBERS_getAllObjWithQuery_I(z, n, ELEMS_TUP) obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP) = row.get<ConvertCPPTypeToSOCISupportType<decltype(obj->BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))>::type>(n + 2);
 #define EXPAND_OBJ_MEMBERS_getAllObjWithQuery(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_OBJ_MEMBERS_getAllObjWithQuery_I, ELEMS_TUP)
+
+/// @brief TypeMetaData Macros
+#define EXPAND_FOR_TypeMetaData_type_maps_I(z, n, CLASS_ELEMS_TUP) {BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)), blib::bun::cppTypeToDbTypeString<ConvertCPPTypeToSOCISupportType<decltype(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n,1), CLASS_ELEMS_TUP))>::type>()},
+#define EXPAND_FOR_TypeMetaData_type_maps(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), EXPAND_FOR_TypeMetaData_type_maps_I, CLASS_ELEMS_TUP)
 
 /// @brief Assorted Helper Macros
 /// @brief Create n number of string
@@ -307,10 +311,22 @@ BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for QueryHelper End---");\
 }\
 }\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for IsPersistant Start---");\
-namespace blib{namespace bun{ template<> struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP))> : std::true_type {}; } }\
+namespace blib{namespace bun{ template<> struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : std::true_type {}; } }\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for NxNMappings---");\
 namespace blib{namespace bun{namespace __private{\
-template<>struct TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>\
+template<>\
+struct TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+static std::string const& table_name(){\
+static const std::string name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+return name;\
+}\
+static std::map<std::string, std::string> const& type_maps(){\
+static const std::map<std::string, std::string> type_maps = {\
+EXPAND_FOR_TypeMetaData_type_maps(CLASS_ELEMS_TUP)\
+};\
+return type_maps;\
+}\
+};\
 }}}\
 BLIB_MACRO_COMMENTS_IF("@brief ---Specialization for NxNMappings End---");\
 
