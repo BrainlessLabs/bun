@@ -198,6 +198,7 @@
     <ClInclude Include="..\..\include\blib\bun\PRefHelper.hpp" />
     <ClInclude Include="..\..\include\blib\bun\QueryHelper.hpp" />
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\_bun.hpp" />
     <ClInclude Include="..\..\include\blib\utils\debug.hpp" />
     <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />

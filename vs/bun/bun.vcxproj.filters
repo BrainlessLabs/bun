@@ -345,9 +345,6 @@
     <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\printf.h">
       <Filter>Header Files\third_party\spdlog\fmt\bundled</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\bun.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\CppTypeToSQLString.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
@@ -412,6 +409,12 @@
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\NxNMappings.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\_bun.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\bun.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,10 +16,32 @@ namespace blib {
 	namespace bun {
 		namespace __private {
 			/////////////////////////////////////////////////
+			/// @class MapperType
+			/// @brief Holds what kind of mapper type
+			/////////////////////////////////////////////////
+			enum class MapperType {
+				kUnknown = 0,
+				kBaseType,
+				kVector,
+				kUniquePointer,
+				kSharedPointer
+			};
+
+			/////////////////////////////////////////////////
+			/// @class TypeDetails
+			/// @brief Holds the type details 
+			/////////////////////////////////////////////////
+			struct TypeDetails {
+				blib::bun::DbTypes type;
+				std::string name;
+				MapperType holder_type;
+			};
+
+			/////////////////////////////////////////////////
 			/// @class TypeMetaData
 			/// @brief Contains meta data that will be usieful to get type 
 			///        inferences for a certain type.
-			///////////////////////////////////////////////// 
+			/////////////////////////////////////////////////
 			template<typename T>
 			struct TypeMetaData {
 				static std::string const& table_name();

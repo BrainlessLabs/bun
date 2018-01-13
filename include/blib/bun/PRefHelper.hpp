@@ -24,8 +24,6 @@ namespace blib {
             struct PRefHelper {
                 inline static void createSchema();
 
-				inline static void createSchemaWithPrefix(std::string const& prefix);
-
                 inline static void deleteSchema();
 
                 inline static SimpleOID persistObj(T *);
