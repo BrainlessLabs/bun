@@ -43,7 +43,7 @@ namespace blib {
         template<typename T>
         struct CppTypeToDbType<std::vector<T>>{
             /// @brief All the vectors are converted to strings
-            static const DbTypes ret = DbTypes::kText;
+            static const DbTypes ret = DbTypes::kInteger;
 		};
 
         template<>

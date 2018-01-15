@@ -33,8 +33,9 @@ namespace blib {
 			/////////////////////////////////////////////////
 			struct TypeDetails {
 				blib::bun::DbTypes type;
-				std::string name;
 				MapperType holder_type;
+				std::string name;
+				bool fundamental_type;
 			};
 
 			/////////////////////////////////////////////////
@@ -45,7 +46,7 @@ namespace blib {
 			template<typename T>
 			struct TypeMetaData {
 				static std::string const& table_name();
-				static std::map<std::string, std::string> const& type_maps();
+				static std::map<std::string, TypeDetails> const& type_maps();
 			};
 
 			template<typename T>
