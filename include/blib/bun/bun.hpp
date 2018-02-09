@@ -266,7 +266,7 @@ static std::string const class_name = BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLA
 return class_name;\
 }\
 static std::map<std::string, TypeDetails> const& type_maps(){\
-std::map<std::string, TypeDetails> type_map = {\
+static const std::map<std::string, TypeDetails> type_map = {\
 EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP)\
 };\
 return type_map;\
