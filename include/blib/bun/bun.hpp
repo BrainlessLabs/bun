@@ -49,6 +49,13 @@
 #define BLIB_MACRO_COMMENTS_ENABLED 0
 #define BLIB_MACRO_COMMENTS_IF(a) BOOST_PP_EXPR_IF(BLIB_MACRO_COMMENTS_ENABLED, a)
 
+/// @brief createSchema Helper Macros
+/// @details We need to pass only the data members as a tuple to this macro
+/// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
+/// @brief Expands the class members for CREATE TABLE
+#define EXPAND_CLASS_MEMBERS_createSchema_I(z, n, ELEMS_TUP) ", " BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)) " {}"
+#define EXPAND_CLASS_MEMBERS_createSchema(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_MEMBERS_createSchema_I, ELEMS_TUP)
+
 namespace blib {
   namespace bun {
     /////////////////////////////////////////////////
@@ -257,9 +264,20 @@ return class_name;\
 }\
 static std::map<std::string, TypeDetails> const& type_maps(){\
 static const std::map<std::string, TypeDetails> type_map = {\
-EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP)\
+EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP);\
 };\
 return type_map;\
+}\
+};\
+template<>\
+struct QueryHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+using T = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
+inline static void createSchema(){\
+BLIB_MACRO_COMMENTS_IF("@brief createSchema for creating the schema of an object");\
+static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
+static std::string const query = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL" \
+EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
+ ")";\
 }\
 };\
 }}}\
