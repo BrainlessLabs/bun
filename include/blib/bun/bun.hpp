@@ -236,25 +236,15 @@ std::is_fundamental<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM
 ///////////////////////////////////////////////////////////////////////////////
 
 /// SPECIALIZE_BUN_HELPER Start
-#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace soci{\
-BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
+#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
 template<>\
-struct type_conversion<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
-typedef values base_type;\
-using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
-inline static void from_base(values const& v, indicator ind, ClassType& c){\
-BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
-EXPAND_MEMBER_ASSIGNENTS_from_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
-}\
-inline static void to_base(const ClassType& c, values& v, indicator& ind){\
-BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db");\
-EXPAND_MEMBER_ASSIGNENTS_to_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
-}\
-};\
-}\
-namespace blib{namespace bun{\
-template<>\
+BLIB_MACRO_COMMENTS_IF("@brief Lets everyone know that this is a persistant class");\
 struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : std::true_type {\
+};\
+BLIB_MACRO_COMMENTS_IF("@brief Mark the class as composite");\
+template<>\
+struct CppTypeToDbType<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+static const DbTypes ret = DbTypes::kComposite;\
 };\
 }\
 namespace blib{namespace bun{namespace __private{\
@@ -273,5 +263,20 @@ return type_map;\
 }\
 };\
 }}}\
-
+namespace soci{\
+BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
+template<>\
+struct type_conversion<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+typedef values base_type;\
+using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
+inline static void from_base(values const& v, indicator ind, ClassType& c){\
+BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
+EXPAND_MEMBER_ASSIGNENTS_from_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+}\
+inline static void to_base(const ClassType& c, values& v, indicator& ind){\
+BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db");\
+EXPAND_MEMBER_ASSIGNENTS_to_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+}\
+};\
+}\
 /// SPECIALIZE_BUN_HELPER End

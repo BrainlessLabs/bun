@@ -24,7 +24,8 @@ namespace blib {
             kInteger,
             kReal,
             kNumeric,
-            kText
+            kText,
+			kComposite
         };
 
         /// @class CppTypeToDbType
@@ -119,6 +120,12 @@ namespace blib {
             const static std::string ret = "VARCHAR";
             return ret;
         }
+
+		template<>
+		inline std::string const &cppTypeEnumToDbTypeString<DbTypes::kComposite>() {
+			const static std::string ret = "__COMPOSITE__";
+			return ret;
+		}
 
         /// @fn cppTypeToDbTypeString
         /// @brief This is the final piece of puzzle in the type conversion.
