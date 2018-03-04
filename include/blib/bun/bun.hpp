@@ -269,17 +269,6 @@ EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP);\
 return type_map;\
 }\
 };\
-template<>\
-struct QueryHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
-using T = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
-inline static void createSchema(){\
-BLIB_MACRO_COMMENTS_IF("@brief createSchema for creating the schema of an object");\
-static std::string const class_name = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
-static std::string const query = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL" \
-EXPAND_CLASS_MEMBERS_createSchema(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP )) \
- ")";\
-}\
-};\
 }}}\
 namespace soci{\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
