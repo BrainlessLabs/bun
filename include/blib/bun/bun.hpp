@@ -14,6 +14,11 @@
 #include <boost/preprocessor.hpp>
 #include <boost/fusion/sequence.hpp>
 #include <boost/fusion/include/sequence.hpp>
+#include <boost/fusion/adapted/struct/adapt_struct.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/algorithm/iteration/for_each.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/preprocessor/tuple/rem.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/PRef.hpp"
 //#include "blib/bun/PRefHelper.hpp"
@@ -243,7 +248,10 @@ std::is_fundamental<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM
 ///////////////////////////////////////////////////////////////////////////////
 
 /// SPECIALIZE_BUN_HELPER Start
-#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) namespace blib{namespace bun{\
+#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) BOOST_FUSION_ADAPT_STRUCT(\
+BOOST_PP_TUPLE_REM_CTOR(CLASS_ELEMS_TUP)\
+)\
+namespace blib{namespace bun{\
 template<>\
 BLIB_MACRO_COMMENTS_IF("@brief Lets everyone know that this is a persistant class");\
 struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : std::true_type {\
