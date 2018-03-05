@@ -63,20 +63,20 @@
 #define EXPAND_CLASS_MEMBERS_createSchema(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_MEMBERS_createSchema_I, ELEMS_TUP)
 
 namespace blib {
-  namespace bun {
-    /////////////////////////////////////////////////
-    /// @class IsPersistant
-    /// @brief If IsPersistant<Class>::value == true then Class can be persisted.
-    ///        Specialize this class for all the class which can be persistent.
-    /////////////////////////////////////////////////
-    template<typename T>
-    struct IsPersistant : boost::mpl::bool_<std::is_integral<T>::value> {
-    };
+	namespace bun {
+		/////////////////////////////////////////////////
+		/// @class IsPersistant
+		/// @brief If IsPersistant<Class>::value == true then Class can be persisted.
+		///        Specialize this class for all the class which can be persistent.
+		/////////////////////////////////////////////////
+		template<typename T>
+		struct IsPersistant : boost::mpl::bool_<std::is_integral<T>::value> {
+		};
 
-    template<>
-    struct IsPersistant<std::string> : boost::mpl::bool_<true> {
-    };
-  }
+		template<>
+		struct IsPersistant<std::string> : boost::mpl::bool_<true> {
+		};
+	}
 }
 
 namespace blib {
@@ -93,31 +93,31 @@ namespace blib {
 				kUniquePointer,
 				kSharedPointer
 			};
-			
+
 			/////////////////////////////////////////////////
 			/// @class FindEncloseeTypeMeta
 			/// @brief Deducts the enclosee type
 			/////////////////////////////////////////////////				
 			template<typename T>
-			struct FindEncloseeTypeMeta{
+			struct FindEncloseeTypeMeta {
 				using type = T;
 			};
-			
+
 			template<typename T>
-			struct FindEncloseeTypeMeta<std::vector<T>>{
+			struct FindEncloseeTypeMeta<std::vector<T>> {
 				using type = T;
 			};
-			
+
 			template<typename T>
-			struct FindEncloseeTypeMeta<std::unique_ptr<T>>{
+			struct FindEncloseeTypeMeta<std::unique_ptr<T>> {
 				using type = T;
 			};
-			
+
 			template<typename T>
-			struct FindEncloseeTypeMeta<std::shared_ptr<T>>{
+			struct FindEncloseeTypeMeta<std::shared_ptr<T>> {
 				using type = T;
 			};
-			
+
 			/////////////////////////////////////////////////
 			/// @class IsUniquePointer
 			/// @brief Find if this is a unique pointer
@@ -125,7 +125,7 @@ namespace blib {
 			template<typename T>
 			struct IsUniquePointer : boost::mpl::bool_<false> {
 			};
-			
+
 			template<typename T>
 			struct IsUniquePointer<std::unique_ptr<T>> : boost::mpl::bool_<true> {
 			};
@@ -141,42 +141,47 @@ namespace blib {
 			template<typename T>
 			struct IsSharedPointer<std::shared_ptr<T>> : boost::mpl::bool_<true> {
 			};
-			
+
+			/////////////////////////////////////////////////
+			/// @class getValue
+			/// @brief Get the value
+			/////////////////////////////////////////////////
+
 			/////////////////////////////////////////////////
 			/// @fn getValue
 			/// @brief Get the value
 			/////////////////////////////////////////////////
 			template<typename T>
-			auto getValue(T const& a)->T&{
+			auto getValue(T const& a)->T& {
 				return a;
 			}
-			
+
 			/// @brief Consider a regular pointer as a shared pointer too
 			template<typename T>
 			struct IsSharedPointer<T*> : boost::mpl::bool_<true> {
 			};
-			
+
 			/////////////////////////////////////////////////
 			/// @class FindEnclosureTypeMeta
 			/// @brief Deducts the enclosing type
 			/////////////////////////////////////////////////			
 			template<typename T>
-			struct FindEnclosureTypeMeta{
+			struct FindEnclosureTypeMeta {
 				static const EnclosureType = EnclosureType::kBaseType;
 			};
-			
+
 			template<typename T>
-			struct FindEnclosureTypeMeta<std::vector<T>>{
+			struct FindEnclosureTypeMeta<std::vector<T>> {
 				static const EnclosureType = EnclosureType::kVector;
 			};
-			
+
 			template<typename T>
-			struct FindEnclosureTypeMeta<std::unique_ptr<T>>{
+			struct FindEnclosureTypeMeta<std::unique_ptr<T>> {
 				static const EnclosureType = EnclosureType::kUniquePointer;
 			};
-			
+
 			template<typename T>
-			struct FindEnclosureTypeMeta<std::shared_ptr<T>>{
+			struct FindEnclosureTypeMeta<std::shared_ptr<T>> {
 				static const EnclosureType = EnclosureType::kSharedPointer;
 			};
 
@@ -188,13 +193,13 @@ namespace blib {
 				blib::bun::DbTypes type;
 				EnclosureType enclouser_type;
 				bool fundamental_type;
-				
+
 				/// @fn TypeDetails
 				TypeDetails(blib::bun::DbTypes in_type,
-				EnclosureType in_enclouser_type,
-				bool in_fundamental_type):type(in_type),
-				enclouser_type(in_enclouser_type),
-				fundamental_type(in_fundamental_type){}
+					EnclosureType in_enclouser_type,
+					bool in_fundamental_type) :type(in_type),
+					enclouser_type(in_enclouser_type),
+					fundamental_type(in_fundamental_type) {}
 			};
 
 			/////////////////////////////////////////////////
@@ -208,21 +213,21 @@ namespace blib {
 				static std::string const& class_name();
 				static std::map<std::string, TypeDetails> const& type_maps();
 			};
-			
+
 			template<typename T>
-			struct SqlHelper{
-				static std::string const& createSchema(){
+			struct SqlHelper {
+				static std::string const& createSchema() {
 					static const std::string sql = _createSchema();
 					return sql;
 				}
-				
+
 			private:
-				static std::string _createSchema(){
+				static std::string _createSchema() {
 					std::string sql;
 					return sql;
 				}
 			};
-			
+
 			/////////////////////////////////////////////////
 			/// @class PRefHelper
 			/// @brief Helper class for the persistent framework.
@@ -241,7 +246,7 @@ namespace blib {
 				}
 
 				inline static void createSchema(const std::string parent_table, const std::string table) {
-					
+
 				}
 
 				inline static void deleteSchema();
