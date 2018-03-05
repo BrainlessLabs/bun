@@ -116,7 +116,45 @@ namespace blib {
 			template<typename T>
 			struct FindEncloseeTypeMeta<std::shared_ptr<T>>{
 				using type = T;
-			};					
+			};
+			
+			/////////////////////////////////////////////////
+			/// @class IsUniquePointer
+			/// @brief Find if this is a unique pointer
+			/////////////////////////////////////////////////
+			template<typename T>
+			struct IsUniquePointer : boost::mpl::bool_<false> {
+			};
+			
+			template<typename T>
+			struct IsUniquePointer<std::unique_ptr<T>> : boost::mpl::bool_<true> {
+			};
+
+			/////////////////////////////////////////////////
+			/// @class IsSharedPointer
+			/// @brief Find if this is a shared pointer
+			/////////////////////////////////////////////////
+			template<typename T>
+			struct IsSharedPointer : boost::mpl::bool_<false> {
+			};
+
+			template<typename T>
+			struct IsSharedPointer<std::shared_ptr<T>> : boost::mpl::bool_<true> {
+			};
+			
+			/////////////////////////////////////////////////
+			/// @fn getValue
+			/// @brief Get the value
+			/////////////////////////////////////////////////
+			template<typename T>
+			auto getValue(T const& a)->T&{
+				return a;
+			}
+			
+			/// @brief Consider a regular pointer as a shared pointer too
+			template<typename T>
+			struct IsSharedPointer<T*> : boost::mpl::bool_<true> {
+			};
 			
 			/////////////////////////////////////////////////
 			/// @class FindEnclosureTypeMeta
@@ -140,7 +178,7 @@ namespace blib {
 			template<typename T>
 			struct FindEnclosureTypeMeta<std::shared_ptr<T>>{
 				static const EnclosureType = EnclosureType::kSharedPointer;
-			};			
+			};
 
 			/////////////////////////////////////////////////
 			/// @class TypeDetails
@@ -192,11 +230,17 @@ namespace blib {
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct QueryHelper {
-				static std::string table_name;
+				static bool _ok;
+				static std::string _create_table_sql;
+				static std::string _delete_table_sql;
+				static std::string _update_table_sql;
+				static std::string _table_name;
 
-				inline static void createSchema();
+				inline static void createSchema() {
+					_table_name = TypeMetaData<T>::class_name();
+				}
 
-				inline static void createSchema(const std::string parent_table, const std::string table){
+				inline static void createSchema(const std::string parent_table, const std::string table) {
 					
 				}
 
