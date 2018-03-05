@@ -11,6 +11,7 @@
 #include <string>
 #include <memory>
 #include <type_traits>
+#include <boost/mpl/bool.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/fusion/sequence.hpp>
 #include <boost/fusion/include/sequence.hpp>
@@ -69,11 +70,11 @@ namespace blib {
     ///        Specialize this class for all the class which can be persistent.
     /////////////////////////////////////////////////
     template<typename T>
-    struct IsPersistant : std::integral_constant<bool, std::is_arithmetic<T>::value> {
+    struct IsPersistant : boost::mpl::bool_<std::is_integral<T>::value> {
     };
 
     template<>
-    struct IsPersistant<std::string> : std::true_type {
+    struct IsPersistant<std::string> : boost::mpl::bool_<true> {
     };
   }
 }
@@ -195,7 +196,9 @@ namespace blib {
 
 				inline static void createSchema();
 
-				inline static void createSchema(const std::string parent_table, const std::string table);
+				inline static void createSchema(const std::string parent_table, const std::string table){
+					
+				}
 
 				inline static void deleteSchema();
 
@@ -254,7 +257,7 @@ BOOST_PP_TUPLE_REM_CTOR(CLASS_ELEMS_TUP)\
 namespace blib{namespace bun{\
 template<>\
 BLIB_MACRO_COMMENTS_IF("@brief Lets everyone know that this is a persistant class");\
-struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : std::true_type {\
+struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : boost::mpl::bool_<true> {\
 };\
 BLIB_MACRO_COMMENTS_IF("@brief Mark the class as composite");\
 template<>\
