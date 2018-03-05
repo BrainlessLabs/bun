@@ -10,6 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <string>
 #include <memory>
+#include <set>
 #include <type_traits>
 #include <boost/mpl/bool.hpp>
 #include <boost/preprocessor.hpp>
@@ -76,6 +77,22 @@ namespace blib {
 		template<>
 		struct IsPersistant<std::string> : boost::mpl::bool_<true> {
 		};
+
+		namespace __private {
+			/////////////////////////////////////////////////
+			/// @class DbTableType
+			/// @brief Helper for converting primitive types to db types
+			/////////////////////////////////////////////////
+			template<typename T>
+			struct DbTableType {
+				using type = T;
+			};
+
+			template<typename T>
+			struct PrimitiveType {
+				blib::bun::SimpleOID oid;
+			};
+		}
 	}
 }
 
@@ -143,13 +160,28 @@ namespace blib {
 			};
 
 			/////////////////////////////////////////////////
-			/// @class getValue
-			/// @brief Get the value
+			/// @class IsContainer
+			/// @brief True if the variable is a container type
 			/////////////////////////////////////////////////
+			template<typename T>
+			struct IsContainer : boost::mpl::bool_<false> {
+			};
+
+			template<typename T>
+			struct IsContainer<std::vector<T>> : boost::mpl::bool_<true> {
+			};
+
+			template<typename T>
+			struct IsContainer<std::list<T>> : boost::mpl::bool_<true> {
+			};
+
+			template<typename T>
+			struct IsContainer<std::set<T>> : boost::mpl::bool_<true> {
+			};
 
 			/////////////////////////////////////////////////
 			/// @fn getValue
-			/// @brief Get the value
+			/// @brief Get the value of a pointer
 			/////////////////////////////////////////////////
 			template<typename T>
 			auto getValue(T const& a)->T& {
