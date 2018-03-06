@@ -184,7 +184,7 @@ namespace blib {
 			/// @brief Get the value of a pointer
 			/////////////////////////////////////////////////
 			template<typename T>
-			auto getValue(T const& a)->T& {
+			auto getValue(T const& a)->T const& {
 				return a;
 			}
 
@@ -246,8 +246,16 @@ namespace blib {
 				static std::map<std::string, TypeDetails> const& type_maps();
 			};
 
+			/////////////////////////////////////////////////
+			/// @class SqlString
+			/// @brief Generates the SQL strings in the class
+			/////////////////////////////////////////////////
 			template<typename T>
-			struct SqlHelper {
+			struct SqlString {
+				static std::string _create_table_sql;
+				static std::string _delete_table_sql;
+				static std::string _update_table_sql;
+				
 				static std::string const& createSchema() {
 					static const std::string sql = _createSchema();
 					return sql;
@@ -255,9 +263,33 @@ namespace blib {
 
 			private:
 				static std::string _createSchema() {
+					_table_name = TypeMetaData<T>::class_name();
 					std::string sql;
 					return sql;
 				}
+			};
+			
+			template<>
+			struct SqlString<int> {
+				static std::string const& createSchema() {
+					static const std::string sql = "CREATE TABLE {} IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL, {} INTEGER)";
+					return sql;
+				}
+				
+				static std::string const& deleteSchema() {
+					static const std::string sql = "DROP TABLE {}";
+					return sql;
+				}
+				
+				static std::string const& updateObject() {
+					static const std::string sql = "UPDATE {} SET {} = {}";
+					return sql;
+				}
+				
+				static std::string const& deleteObject() {
+					static const std::string sql = "DELETE FROM {} WHERE oid_high = {} AND oid_low = {}";
+					return sql;
+				}				
 			};
 
 			/////////////////////////////////////////////////
