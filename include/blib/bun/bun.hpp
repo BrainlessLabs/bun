@@ -189,15 +189,6 @@ namespace blib {
 			struct IsContainer<std::set<T>> : boost::mpl::bool_<true> {
 			};
 
-			/////////////////////////////////////////////////
-			/// @fn getValue
-			/// @brief Get the value of a pointer
-			/////////////////////////////////////////////////
-			template<typename T>
-			auto getValue(T const& a)->T const& {
-				return a;
-			}
-
 			/// @brief Consider a regular pointer as a shared pointer too
 			template<typename T>
 			struct IsSharedPointer<T*> : boost::mpl::bool_<true> {
@@ -262,6 +253,7 @@ namespace blib {
 			struct TypeMetaData {
 				using MT = boost::fusion::vector<void>;
 				static std::string const& class_name();
+				boost::fusion::vector<boost::fusion::pair<void, std::string>> const& tuple_type_pair();
 				static std::map<std::string, TypeDetails> const& type_maps();
 			};
 
@@ -271,21 +263,101 @@ namespace blib {
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct SqlString {
-				static std::string _create_table_sql;
-				static std::string _delete_table_sql;
-				static std::string _update_table_sql;
-				
-				static std::string const& createSchema(T const& obj) {
-					static const std::string sql = _createSchema(obj);
-					return sql;
-				}
-
 			private:
-				static std::string _createSchema(T const& obj) {
-					_table_name = TypeMetaData<T>::class_name();
-					boost::fusion::filter_view<T const, blib::bun::IsPersistant<boost::mpl::_>> compound(obj);
-					std::string sql;
-					return sql;
+				static std::string _create_table_sql;
+				static std::string _drop_table_sql;
+				static std::string _update_row_sql;
+				static std::string _insert_row_sql;
+				static std::string _delete_row_sql;
+				static bool _ok;
+
+				struct CreateTable {
+				private:
+					std::string& sql;
+
+				public:
+					CreateTable(std::string& sql) : sql(sql) {}
+
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += "," + x.second +
+							" " +
+							blib::bun::cppTypeToDbTypeString<blib::bun::ConvertCPPTypeToSOCISupportType<decltype(std::remove_pointer<T>::type)>::type>();
+					}
+				};
+
+				struct UpdateRow {
+				private:
+					std::string& sql;
+
+				public:
+					UpdateRow(std::string& sql) : sql(sql) {}
+
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += "," + x.second +
+							" " +
+							blib::bun::cppTypeToDbTypeString<blib::bun::ConvertCPPTypeToSOCISupportType<decltype(std::remove_pointer<T>::type)>::type>();
+					}
+				};
+
+				struct InsertRowNames {
+				private:
+					std::string& sql;
+
+				public:
+					InsertRowNames(std::string& sql) : sql(sql) {}
+
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += " ," + x.second;
+					}
+				};
+
+				struct InsertRowVal {
+				private:
+					std::string& sql;
+
+				public:
+					InsertRowVal(std::string& sql) : sql(sql) {}
+
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += " ,{}";
+					}
+				};
+
+			public:
+				inline static void populate() {
+					if (!_ok) {
+						static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+						if (_create_table_sql.empty()) {
+							_create_table_sql = "CREATE TABLE '{}' IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL";
+							boost::fusion::for_each(vecs, SqlString<T>::CreateTable(_create_table_sql));
+							_create_table_sql += ")"
+						}
+
+						if (_drop_table_sql.empty()) {
+							_drop_table_sql = "DROP TABLE '{}'";
+						}
+
+						if (_delete_row_sql.empty()) {
+							_delete_row_sql = "DELETE FROM '{}' WHERE oid_high = {} AND oid_low = {}";
+						}
+
+						if (_insert_row_sql.empty()) {
+							_insert_row_sql = "INSERT INTO '{}' (oid_high, oid_low";
+							boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(_insert_row_sql));
+							_insert_row_sql += ") VALUES ({}, {}";
+							boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(_insert_row_sql));
+							_insert_row_sql += ")";
+						}
+						_ok = true;
+					}
 				}
 			};
 			
@@ -321,36 +393,20 @@ namespace blib {
 			struct QueryHelper {
 				static bool _ok;
 				static std::string _create_table_sql;
-				static std::string _delete_table_sql;
-				static std::string _update_table_sql;
+				static std::string _drop_table_sql;
+				static std::string _update_row_sql;
 				static std::string _table_name;
-
-				struct CreateTable {
-					std::string& sql;
-
-					CreateTable(std::string& sql) : sql(sql) {}
-
-					template <typename T>
-					void operator()(T const& x) const
-					{
-					}
-				};
 
 				inline static void createSchema() {
 					_table_name = TypeMetaData<T>::class_name();
 				}
 
 				inline static void createSchema(const std::string table, const std::string parent_table) {
-
-					if (_create_table_sql.empty()) {
-						_create_table_sql = "CREATE TABLE '{}' IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL";
-						TypeMetaData<T>::TupType tup = {nullptr};
-						boost::fusion::filter_view<T, IsComposite<boost::mpl::_>> composites_view(tup);
-						_create_table_sql += ")"
-					}
 				}
 
-				inline static void deleteSchema();
+				inline static void deleteSchema() {
+					_drop_table_sql = "DROP TABLE '{}'";
+				}
 
 				inline static SimpleOID persistObj(T *);
 
