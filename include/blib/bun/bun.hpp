@@ -256,14 +256,15 @@ namespace blib {
 				static std::string _delete_table_sql;
 				static std::string _update_table_sql;
 				
-				static std::string const& createSchema() {
-					static const std::string sql = _createSchema();
+				static std::string const& createSchema(T const& obj) {
+					static const std::string sql = _createSchema(obj);
 					return sql;
 				}
 
 			private:
-				static std::string _createSchema() {
+				static std::string _createSchema(T const& obj) {
 					_table_name = TypeMetaData<T>::class_name();
+					boost::fusion::filter_view<T const, blib::bun::IsPersistant<boost::mpl::_>> compound(obj);
 					std::string sql;
 					return sql;
 				}
@@ -352,13 +353,15 @@ namespace blib {
 #define EXPAND_MEMBER_ASSIGNENTS_generate_type_maps_I(z, n, CLASS_ELEMS_TUP) {\
 BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)), \
 TypeDetails(\
-blib::bun::CppTypeToDbType<FindEncloseeTypeMeta<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n)>::type>::ret,\
+blib::bun::CppTypeToDbType<FindEncloseeTypeMeta<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)>::type>::ret,\
 FindEnclosureTypeMeta<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)>::type,\
 std::is_fundamental<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n)>::value\
 )\
 },
 #define EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), EXPAND_MEMBER_ASSIGNENTS_generate_type_maps_I, CLASS_ELEMS_TUP)
 
+#define GENERATE_TUPLE_OF_TYPES_PTR_I(z, n, CLASS_ELEMS_TUP) BOOST_PP_IF(n, BOOST_PP_COMMA, BOOST_PP_EMPTY)() std::add_pointer<std::remove_reference<std::remove_cv<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)>::type>::type>::type
+#define GENERATE_TUPLE_OF_TYPES_PTR(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), GENERATE_TUPLE_OF_TYPES_PTR_I, CLASS_ELEMS_TUP)
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros End
 ///////////////////////////////////////////////////////////////////////////////
@@ -381,6 +384,7 @@ static const DbTypes ret = DbTypes::kComposite;\
 namespace blib{namespace bun{namespace __private{\
 template<>\
 TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+using TupType = boost::fusion::tuple<GENERATE_TUPLE_OF_TYPES_PTR(CLASS_ELEMS_TUP)>;\
 using T=BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 static std::string const& class_name(){\
 static std::string const class_name = BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
