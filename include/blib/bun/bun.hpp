@@ -269,7 +269,22 @@ namespace blib {
 				static std::string _update_row_sql;
 				static std::string _insert_row_sql;
 				static std::string _delete_row_sql;
+				static std::string _select_rows_sql;
 				static bool _ok;
+
+				struct SelectRows {
+				private:
+					std::string& sql;
+
+				public:
+					SelectRows(std::string& sql) : sql(sql) {}
+
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += "," + x.second;
+					}
+				};
 
 				struct CreateTable {
 				private:
@@ -297,7 +312,7 @@ namespace blib {
 					template <typename T>
 					void operator()(T const& x) const
 					{
-						if(!sql.empty()){
+						if (!sql.empty()) {
 							sql += ",";
 						}
 						sql += x.second + " = :" + x.second;
@@ -362,58 +377,41 @@ namespace blib {
 							_update_row_sql = "UPDATE '{}' SET ";
 							std::string sql;
 							boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql));
-							_update_row_sql += sql + " WHERE oid_high = {} AND oid_low = {}";
+							_update_row_sql += sql + " WHERE oid_high = :oid_high AND oid_low = :oid_low";
+						}
+
+						if (_select_rows_sql.empty()) {
+							_select_rows_sql = "SELECT oid_high, oid_low";
+							boost::fusion::for_each(vecs, SqlString<T>::SelectRows(_select_rows_sql));
+							_select_rows_sql += "FROM '{}' ";
 						}
 						_ok = true;
 					}
 				}
-				
+
 				static bool const ok() {
 					return _ok;
 				}
-				
-				static std::string const& create_table_sql(){
+
+				static std::string const& create_table_sql() {
 					return _create_table_sql;
 				}
-				
-				static std::string const& drop_table_sql(){
+
+				static std::string const& drop_table_sql() {
 					return _drop_table_sql;
 				}
-				
-				static std::string const& delete_row_sql(){
+
+				static std::string const& delete_row_sql() {
 					return _delete_row_sql;
 				}
-				
-				static std::string const& insert_row_sql(){
+
+				static std::string const& insert_row_sql() {
 					return _insert_row_sql;
 				}
-				
-				static std::string const& update_row_sql(){
+
+				static std::string const& update_row_sql() {
 					return _update_row_sql;
-				}				
-			};
-			
-			template<>
-			struct SqlString<int> {
-				static std::string const& createSchema() {
-					static const std::string sql = "CREATE TABLE '{}' IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL, {} INTEGER)";
-					return sql;
 				}
-				
-				static std::string const& deleteSchema() {
-					static const std::string sql = "DROP TABLE '{}'";
-					return sql;
-				}
-				
-				static std::string const& updateObject() {
-					static const std::string sql = "UPDATE '{}' SET {} = {}";
-					return sql;
-				}
-				
-				static std::string const& deleteObject() {
-					static const std::string sql = "DELETE FROM {} WHERE oid_high = {} AND oid_low = {}";
-					return sql;
-				}				
 			};
 
 			/////////////////////////////////////////////////
@@ -432,10 +430,10 @@ namespace blib {
 				inline static void createSchema() {
 					const static std::string sql = fmt::format(SqlString<T>::create_table_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
-					try{
+					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
-					catch(std::exception const & e){
+					catch (std::exception const & e) {
 						l().error("createSchema: {} ", e.what());
 					}
 				}
@@ -443,35 +441,36 @@ namespace blib {
 				inline static void createSchema(const std::string& parent_table) {
 					const std::string sql = fmt::format(SqlString<T>::create_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
-					try{
+					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
-					catch(std::exception const & e){
+					catch (std::exception const & e) {
 						l().error("createSchema({}): {} ", parent_table, e.what());
 					}
 				}
 
 				inline static void deleteSchema() {
 					const static std::string sql = fmt::format(SqlString<T>::drop_table_sql(), TypeMetaData<T>::class_name());
-					try{
+					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
-					catch(std::exception const & e){
+					catch (std::exception const & e) {
 						l().error("deleteSchema(): {} ", e.what());
 					}
 				}
-				
+
 				inline static void deleteSchema(const std::string& parent_table) {
 					const std::string sql = fmt::format(SqlString<T>::drop_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
-					try{
+					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
-					catch(std::exception const & e){
+					catch (std::exception const & e) {
 						l().error("deleteSchema({}): {} ", parent_table, e.what());
 					}
-				}				
+				}
 
-				inline static SimpleOID persistObj(T *obj);
+				inline static SimpleOID persistObj(T *obj) {
+				}
 
 				inline static void updateObj(T *, SimpleOID const &);
 
