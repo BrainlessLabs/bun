@@ -470,6 +470,9 @@ namespace blib {
 				}
 
 				inline static SimpleOID persistObj(T *obj) {
+					SimpleOID oid;
+					oid.populateLow();
+					const static std::string sql = 
 				}
 
 				inline static void updateObj(T *, SimpleOID const &);
