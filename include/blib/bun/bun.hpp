@@ -362,7 +362,7 @@ namespace blib {
 						}
 
 						if (_delete_row_sql.empty()) {
-							_delete_row_sql = "DELETE FROM '{}' WHERE oid_high = {} AND oid_low = {}";
+							_delete_row_sql = "DELETE FROM '{}' WHERE oid_high = :oid_high AND oid_low = :oid_low";
 						}
 
 						if (_insert_row_sql.empty()) {
@@ -415,16 +415,25 @@ namespace blib {
 			};
 
 			/////////////////////////////////////////////////
+			/// @class SimpleObjHolder
+			/// @brief A simple holder for objects. 
+			/// 	   To be used for the from_base and to_base conversion.
+			///		   To be used for the orm object mapping
+			/////////////////////////////////////////////////			
+			template<typename T>
+			struct SimpleObjHolder{
+				T* obj;
+				blib::bun::SimpleOID& oid;
+				SimpleObjHolder(T* obj_in, blib::bun::SimpleOID& oid_in):obj(obj_in), oid(oid_in){}
+			}
+
+			/////////////////////////////////////////////////
 			/// @class PRefHelper
 			/// @brief Helper class for the persistent framework.
 			///        This class is specialized to persist objects.
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct QueryHelper {
-				static bool _ok;
-				static std::string _create_table_sql;
-				static std::string _drop_table_sql;
-				static std::string _update_row_sql;
 				static std::string _table_name;
 
 				inline static void createSchema() {
@@ -451,6 +460,7 @@ namespace blib {
 
 				inline static void deleteSchema() {
 					const static std::string sql = fmt::format(SqlString<T>::drop_table_sql(), TypeMetaData<T>::class_name());
+					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
@@ -461,6 +471,7 @@ namespace blib {
 
 				inline static void deleteSchema(const std::string& parent_table) {
 					const std::string sql = fmt::format(SqlString<T>::drop_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
+					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
@@ -470,16 +481,44 @@ namespace blib {
 				}
 
 				inline static SimpleOID persistObj(T *obj) {
-					SimpleOID oid;
+					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name());
+					blib::bun::SimpleOID oid;
 					oid.populateLow();
-					const static std::string sql = 
+					SimpleObjHolder obj_holder(obj, oid);
+					QUERY_LOG(sql);
+					try {
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.high), soci::use(oid.low), soci::use(*obj);
+					}
+					catch (std::exception const & e) {
+						l().error("persistObj(): {} ", parent_table, e.what());
+					}
+					return std::move(oid);
 				}
 
-				inline static void updateObj(T *, SimpleOID const &);
+				inline static void updateObj(T *, obj SimpleOID const & oid) {
+					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name());
+					QUERY_LOG(sql);
+					try {
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj), soci::use(oid.high), soci::use(oid.low);
+					}
+					catch (std::exception const & e) {
+						l().error("updateObj(): {} ", parent_table, e.what());
+					}
+				}
 
-				inline static void deleteObj(SimpleOID const &);
+				inline static void deleteObj(SimpleOID const &) {
+					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), TypeMetaData<T>::class_name());
+					QUERY_LOG(sql);
+					try {
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj), soci::use(oid.high), soci::use(oid.low);
+					}
+					catch (std::exception const & e) {
+						l().error("deleteObj(): {} ", parent_table, e.what());
+					}
+				}
 
-				inline static std::unique_ptr <T> getObj(SimpleOID const &);
+				inline static std::unique_ptr <T> getObj(SimpleOID const &) {
+				}
 
 				inline static std::string md5(T *, SimpleOID const &);
 
@@ -490,6 +529,35 @@ namespace blib {
 		}
 	}
 }
+
+/*
+namespace soci{
+	template<typename T>
+	struct type_conversion<blib::bun::__private::SimpleObjHolder<T>>{
+		using ObjectHolderType = blib::bun::__private::SimpleObjHolder<T>;
+		typedef values base_type;
+		
+		struct FromBase{
+		private:
+			values const& val;
+			
+		public:
+			template<typename T>
+			void operator()(T& x) const {
+				x = v.get<decltype(x)>("oid_low");
+			}
+		};
+		
+		static void from_base(values const& v, indicator ind, ObjectHolderType& obj) {
+			indicator *i = &ind;
+			T& o = *(obj->obj);
+			obj.oid.low = v.get<decltype(o.oid.low)>("oid_low");
+			obj.oid.high = v.get<decltype(o.oid.high)>("oid_high");
+			boost::fusion::for_each(o, FromBase(v));
+		}
+	};
+}
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros Start
