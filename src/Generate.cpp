@@ -35,6 +35,7 @@ namespace backery {
 SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length));
 
 int main() {
-	blib::bun::connect("objects.db");
+	auto str = blib::bun::__private::SqlString<backery::Bun>::create_table_sql();
+	str = blib::bun::__private::SqlString<backery::Bun>::insert_row_sql();
 	return 1;
 }

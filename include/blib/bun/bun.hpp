@@ -230,14 +230,6 @@ namespace blib {
 			template<typename T>
 			struct SqlString {
 			private:
-				static std::string _create_table_sql;
-				static std::string _drop_table_sql;
-				static std::string _update_row_sql;
-				static std::string _insert_row_sql;
-				static std::string _delete_row_sql;
-				static std::string _select_rows_sql;
-				static bool _ok;
-
 				struct SelectRows {
 				private:
 					std::string& sql;
@@ -262,9 +254,10 @@ namespace blib {
 					template <typename T>
 					void operator()(T const& x) const
 					{
+						using ObjType = std::remove_const<std::remove_pointer<typename T::first_type>::type>::type;
 						sql += "," + x.second +
 							" " +
-							blib::bun::cppTypeToDbTypeString<blib::bun::ConvertCPPTypeToSOCISupportType<decltype(std::remove_pointer<T>::type)>::type>();
+							blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
 					}
 				};
 
@@ -314,73 +307,69 @@ namespace blib {
 				};
 
 			public:
-				inline static void populate() {
-					if (!_ok) {
-						static const auto vecs = TypeMetaData<T>::tuple_type_pair();
-						if (_create_table_sql.empty()) {
-							_create_table_sql = "CREATE TABLE '{}' IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL";
-							boost::fusion::for_each(vecs, SqlString<T>::CreateTable(_create_table_sql));
-							_create_table_sql += ")"
-						}
-
-						if (_drop_table_sql.empty()) {
-							_drop_table_sql = "DROP TABLE '{}'";
-						}
-
-						if (_delete_row_sql.empty()) {
-							_delete_row_sql = "DELETE FROM '{}' WHERE oid_high = :oid_high AND oid_low = :oid_low";
-						}
-
-						if (_insert_row_sql.empty()) {
-							_insert_row_sql = "INSERT INTO '{}' (oid_high, oid_low";
-							boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(_insert_row_sql));
-							_insert_row_sql += ") VALUES (:oid_high, :oid_low";
-							boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(_insert_row_sql));
-							_insert_row_sql += ")";
-						}
-
-						if (_update_row_sql.empty()) {
-							_update_row_sql = "UPDATE '{}' SET ";
-							std::string sql;
-							boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql));
-							_update_row_sql += sql + " WHERE oid_high = :oid_high AND oid_low = :oid_low";
-						}
-
-						if (_select_rows_sql.empty()) {
-							_select_rows_sql = "SELECT oid_high, oid_low";
-							boost::fusion::for_each(vecs, SqlString<T>::SelectRows(_select_rows_sql));
-							_select_rows_sql += "FROM '{}' ";
-						}
-						_ok = true;
-					}
-				}
-
-				static bool const ok() {
-					return _ok;
-				}
-
 				static std::string const& create_table_sql() {
-					return _create_table_sql;
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static std::string sql;
+					if (sql.empty()) {
+						sql = "CREATE TABLE '{}' IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL";
+						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
+						sql += ")";
+					}
+					return sql;
 				}
 
 				static std::string const& drop_table_sql() {
-					return _drop_table_sql;
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static std::string sql;
+					if (sql.empty()) {
+						sql = "DROP TABLE '{}'";
+					}
+					return sql;
 				}
 
 				static std::string const& delete_row_sql() {
-					return _delete_row_sql;
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static std::string sql;
+					if (sql.empty()) {
+						sql = "DELETE FROM '{}' WHERE oid_high = :oid_high AND oid_low = :oid_low";
+					}
+					return sql;
 				}
 
 				static std::string const& insert_row_sql() {
-					return _insert_row_sql;
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static std::string sql;
+					if (sql.empty()) {
+						sql = "INSERT INTO '{}' (oid_high, oid_low";
+						boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(sql));
+						sql += ") VALUES (:oid_high, :oid_low";
+						boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(sql));
+						sql += ")";
+					}
+					return sql;
 				}
 
 				static std::string const& update_row_sql() {
-					return _update_row_sql;
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static std::string sql;
+					if (sql.empty()) {
+						sql = "UPDATE '{}' SET ";
+						std::string sql1;
+						boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql1));
+						sql += sql1 + " WHERE oid_high = :oid_high AND oid_low = :oid_low";
+					}
+					return sql;
 				}
 
 				static std::string const& select_rows_sql() {
-					return _select_rows_sql;
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static std::string sql;
+					if (sql.empty()) {
+						sql = "SELECT oid_high, oid_low";
+						boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
+						sql += "FROM '{}' ";
+					}
+					return sql;
 				}
 			};
 
@@ -404,8 +393,6 @@ namespace blib {
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct QueryHelper {
-				static std::string _table_name;
-
 				inline static void createSchema() {
 					const static std::string sql = fmt::format(SqlString<T>::create_table_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
