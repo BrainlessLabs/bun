@@ -1,13 +1,40 @@
-#include "blib/bun/Bun.hpp"
+#include <boost/core/noncopyable.hpp>
+#include <boost/optional.hpp>
+#include <boost/preprocessor.hpp>
+#include <boost/proto/proto.hpp>
+#include <soci/soci.h>
 #include <string>
+#include <soci/sqlite3/soci-sqlite3.h>
+#include <boost/preprocessor.hpp>
+#include <third_party/fmt/format.hpp>
+#include "blib/bun/bun.hpp"
 
-namespace test {
-  struct Person {
-    std::string name;
-    int age;
-    float height;
-  };
+using namespace soci;
+using namespace std;
+
+namespace backery {
+	struct Bun1 {
+		std::string bun_name;
+		float sugar_quantity;
+		float flour_quantity;
+		float milk_quantity;
+		float yeast_quantity;
+		float butter_quantity;
+		int bun_length;
+	};
 }
 
-GENERATE_BINDING( (test::Person, name, age, height) );
+namespace backery {
+	struct Bun {
+		std::string bun_name;
+		float sugar_quantity;
+		int bun_length;
+	};
+}
 
+SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length));
+
+int main() {
+	blib::bun::connect("objects.db");
+	return 1;
+}

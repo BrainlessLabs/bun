@@ -113,7 +113,7 @@ namespace blib {
             ///          If the MD5 are different then it returns true else
             ///          it returns false.
             bool dirty() {
-                const auto md5 = blib::bun::__private::PRefHelper<ObjType>::md5(_obj.get(), oid);
+                const auto md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
                 if (md5 != _md5) {
                     _flags[static_cast<std::uint8_t>(FlagsE::kDirty)] = 1;
                 }

@@ -12,6 +12,10 @@
 #include <memory>
 #include <set>
 #include <type_traits>
+#include <cstdint>
+#include <cstddef>
+#include <memory>
+#include <bitset>
 #include <boost/mpl/bool.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/fusion/sequence.hpp>
@@ -24,13 +28,15 @@
 #include <boost/fusion/include/pair.hpp>
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <third_party/fmt/format.hpp>
-#include "blib/bun/PRef.hpp"
+//#include "blib/bun/PRef.hpp"
+#include "blib/utils/MD5.hpp"
 //#include "blib/bun/PRefHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
+#include "blib/bun/SimpleOID.hpp"
 //#include "blib/bun/QueryHelper.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
-#include "blib/bun/GlobalFunc.hpp"
+//#include "blib/bun/GlobalFunc.hpp"
 #include "blib/utils/JSONUtils.hpp"
 //#include "blib/bun/NxNMappings.hpp"
 
@@ -195,53 +201,14 @@ namespace blib {
 			};
 
 			/////////////////////////////////////////////////
-			/// @class FindEnclosureTypeMeta
-			/// @brief Deducts the enclosing type
-			/////////////////////////////////////////////////			
-			template<typename T>
-			struct FindEnclosureTypeMeta {
-				static const EnclosureType = EnclosureType::kBaseType;
-			};
-
-			template<typename T>
-			struct FindEnclosureTypeMeta<std::vector<T>> {
-				static const EnclosureType = EnclosureType::kVector;
-			};
-
-			template<typename T>
-			struct FindEnclosureTypeMeta<std::unique_ptr<T>> {
-				static const EnclosureType = EnclosureType::kUniquePointer;
-			};
-
-			template<typename T>
-			struct FindEnclosureTypeMeta<std::shared_ptr<T>> {
-				static const EnclosureType = EnclosureType::kSharedPointer;
-			};
-
-			/////////////////////////////////////////////////
-			/// @class TypeDetails
-			/// @brief Holds the type details 
-			/////////////////////////////////////////////////
-			struct TypeDetails {
-				blib::bun::DbTypes type;
-				EnclosureType enclouser_type;
-				bool fundamental_type;
-
-				/// @fn TypeDetails
-				TypeDetails(blib::bun::DbTypes in_type,
-					EnclosureType in_enclouser_type,
-					bool in_fundamental_type) :type(in_type),
-					enclouser_type(in_enclouser_type),
-					fundamental_type(in_fundamental_type) {}
-			};
-
-			/////////////////////////////////////////////////
 			/// @class StripQualifiersAndMakePointer
 			/// @brief String all the qualifiers like const, volatile, removes reference and adds a pointer.
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct StripQualifiersAndMakePointer {
-				using type = std::add_pointer<std::remove_reference<std::remove_cv<T>::type>::type>::type;
+				using no_cv_type = typename std::remove_cv<T>::type;
+				using no_cv_no_ref = typename std::remove_reference<no_cv_type>::type;
+				using type = typename std::add_pointer<no_cv_no_ref>::type;
 			};
 
 			/////////////////////////////////////////////////
@@ -254,7 +221,6 @@ namespace blib {
 				using MT = boost::fusion::vector<void>;
 				static std::string const& class_name();
 				boost::fusion::vector<boost::fusion::pair<void, std::string>> const& tuple_type_pair();
-				static std::map<std::string, TypeDetails> const& type_maps();
 			};
 
 			/////////////////////////////////////////////////
@@ -412,6 +378,10 @@ namespace blib {
 				static std::string const& update_row_sql() {
 					return _update_row_sql;
 				}
+
+				static std::string const& select_rows_sql() {
+					return _select_rows_sql;
+				}
 			};
 
 			/////////////////////////////////////////////////
@@ -421,11 +391,11 @@ namespace blib {
 			///		   To be used for the orm object mapping
 			/////////////////////////////////////////////////			
 			template<typename T>
-			struct SimpleObjHolder{
+			struct SimpleObjHolder {
 				T* obj;
 				blib::bun::SimpleOID& oid;
-				SimpleObjHolder(T* obj_in, blib::bun::SimpleOID& oid_in):obj(obj_in), oid(oid_in){}
-			}
+				SimpleObjHolder(T* obj_in, blib::bun::SimpleOID& oid_in) :obj(obj_in), oid(oid_in) {}
+			};
 
 			/////////////////////////////////////////////////
 			/// @class PRefHelper
@@ -488,6 +458,10 @@ namespace blib {
 					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.high), soci::use(oid.low), soci::use(*obj);
+						long high = 0;
+						if (blib::bun::__private::DbBackend<>::i().session().get_last_insert_id(TypeMetaData<T>::class_name(), high)) {
+							oid.high = static_cast<decltype(oid.high)>(high);
+						}
 					}
 					catch (std::exception const & e) {
 						l().error("persistObj(): {} ", parent_table, e.what());
@@ -495,7 +469,7 @@ namespace blib {
 					return std::move(oid);
 				}
 
-				inline static void updateObj(T *, obj SimpleOID const & oid) {
+				inline static void updateObj(T * obj, SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
 					try {
@@ -518,15 +492,213 @@ namespace blib {
 				}
 
 				inline static std::unique_ptr <T> getObj(SimpleOID const &) {
+					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name());
+					std::unique_ptr <T> obj = new T;
+					try {
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(*obj), soci::use(oid.high), soci::use(oid.low);
+					}
+					catch (std::exception const & e) {
+						l().error("getObj(): {} ", parent_table, e.what());
+					}
+					return std::move(obj);
 				}
 
-				inline static std::string md5(T *, SimpleOID const &);
+				inline static std::string md5(T *, SimpleOID const &) {
+					return "";
+				}
 
-				inline static std::string objToString(T *, SimpleOID const &);
+				inline static std::string objToString(T *, SimpleOID const &) {
+					return "";
+				}
 
-				inline static std::string objToJson(T *, SimpleOID const &);
+				inline static std::string objToJson(T *, SimpleOID const &) {
+					return "";
+				}
 			};
 		}
+	}
+}
+
+namespace blib {
+	namespace bun {
+		/////////////////////////////////////////////////
+		/// @class PRef
+		/// @brief The persistent reference holder.
+		/// @details This is the primary object holder.
+		///          Anything assigned to this can be stored in the database.
+		/////////////////////////////////////////////////
+		template<typename T>
+		class PRef {
+		private:
+			enum class FlagsE : std::uint8_t {
+				kDirty = 0
+			};
+
+			/// @typedef OidType = SimpleOID
+			using OidType = SimpleOID;
+			/// @var std::unique_ptr<T> _obj
+			/// @brief Stores the object. The unique pointer is specialized
+			///        for that object type.
+			std::unique_ptr<T> _obj;
+			/// @var  std::bitset<4> _flags
+			std::bitset<4> _flags;
+			/// @var std::string _md5
+			/// @brief Holds the MD5 sum of this object.
+			std::string _md5;
+
+		public:
+			using ObjType = T;
+			typedef PRef<T> SelfType;
+			/// @var OidType oid
+			/// @brief Holds the OID for this object.
+			///        Each object will have an unique OID.
+			///        This will distinguish them from other object.
+			OidType oid;
+
+		public:
+			PRef() = default;
+
+			PRef(PRef const &in_other) : oid(in_other.oid) {
+				load(oid);
+			}
+
+			PRef(PRef &in_other) : oid(in_other.oid), _flags(in_other._flags), _md5(in_other._md5),
+				_obj(in_other._obj.release()) {
+			}
+
+			PRef(ObjType *in_obj) : _obj(in_obj) {
+			}
+
+			PRef(OidType const &in_oid) : oid(in_oid) {
+				load(oid);
+			}
+
+			PRef(OidType const &in_oid, ObjType *in_obj) : oid(in_oid), _obj(in_obj) {
+			}
+
+			/// @fm reset
+			/// @brief Resets the current PRef and assigns another object to it.
+			/// @param in_obj The other object to assign it to.
+			void reset(ObjType *in_obj) {
+				_obj.reset(in_obj);
+				_flags.reset();
+				_md5 = "";
+			}
+
+			/// @fn release
+			/// @brief Reset the PRef to hold nothing.
+			///        The oid is set to 0 and the object released.
+			ObjType *release() {
+				oid.high = 0;
+				oid.low = 0;
+				_flags.reset();
+				_md5 = "";
+				return _obj.release();
+			}
+
+			~PRef() = default;
+
+			auto operator*()->decltype(*_obj) {
+				return *_obj;
+			}
+
+			T *operator->() {
+				return _obj.get();
+			}
+
+			/// @fn dirty
+			/// @brief Returns true if the object is changed from last commit
+			///        else false.
+			/// @details The MD5 of the object is taken from the last commit.
+			///          If the MD5 are different then it returns true else
+			///          it returns false.
+			bool dirty() {
+				const auto md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
+				if (md5 != _md5) {
+					_flags[static_cast<std::uint8_t>(FlagsE::kDirty)] = 1;
+				}
+
+				return _flags[static_cast<std::uint8_t>(FlagsE::kDirty)] ? true : false;
+			}
+
+			/// @fn persist
+			/// @brief Commits the object in database
+			/// @details Commits the object in database and also updates the
+			///          MD5 of the object. If this function is not called
+			///          the object is not going to be updated in database.
+			/// @return OidType Returns the OID of the persisted object.
+			OidType persist() {
+				if (_md5.empty()) {
+					oid = blib::bun::__private::QueryHelper<ObjType>::persistObj(_obj.get());
+				}
+				else {
+					blib::bun::__private::QueryHelper<ObjType>::updateObj(_obj.get(), oid);
+				}
+				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
+				_flags.reset();
+				return oid;
+			}
+
+			/// @fn save
+			/// @brief Does same as persist. Calls persist internally.
+			OidType save() {
+				return persist();
+			}
+
+			/// @fn del
+			/// @brief Delets the persistent object.
+			///        Clears the MD5 and the flags.
+			void del() {
+				blib::bun::__private::QueryHelper<ObjType>::deleteObj(oid);
+				_md5.clear();
+				oid.clear();
+				_flags.reset();
+			}
+
+			PRef &operator=(ObjType *in_obj) {
+				reset(in_obj);
+				return *this;
+			}
+
+			PRef &operator=(PRef &in_other) {
+				copyFrom(in_other);
+				return *this;
+			}
+
+			bool operator==(PRef const &in_other) {
+				return oid == in_other.oid;
+			}
+
+			bool operator!=(PRef const &in_other) {
+				return oid != in_other.oid;
+			}
+
+			/// @fn toJson
+			/// @brief Returns a JSON representation of the object.
+			std::string toJson() const {
+				return blib::bun::__private::QueryHelper<T>::objToJson(_obj.get(), oid);
+			}
+
+		private:
+			/// @fn oad(OidType const &in_oid)
+			/// @brief Loads an object from Database.
+			/// @param in_oid A valid OID for the object.
+			void load(OidType const &in_oid) {
+				oid = in_oid;
+				_obj = blib::bun::__private::QueryHelper<ObjType>::getObj(oid);
+				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
+				_flags.reset();
+			}
+
+			/// @fn copyFrom(PRef &in_other)
+			/// @brief Create a exact clone of another PRef
+			void copyFrom(PRef &in_other) {
+				oid = in_other.oid;
+				_md5 = in_other._md5;
+				_flags = in_other._flags;
+				_obj = in_other._obj;
+			}
+		};
 	}
 }
 
@@ -536,18 +708,18 @@ namespace soci{
 	struct type_conversion<blib::bun::__private::SimpleObjHolder<T>>{
 		using ObjectHolderType = blib::bun::__private::SimpleObjHolder<T>;
 		typedef values base_type;
-		
+
 		struct FromBase{
 		private:
 			values const& val;
-			
+
 		public:
 			template<typename T>
 			void operator()(T& x) const {
 				x = v.get<decltype(x)>("oid_low");
 			}
 		};
-		
+
 		static void from_base(values const& v, indicator ind, ObjectHolderType& obj) {
 			indicator *i = &ind;
 			T& o = *(obj->obj);
@@ -574,17 +746,6 @@ namespace soci{
 #define EXPAND_MEMBER_ASSIGNENTS_to_base_I(z, n, ELEMS_TUP) v.set(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)), blib::bun::__private::convertToSOCISupportedType(c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)));
 #define EXPAND_MEMBER_ASSIGNENTS_to_base(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_MEMBER_ASSIGNENTS_to_base_I, ELEMS_TUP)
 
-/// @details type_maps
-#define EXPAND_MEMBER_ASSIGNENTS_generate_type_maps_I(z, n, CLASS_ELEMS_TUP) {\
-BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)), \
-TypeDetails(\
-blib::bun::CppTypeToDbType<FindEncloseeTypeMeta<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)>::type>::ret,\
-FindEnclosureTypeMeta<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)>::type,\
-std::is_fundamental<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n)>::value\
-)\
-},
-#define EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), EXPAND_MEMBER_ASSIGNENTS_generate_type_maps_I, CLASS_ELEMS_TUP)
-
 #define GENERATE_TupType_I(z, n, CLASS_ELEMS_TUP) BOOST_PP_IF(n, BOOST_PP_COMMA, BOOST_PP_EMPTY)() std::add_pointer<std::remove_reference<std::remove_cv<decltype(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP) :: BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP))>::type>::type>::type
 #define GENERATE_TupType(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), GENERATE_TupType_I, CLASS_ELEMS_TUP)
 
@@ -598,28 +759,20 @@ std::is_fundamental<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)::BOOST_PP_TUPLE_ELEM
 ///////////////////////////////////////////////////////////////////////////////
 
 /// SPECIALIZE_BUN_HELPER Start
-#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) BOOST_FUSION_ADAPT_STRUCT(\
-BOOST_PP_TUPLE_REM_CTOR(CLASS_ELEMS_TUP)\
-)\
+#define SPECIALIZE_BUN_HELPER(CLASS_ELEMS_TUP) BOOST_FUSION_ADAPT_STRUCT( BOOST_PP_TUPLE_REM_CTOR(CLASS_ELEMS_TUP) ) \
 namespace blib{namespace bun{\
-template<>\
-BLIB_MACRO_COMMENTS_IF("@brief Lets everyone know that this is a persistant class");\
-struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : boost::mpl::bool_<true> {\
-};\
-BLIB_MACRO_COMMENTS_IF("@brief Mark the class as composite");\
+template<> struct IsPersistant<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : boost::mpl::bool_<true> {};\
 template<>\
 struct CppTypeToDbType<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 static const DbTypes ret = DbTypes::kComposite;\
 };\
-}\
+}}\
 namespace blib{namespace bun{namespace __private{\
+template<> struct IsComposite<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : boost::mpl::bool_<true> {};\
 template<>\
-struct IsComposite<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> : boost::mpl::bool_<true> {\
-};\
-template<>\
-TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
-using TupType = boost::fusion::tuple<GENERATE_TupType(CLASS_ELEMS_TUP)>;\
-using TupTypePairType = boost::fusion::tuple<GENERATE_TupTypePair(CLASS_ELEMS_TUP)>;\
+struct TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
+using TupType = boost::fusion::vector<GENERATE_TupType(CLASS_ELEMS_TUP)>;\
+using TupTypePairType = boost::fusion::vector<GENERATE_TupTypePair(CLASS_ELEMS_TUP)>;\
 using T = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 static auto tuple_type_pair()->TupTypePairType const&{\
 static const TupTypePairType t{GENERATE_TupTypePairObj(CLASS_ELEMS_TUP)};\
@@ -628,12 +781,6 @@ return t;\
 static std::string const& class_name(){\
 static std::string const class_name = BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 return class_name;\
-}\
-static std::map<std::string, TypeDetails> const& type_maps(){\
-static const std::map<std::string, TypeDetails> type_map = {\
-EXPAND_MEMBER_ASSIGNENTS_generate_type_maps(CLASS_ELEMS_TUP);\
-};\
-return type_map;\
 }\
 };\
 }}}\
