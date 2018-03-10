@@ -478,8 +478,9 @@ namespace blib {
 					}
 				}
 
-				inline static std::unique_ptr <T> getObj(SimpleOID const &) {
-					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name());
+				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
+					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " WHERE oid_high = :oid_high AND oid_low";
+					QUERY_LOG(sql);
 					std::unique_ptr <T> obj = new T;
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(*obj), soci::use(oid.high), soci::use(oid.low);
@@ -490,16 +491,50 @@ namespace blib {
 					return std::move(obj);
 				}
 
-				inline static std::string md5(T *, SimpleOID const &) {
-					return "";
+				inline static std::string md5(T * obj, SimpleOID const & oid) {
+					const std::string str = QueryHelper<T>::objToJson(obj, oid);
+					const std::string md5 = blib::md5(str);
+					return std::move(md5);
 				}
 
-				inline static std::string objToString(T *, SimpleOID const &) {
-					return "";
+				inline static std::string objToString(T * obj, SimpleOID const & oid) {
+					return QueryHelper<T>::objToJson(obj, oid);
 				}
 
-				inline static std::string objToJson(T *, SimpleOID const &) {
-					return "";
+				struct ToJson {
+				private:
+					std::string& str;
+
+				public:
+					ToJson(std::string & str) :str(str) {}
+
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += fmt::format("'f': {}", x);
+					}
+				};
+
+				inline static std::string objToJson(T * obj, SimpleOID const & oid) {
+					T& v = *obj;
+					std::string str = fmt::format("'oid_high': {}, 'oid_high': {}", oid.high, oid.low);
+					boost::fusion::for_each(v, QueryHelper<T>::ToJson());
+					str += "{" + str + "}";
+					return std::move(str);
+				}
+
+				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string&& in_query = std::string()) {
+					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " {}";
+					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
+					const std::string sql = fmt::format(select_sql, where_clasue);
+					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					QUERY_LOG(sql);
+					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
+					soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
+					for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
+						auto const& row = *row_itr;
+					}
+					return std::move(ret_values);
 				}
 			};
 		}
@@ -686,6 +721,57 @@ namespace blib {
 				_obj = in_other._obj;
 			}
 		};
+	}
+}
+
+namespace blib {
+	namespace bun {
+		/////////////////////////////////////////////////
+		/// @brief Helper class for the persistent framework.
+		///        This class is specialized to persist objects.
+		/////////////////////////////////////////////////
+
+		/// @fn createSchema
+		/// @brief Create the schema for the object
+		template<typename T>
+		inline static void createSchema() {
+			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
+			blib::bun::__private::QueryHelper<T>::createSchema();
+			t.commit();
+		}
+
+		/// @fn deleteSchema
+		/// @brief Delete the schema for the object
+		template<typename T>
+		inline static void deleteSchema() {
+			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
+			blib::bun::__private::QueryHelper<T>::deleteSchema<T>();
+			t.commit();
+		}
+
+		template<typename T>
+		inline static std::vector <SimpleOID> getAllOids() {
+			//soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
+			return blib::bun::__private::QueryHelper<T>::getAllOids();
+			//t.commit();
+		}
+
+		template<typename T>
+		inline static std::vector <PRef<T>> getAllObjects() {
+			//soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
+			return blib::bun::__private::QueryHelper<T>::getAllObjects();
+			//t.commit();
+		}
+
+		/*template<typename T>
+		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
+			return blib::bun::__private::QueryHelper<T>::getAllObjWithQuery(in_query);
+		}*/
+
+		bool connect(std::string const& connection_string) {
+			const auto ret = blib::bun::__private::DbBackend<blib::bun::__private::DbGenericType>::i().connect(connection_string);
+			return ret;
+		}
 	}
 }
 
