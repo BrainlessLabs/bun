@@ -47,5 +47,8 @@ int main() {
 	bun->bun_name = "test";
 	bun->sugar_quantity = 55.6;
 	bun.save();
+	blib::bun::SimpleOID oid1(1, 24134930076892);
+	blib::bun::PRef<backery::Bun> bun1(oid1);
+	bun1.del();
 	return 1;
 }

@@ -367,7 +367,7 @@ namespace blib {
 					if (sql.empty()) {
 						sql = "SELECT oid_high, oid_low";
 						boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
-						sql += "FROM '{}' ";
+						sql += " FROM '{}' ";
 					}
 					return sql;
 				}
@@ -467,7 +467,7 @@ namespace blib {
 					}
 				}
 
-				inline static void deleteObj(SimpleOID const &) {
+				inline static void deleteObj(SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
 					try {
