@@ -340,9 +340,9 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "INSERT INTO '{}' (oid_high, oid_low";
+						sql = "INSERT INTO '{}' (oid_low";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(sql));
-						sql += ") VALUES (:oid_high, :oid_low";
+						sql += ") VALUES ({}";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(sql));
 						sql += ")";
 					}
@@ -356,7 +356,7 @@ namespace blib {
 						sql = "UPDATE '{}' SET ";
 						std::string sql1;
 						boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql1));
-						sql += sql1 + " WHERE oid_high = :oid_high AND oid_low = :oid_low";
+						sql += sql1 + " WHERE oid_high = {} AND oid_low = {}";
 					}
 					return sql;
 				}
@@ -438,13 +438,13 @@ namespace blib {
 				}
 
 				inline static SimpleOID persistObj(T *obj) {
-					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name());
 					blib::bun::SimpleOID oid;
 					oid.populateLow();
+					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name(), oid.low);
 					//SimpleObjHolder obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.high), soci::use(oid.low), soci::use(*obj);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj);
 						long high = 0;
 						if (blib::bun::__private::DbBackend<>::i().session().get_last_insert_id(TypeMetaData<T>::class_name(), high)) {
 							oid.high = static_cast<decltype(oid.high)>(high);
@@ -457,10 +457,10 @@ namespace blib {
 				}
 
 				inline static void updateObj(T * obj, SimpleOID const & oid) {
-					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name());
+					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name(), oid.high, oid.low);
 					QUERY_LOG(sql);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj), soci::use(oid.high), soci::use(oid.low);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj);
 					}
 					catch (std::exception const & e) {
 						l().error("updateObj(): {} ", e.what());
@@ -471,7 +471,7 @@ namespace blib {
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj), soci::use(oid.high), soci::use(oid.low);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.high), soci::use(oid.low);
 					}
 					catch (std::exception const & e) {
 						l().error("deleteObj(): {} ", e.what());
@@ -479,11 +479,11 @@ namespace blib {
 				}
 
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
-					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " WHERE oid_high = :oid_high AND oid_low";
+					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}", TypeMetaData<T>::class_name(), oid.high, oid.low);
 					QUERY_LOG(sql);
 					std::unique_ptr <T> obj = std::make_unique<T>();
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(*obj), soci::use(oid.high), soci::use(oid.low);
+						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
 					catch (std::exception const & e) {
 						l().error("getObj(): {} ",  e.what());

@@ -43,5 +43,9 @@ int main() {
 
 	blib::bun::PRef<backery::Bun> bun = new backery::Bun;
 	const auto oid = bun.save();
+	bun->bun_length = 11;
+	bun->bun_name = "test";
+	bun->sugar_quantity = 55.6;
+	bun.save();
 	return 1;
 }
