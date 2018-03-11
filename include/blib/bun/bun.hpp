@@ -893,10 +893,10 @@ return t;\
 inline static std::string const& class_name(){\
 static std::string const class_name = BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 return class_name;\
-inline static std::vector<std::string>& member_names(){\
+}\
+inline static const std::vector<std::string>& member_names(){\
 static const std::vector<std::string> names = {"oid_high", "oid_low" EXPAND_member_names(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))};\
 return names;\
-}\
 }\
 };\
 }}}\

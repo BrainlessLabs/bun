@@ -27,7 +27,7 @@ namespace backery {
 namespace backery {
 	struct Bun {
 		std::string bun_name;
-		float sugar_quantity;
+		double sugar_quantity;
 		int bun_length;
 	};
 }
