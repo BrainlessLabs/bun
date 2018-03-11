@@ -523,6 +523,18 @@ namespace blib {
 					return std::move(str);
 				}
 
+				struct GetAllObjects {
+				private:
+					const soci::row& row;
+
+				public:
+					template <typename T>
+					void operator()(T const& x) const
+					{
+						sql += fmt::format("'f': {}", x);
+					}
+				};
+
 				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string&& in_query = std::string()) {
 					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " {}";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
@@ -533,6 +545,7 @@ namespace blib {
 					soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
 					for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 						auto const& row = *row_itr;
+						boost::fusion::for_each(v, QueryHelper<T>::GetAllObjects(row));
 					}
 					return std::move(ret_values);
 				}
