@@ -103,6 +103,15 @@ namespace blib {
 			};
 
 			template<typename T>
+			inline auto to_valid_qery_string(T& val) -> T& {
+				return val;
+			}
+
+			template<>
+			inline auto to_valid_qery_string<std::string>(std::string& val) -> std::string& {
+				val += "\"" + val + "\"";
+				return val;
+			}
 		}
 	}
 }
