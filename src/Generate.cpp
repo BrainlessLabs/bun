@@ -37,5 +37,11 @@ SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length));
 int main() {
 	auto str = blib::bun::__private::SqlString<backery::Bun>::create_table_sql();
 	str = blib::bun::__private::SqlString<backery::Bun>::insert_row_sql();
+
+	blib::bun::connect("objects.db");
+	blib::bun::createSchema<backery::Bun>();
+
+	blib::bun::PRef<backery::Bun> bun = new backery::Bun;
+	const auto oid = bun.save();
 	return 1;
 }

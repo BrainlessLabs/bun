@@ -311,7 +311,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "CREATE TABLE '{}' IF NOT EXISTS (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL";
+						sql = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL";
 						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
 						sql += ")";
 					}
@@ -441,7 +441,7 @@ namespace blib {
 					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name());
 					blib::bun::SimpleOID oid;
 					oid.populateLow();
-					SimpleObjHolder obj_holder(obj, oid);
+					//SimpleObjHolder obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.high), soci::use(oid.low), soci::use(*obj);
@@ -451,7 +451,7 @@ namespace blib {
 						}
 					}
 					catch (std::exception const & e) {
-						l().error("persistObj(): {} ", parent_table, e.what());
+						l().error("persistObj(): {} ", e.what());
 					}
 					return std::move(oid);
 				}
@@ -463,7 +463,7 @@ namespace blib {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj), soci::use(oid.high), soci::use(oid.low);
 					}
 					catch (std::exception const & e) {
-						l().error("updateObj(): {} ", parent_table, e.what());
+						l().error("updateObj(): {} ", e.what());
 					}
 				}
 
@@ -474,7 +474,7 @@ namespace blib {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj), soci::use(oid.high), soci::use(oid.low);
 					}
 					catch (std::exception const & e) {
-						l().error("deleteObj(): {} ", parent_table, e.what());
+						l().error("deleteObj(): {} ", e.what());
 					}
 				}
 
@@ -486,7 +486,7 @@ namespace blib {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(*obj), soci::use(oid.high), soci::use(oid.low);
 					}
 					catch (std::exception const & e) {
-						l().error("getObj(): {} ", parent_table, e.what());
+						l().error("getObj(): {} ",  e.what());
 					}
 					return std::move(obj);
 				}
@@ -511,14 +511,14 @@ namespace blib {
 					template <typename T>
 					void operator()(T const& x) const
 					{
-						sql += fmt::format("'f': {}", x);
+						str += fmt::format("'f': {}", x);
 					}
 				};
 
 				inline static std::string objToJson(T * obj, SimpleOID const & oid) {
 					T& v = *obj;
 					std::string str = fmt::format("'oid_high': {}, 'oid_high': {}", oid.high, oid.low);
-					boost::fusion::for_each(v, QueryHelper<T>::ToJson());
+					boost::fusion::for_each(v, QueryHelper<T>::ToJson(str));
 					str += "{" + str + "}";
 					return std::move(str);
 				}
@@ -561,7 +561,7 @@ namespace blib {
 						}
 					}
 					catch (std::exception const & e) {
-						l().error("getAllObjectsWithQuery(""): {} ", parent_table, e.what());
+						l().error("getAllObjectsWithQuery(""): {} ", e.what());
 					}
 					return std::move(ret_values);
 				}
