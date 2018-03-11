@@ -481,7 +481,7 @@ namespace blib {
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " WHERE oid_high = :oid_high AND oid_low";
 					QUERY_LOG(sql);
-					std::unique_ptr <T> obj = new T;
+					std::unique_ptr <T> obj = std::make_unique<T>();
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(*obj), soci::use(oid.high), soci::use(oid.low);
 					}
@@ -525,27 +525,43 @@ namespace blib {
 
 				struct GetAllObjects {
 				private:
-					const soci::row& row;
+					const soci::row& _row;
+					const std::vector<std::string>& _member_names;
+					int _count;
 
 				public:
+					GetAllObjects(const soci::row& row) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count(0) {}
+
 					template <typename T>
-					void operator()(T const& x) const
+					void operator()(T& x)
 					{
-						sql += fmt::format("'f': {}", x);
+						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(_count));
+						++_coun;
 					}
 				};
 
 				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string&& in_query = std::string()) {
+					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
+
 					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " {}";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
 					const std::string sql = fmt::format(select_sql, where_clasue);
-					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					QUERY_LOG(sql);
-					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
-					soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
-					for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
-						auto const& row = *row_itr;
-						boost::fusion::for_each(v, QueryHelper<T>::GetAllObjects(row));
+					try {
+						soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
+						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
+							auto const& row = *row_itr;
+							std::pair<std::unique_ptr <T>, SimpleOID> pair;
+							pair.second.high = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high");
+							pair.second.low = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low");
+							pair.first = std::make_unique<T>();
+							T& obj = *pair.first;
+							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row));
+							ret_values.push_back(pair);
+						}
+					}
+					catch (std::exception const & e) {
+						l().error("getAllObjectsWithQuery(""): {} ", parent_table, e.what());
 					}
 					return std::move(ret_values);
 				}
@@ -772,14 +788,20 @@ namespace blib {
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjects() {
 			//soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
-			return blib::bun::__private::QueryHelper<T>::getAllObjects();
+			return getAllObjWithQuery<T>();
 			//t.commit();
 		}
 
-		/*template<typename T>
+		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
-			return blib::bun::__private::QueryHelper<T>::getAllObjWithQuery(in_query);
-		}*/
+			const auto values = blib::bun::__private::QueryHelper<T>::getAllObjWithQuery(in_query);
+			std::vector <PRef<T>> ret_vals;
+			for (const auto value : values) {
+				const PRef<T> ref(value.second.release(), val.first);
+				ret_vals.push_back(ref);
+			}
+			return std::move(ret_vals);
+		}
 
 		bool connect(std::string const& connection_string) {
 			const auto ret = blib::bun::__private::DbBackend<blib::bun::__private::DbGenericType>::i().connect(connection_string);
@@ -840,6 +862,10 @@ namespace soci{
 
 #define GENERATE_TupTypePairObj_I(z, n, CLASS_ELEMS_TUP) BOOST_PP_IF(n, BOOST_PP_COMMA, BOOST_PP_EMPTY)() boost::fusion::make_pair<blib::bun::__private::StripQualifiersAndMakePointer<decltype(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP) :: BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP))>::type>(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP)))
 #define GENERATE_TupTypePairObj(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), GENERATE_TupTypePairObj_I, CLASS_ELEMS_TUP)
+
+#define EXPAND_member_names_I(z, n, ELEMS_TUP) ,BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))
+#define EXPAND_member_names(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_member_names_I, ELEMS_TUP)
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros End
 ///////////////////////////////////////////////////////////////////////////////
@@ -860,13 +886,17 @@ struct TypeMetaData<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 using TupType = boost::fusion::vector<GENERATE_TupType(CLASS_ELEMS_TUP)>;\
 using TupTypePairType = boost::fusion::vector<GENERATE_TupTypePair(CLASS_ELEMS_TUP)>;\
 using T = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
-static auto tuple_type_pair()->TupTypePairType const&{\
+inline static auto tuple_type_pair()->TupTypePairType const&{\
 static const TupTypePairType t{GENERATE_TupTypePairObj(CLASS_ELEMS_TUP)};\
 return t;\
 }\
-static std::string const& class_name(){\
+inline static std::string const& class_name(){\
 static std::string const class_name = BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP));\
 return class_name;\
+inline static std::vector<std::string>& member_names(){\
+static const std::vector<std::string> names = {"oid_high", "oid_low" EXPAND_member_names(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))};\
+return names;\
+}\
 }\
 };\
 }}}\
