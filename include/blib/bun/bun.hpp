@@ -926,18 +926,18 @@ namespace blib {
 
 						template<typename T>
 						result_type operator ()(boost::proto::tag::terminal, T in_term) const {
-							const auto ret = std::to_string(blib::bun::_details::_E(in_term));
+							const auto ret = std::to_string(blib::bun::__private::to_valid_qery_string(in_term));
 							return ret;
 						}
 
 						result_type operator ()(boost::proto::tag::terminal, std::string& in_term) const {
-							const auto ret = blib::bun::_details::_E(in_term);
+							const auto ret = blib::bun::__private::to_valid_qery_string(in_term);
 							return ret;
 						}
 
 						result_type operator ()(boost::proto::tag::terminal, char const* in_term) const {
 							std::string str = std::string(in_term);
-							const auto ret = blib::bun::__private::_E(str);
+							const auto ret = blib::bun::__private::to_valid_qery_string(str);
 							return ret;
 						}
 
