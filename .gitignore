@@ -26,3 +26,12 @@
 *.exe
 *.out
 *.app
+/cmake-build-debug/
+/.idea/*
+.DS_Store
+*.suo
+*.db
+.vs
+*/x64/*
+Release
+bin/*

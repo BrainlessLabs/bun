@@ -1,47 +1,112 @@
 #pragma once
 
+///////////////////////////////////////////////////////////////////////////////
+/// @file DBBackend.hpp
+/// @author BrainlessLabs
+/// @version 0.3
+/// @brief Implements the database backend.
+///////////////////////////////////////////////////////////////////////////////
+#include <soci/soci.h>
 #include "blib/utils/Singleton.hpp"
-#include <blib/hdr/sqlite_modern_cpp.hpp>
+#include "blib/bun/DbLogger.hpp"
+#include <memory>
+
+#define BUN_SQLITE
+
+#ifdef BUN_SQLITE
+
+#include <soci/sqlite3/soci-sqlite3.h>
+
+#elif BUN_POSTGRES
+#include <soci/postgresql/soci-postgresql.h>
+#elif BUN_MYSQL
+#include <soci/mysql/soci-mysql.h>
+#endif
+
 
 namespace blib {
-  namespace bun {
-    /////////////////////////////////////////////////
-    /// @class Db
-    /// @brief Database class. This is a singleton class.
-    ///        This class is the backend that does the persist job.
-    ///        This class should not be used directly.
-    /////////////////////////////////////////////////
-    struct Db : public ::blib::Singleton<Db> {
-      using DbConnectionType = sqlite::database;
-      std::unique_ptr<DbConnectionType> _db;
-      bool _ok;
-      std::string _fileName;
+    namespace bun {
+        namespace __private {
+            struct DbGenericType{
+            };
+            
+            struct DbTypeSqlite : DbGenericType{
+            };
 
-      bool ok() const {
-        return _ok;
-      }
+            struct DbTypePostgres : DbGenericType{
+            };
 
-      DbConnectionType& db() {
-        return *_db;
-      }
+            struct DbTypeMySql : DbGenericType{
+            };
+            
 
-      bool connect( std::string const& aDbName ) {
-        bool ret = true;
-        try {
-          _db.reset( new DbConnectionType( aDbName ) );
-          _ok = true;
-          _fileName = aDbName;
+            template<typename T = DbGenericType>
+            class DbBackend : public blib::Singleton<DbBackend<T>> {
+            private:
+                bool _ok;
+                soci::session _sql_session;
+
+                //DbBackend() = default;
+
+            public:
+                bool ok() const {
+                    return _ok;
+                }
+
+                bool connect(std::string const &in_params) {
+                    const auto backend_factory =
+#ifdef BUN_SQLITE
+                    soci::sqlite3;
+#elif BUN_POSTGRES
+                    soci::postgresql;
+#elif BUN_MYSQL
+                    soci::mysql;
+#endif
+                    try {
+						if (!_ok) {
+							_sql_session.open(backend_factory, in_params);
+							_ok = true;
+						}
+                    }
+                    catch (std::exception const &except) {
+						l().error(except.what());
+                        _ok = false;
+                    }
+					return _ok;
+                }
+
+                soci::session &session() {
+                    return _sql_session;
+                }
+            };
+
+			/////////////////////////////////////////////////
+			/// @class ConvertToSOCIType
+			/// @brief Convert a basic type to a type available for soci.
+			/// @details Supported type can be found in http://soci.sourceforge.net/doc/master/types/
+			///          So all basic C++ types will be converted to closest type. By default same type is returned.
+			/////////////////////////////////////////////////
+			template<typename T>
+			struct ConvertCPPTypeToSOCISupportType {
+				using type = T;
+			};
+
+			template<>
+			struct ConvertCPPTypeToSOCISupportType<float> {
+				using type = double;
+			};
+
+			/// @brief Works for all stuff where the default type conversion operator is overloaded.
+			template<typename T>
+			typename ConvertCPPTypeToSOCISupportType<T>::type convertToSOCISupportedType(T const & val) {
+				const auto ret = (ConvertCPPTypeToSOCISupportType<T>::type)(val);
+				return ret;
+			}
+
+			std::string convertToSOCISupportedType( char const* val) {
+				const std::string ret = val;
+				return std::move(ret);
+			}
         }
-        catch (...) {
-          ret = false;
-          _ok = false;
-        }
-        return ret;
-      }
-    };
-
-    inline void dbConnect( std::string const& in_db ) {
-      Db::i().connect( in_db );
     }
-  }
 }

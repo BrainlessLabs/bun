@@ -1,7 +1,7 @@
 // Bun.cpp : Defines the entry point for the console application.
 //
 
-#include "blib/bun/Bun.hpp"
+#include "blib/bun/bun.hpp"
 
 namespace test {
   // Class that needs to be persisted
@@ -15,7 +15,7 @@ namespace test {
 /////////////////////////////////////////////////
 /// Generate the database bindings at compile time.
 /////////////////////////////////////////////////
-GENERATE_BINDING( (test::Person, name, age, height) );
+SPECIALIZE_BUN_HELPER( (test::Person, name, age, height) );
 
 int main() {
   namespace bun = blib::bun;
@@ -23,13 +23,14 @@ int main() {
 
   // Connect the db. If the db is not there it will be created.
   // It should include the whole path
-  bun::dbConnect( "test.db" );
+  bun::connect( "objects.db" );
   // Create the schema. We can create the schema multile times. If its already created
   // it will be safely ignored
   bun::createSchema<test::Person>();
 
-  // Creat some entries in the database
-  for (int i = 1; i < 1000; ++i) {
+  // Create some entries in the database
+ bun::Transaction t;
+  for (int i = 1; i < 10000; ++i) {
     // PRef is a reference to the persistant object.
     // PRef keeps the ownership of the memory. Release the memory when it is destroyed.
     // Internally it holds the object in a unique_ptr
@@ -46,6 +47,7 @@ int main() {
     //Getting the object from db using oid.
     bun::PRef<test::Person> p1( oid );
   }
+  t.commit();
 
   // To get all the object oids of a particular object.
   // person_oids is a vector of type std::vector<blib::bun<>SimpleOID<test::Person>>
