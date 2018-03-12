@@ -1034,31 +1034,55 @@ namespace blib {
 
 					struct BunQueryFilterContex : boost::proto::callable_context<BunQueryFilterContex> {
 						typedef std::string result_type;
+						
+						/// fn BunQueryFilterContex
+						/// @brief default constructor
 						BunQueryFilterContex() {}
 
+						/// fn operator()
+						/// @param The terminal tag
+						/// @param the terminal name
+						/// @brief returns valid terminal name
 						template<typename T>
 						result_type operator ()(boost::proto::tag::terminal, T in_term) const {
 							const auto ret = std::to_string(blib::bun::__private::to_valid_query_string(in_term));
 							return ret;
 						}
 
+						/// fn operator()
+						/// @param The terminal tag
+						/// @param the terminal terminal name
+						/// @brief returns valid terminal name
 						result_type operator ()(boost::proto::tag::terminal, std::string& in_term) const {
 							const auto ret = blib::bun::__private::to_valid_query_string(in_term);
 							return ret;
 						}
 
+						/// fn operator()
+						/// @param The terminal tag
+						/// @param the terminal name
+						/// @brief returns valid terminal name. Overloaded for character
 						result_type operator ()(boost::proto::tag::terminal, char const* in_term) const {
 							std::string str = std::string(in_term);
 							const auto ret = blib::bun::__private::to_valid_query_string(str);
 							return ret;
 						}
 
+						/// fn operator()
+						/// @param The terminal tag
+						/// @param The index of the variable for lookup
+						/// @brief returns the name from the mapping
 						template<std::uint32_t I>
 						result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> in_term) const {
 							const auto ret = mapping<T>(I);
 							return ret;
 						}
 
+						/// fn operator()
+						/// @param Logical 
+						/// @param left param
+						/// @param right param
+						/// @brief The query with the params
 						template<typename L, typename R>
 						result_type operator()(boost::proto::tag::logical_and, L const& in_l, R const& in_r) const {
 							static const std::string operator_name = " AND ";
@@ -1156,7 +1180,7 @@ namespace blib {
 				};
 			}
 
-			/// @brief Fields for query
+			/// @brief Fields for query. This is a unknown namespace.
 			namespace {
 				/// @class F
 				/// @brief This class represents the details of the query
