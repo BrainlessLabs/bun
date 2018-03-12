@@ -29,17 +29,12 @@
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/proto/proto.hpp>
 #include <third_party/fmt/format.hpp>
-//#include "blib/bun/PRef.hpp"
 #include "blib/utils/MD5.hpp"
-//#include "blib/bun/PRefHelper.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
 #include "blib/bun/SimpleOID.hpp"
-//#include "blib/bun/QueryHelper.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
-//#include "blib/bun/GlobalFunc.hpp"
 #include "blib/utils/JSONUtils.hpp"
-//#include "blib/bun/NxNMappings.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -97,19 +92,28 @@ namespace blib {
 				using type = T;
 			};
 
+			/////////////////////////////////////////////////
+			/// @class PrimitiveType
+			/// @brief Helper class to persist any primitive types.
+			/////////////////////////////////////////////////
 			template<typename T>
 			struct PrimitiveType {
 				blib::bun::SimpleOID oid;
 			};
 
+			/////////////////////////////////////////////////
+			/// @fn to_valid_query_string
+			/// @param val
+			/// @brief Helper class to persist any primitive types.
+			/////////////////////////////////////////////////
 			template<typename T>
-			inline auto to_valid_qery_string(T& val) -> T& {
+			inline auto to_valid_query_string(T& val) -> T& {
 				return val;
 			}
 
 			template<>
-			inline auto to_valid_qery_string<std::string>(std::string& val) -> std::string& {
-				val += "\"" + val + "\"";
+			inline auto to_valid_query_string<std::string>(std::string& val, std::string const sym = "\"") -> std::string& {
+				val += sym + val + sym;
 				return val;
 			}
 		}
@@ -238,6 +242,10 @@ namespace blib {
 			/////////////////////////////////////////////////
 			/// @class SqlString
 			/// @brief Generates the SQL strings in the class
+			///	@details Any Sql string has to be part of this class
+			///			 This class should provide a way for other classess to 
+			///			 customize the string. So the strings constructed in this
+			///			 class is are flexible.
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct SqlString {
@@ -521,14 +529,16 @@ namespace blib {
 				struct ToJson {
 				private:
 					std::string& str;
+					const std::vector<std::string>& _member_names;
+					int _count;
 
 				public:
-					ToJson(std::string & str) :str(str) {}
+					ToJson(std::string & str) :str(str), _member_names(TypeMetaData<T>::member_names()), _count(2) {}
 
 					template <typename T>
 					void operator()(T const& x) const
 					{
-						str += fmt::format("'f': {}", x);
+						str += fmt::format("{} : {}",blib::bun::__private::to_valid_query_string(_member_names.at(_count++), "'"), x);
 					}
 				};
 
@@ -547,13 +557,12 @@ namespace blib {
 					int _count;
 
 				public:
-					GetAllObjects(const soci::row& row) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count(0) {}
+					GetAllObjects(const soci::row& row) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count(2) {}
 
 					template <typename T>
 					void operator()(T& x)
 					{
-						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(_count));
-						++_coun;
+						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(_count++));
 					}
 				};
 
@@ -973,18 +982,18 @@ namespace blib {
 
 						template<typename T>
 						result_type operator ()(boost::proto::tag::terminal, T in_term) const {
-							const auto ret = std::to_string(blib::bun::__private::to_valid_qery_string(in_term));
+							const auto ret = std::to_string(blib::bun::__private::to_valid_query_string(in_term));
 							return ret;
 						}
 
 						result_type operator ()(boost::proto::tag::terminal, std::string& in_term) const {
-							const auto ret = blib::bun::__private::to_valid_qery_string(in_term);
+							const auto ret = blib::bun::__private::to_valid_query_string(in_term);
 							return ret;
 						}
 
 						result_type operator ()(boost::proto::tag::terminal, char const* in_term) const {
 							std::string str = std::string(in_term);
-							const auto ret = blib::bun::__private::to_valid_qery_string(str);
+							const auto ret = blib::bun::__private::to_valid_query_string(str);
 							return ret;
 						}
 
