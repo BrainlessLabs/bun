@@ -1253,6 +1253,32 @@ namespace blib {
 }
 /// ======================Query End========================
 
+/// @brief Transaction
+namespace blib {
+	namespace bun {
+		class Transaction {
+		private:
+			std::unique_ptr<soci::transaction> _t_ptr;
+
+		public:
+			Transaction():_t_ptr(std::make_unique<soci::transaction>(blib::bun::__private::DbBackend<>::i().session())) {
+			}
+
+			~Transaction() {
+				_t_ptr.release();
+			}
+
+			void commit() {
+				_t_ptr->commit();
+			}
+
+			void rollback() {
+				_t_ptr->rollback();
+			}
+		};
+	}
+}
+
 /*
 namespace soci{
 	template<typename T>

@@ -29,7 +29,8 @@ int main() {
   bun::createSchema<test::Person>();
 
   // Create some entries in the database
-  for (int i = 1; i < 1000; ++i) {
+ bun::Transaction t;
+  for (int i = 1; i < 10000; ++i) {
     // PRef is a reference to the persistant object.
     // PRef keeps the ownership of the memory. Release the memory when it is destroyed.
     // Internally it holds the object in a unique_ptr
@@ -46,6 +47,7 @@ int main() {
     //Getting the object from db using oid.
     bun::PRef<test::Person> p1( oid );
   }
+  t.commit();
 
   // To get all the object oids of a particular object.
   // person_oids is a vector of type std::vector<blib::bun<>SimpleOID<test::Person>>
