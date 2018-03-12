@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\blib_old">
-      <UniqueIdentifier>{96154ad9-f76c-48e4-bcce-3580b2f37db8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\third_party">
       <UniqueIdentifier>{d26536d9-c5e1-4313-a942-ef4bc27e4d90}</UniqueIdentifier>
     </Filter>
@@ -61,12 +58,6 @@
     <Filter Include="Header Files\third_party\spdlog\details">
       <UniqueIdentifier>{63937dca-717e-4c6e-9b2e-02014af846aa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\blib_old\bun">
-      <UniqueIdentifier>{72443767-ce3b-47aa-b879-f50b2e0e6706}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\blib_old\utils">
-      <UniqueIdentifier>{df8acdbf-f6de-4526-83d1-ba72363ece71}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\blib">
       <UniqueIdentifier>{55437065-681f-480b-9e88-e577fa024be1}</UniqueIdentifier>
     </Filter>
@@ -75,9 +66,6 @@
     </Filter>
     <Filter Include="Header Files\blib\bun">
       <UniqueIdentifier>{cde10a99-0af0-4433-a067-921b88d905b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\blib_old\containers">
-      <UniqueIdentifier>{03fbe86f-a280-4327-94ed-3d1171fba908}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\sqlite">
       <UniqueIdentifier>{0f3cbf8c-5328-4bb5-ae05-69ce00d33e23}</UniqueIdentifier>
@@ -115,9 +103,6 @@
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\blib\utils\Singleton.hpp">
-      <Filter>Header Files\blib\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\utils\TypeUtils.hpp">
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\third_party\fmt\format.hpp">
@@ -354,52 +339,7 @@
     <ClInclude Include="..\..\include\blib\bun\DbLogger.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\PRef.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\PRefHelper.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\QueryHelper.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\Bun.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\CppTypeToSQLString.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\DbBackend.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\DbLogger.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\PRef.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\Query.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\bun\SimpleOID.hpp">
-      <Filter>Header Files\blib_old\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\utils\MD5.hpp">
-      <Filter>Header Files\blib_old\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\utils\Singleton.hpp">
-      <Filter>Header Files\blib_old\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\utils\TypeUtils.hpp">
-      <Filter>Header Files\blib_old\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib_old\containers\tree\NTree.hpp">
-      <Filter>Header Files\blib_old\containers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\GlobalFunc.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp">
@@ -407,12 +347,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\blib\utils\debug.hpp">
       <Filter>Header Files\blib\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\NxNMappings.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\_bun.hpp">
-      <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\bun.hpp">
       <Filter>Header Files\blib\bun</Filter>
