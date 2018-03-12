@@ -50,22 +50,22 @@ namespace blib {
 // assumes that char is 8 bit and int is 32 bit
     // Constants for MD5Transform routine.
   struct SS {
-    static const std::uint32_t SS::S11 = 7;
-    static const std::uint32_t SS::S12 = 12;
-    static const std::uint32_t SS::S13 = 17;
-    static const std::uint32_t SS::S14 = 22;
-    static const std::uint32_t SS::S21 = 5;
-    static const std::uint32_t SS::S22 = 9;
-    static const std::uint32_t SS::S23 = 14;
-    static const std::uint32_t SS::S24 = 20;
-    static const std::uint32_t SS::S31 = 4;
-    static const std::uint32_t SS::S32 = 11;
-    static const std::uint32_t SS::S33 = 16;
-    static const std::uint32_t SS::S34 = 23;
-    static const std::uint32_t SS::S41 = 6;
-    static const std::uint32_t SS::S42 = 10;
-    static const std::uint32_t SS::S43 = 15;
-    static const std::uint32_t SS::S44 = 21;
+    static const std::uint32_t S11 = 7;
+    static const std::uint32_t S12 = 12;
+    static const std::uint32_t S13 = 17;
+    static const std::uint32_t S14 = 22;
+    static const std::uint32_t S21 = 5;
+    static const std::uint32_t S22 = 9;
+    static const std::uint32_t S23 = 14;
+    static const std::uint32_t S24 = 20;
+    static const std::uint32_t S31 = 4;
+    static const std::uint32_t S32 = 11;
+    static const std::uint32_t S33 = 16;
+    static const std::uint32_t S34 = 23;
+    static const std::uint32_t S41 = 6;
+    static const std::uint32_t S42 = 10;
+    static const std::uint32_t S43 = 15;
+    static const std::uint32_t S44 = 21;
   };
 
 
@@ -113,11 +113,11 @@ namespace blib {
 
   // F, G, H and I are basic MD5 functions.
   inline std::uint32_t MD5::F( std::uint32_t x, std::uint32_t y, std::uint32_t z ) {
-    return x&y | ~x&z;
+    return (x&y) | (~x&z);
   }
 
   inline std::uint32_t MD5::G( std::uint32_t x, std::uint32_t y, std::uint32_t z ) {
-    return x&z | y&~z;
+    return (x&z) | (y&~z);
   }
 
   inline std::uint32_t MD5::H( std::uint32_t x, std::uint32_t y, std::uint32_t z ) {
@@ -382,7 +382,7 @@ namespace blib {
 
     char buf[33] = { 0 };
     for (int i = 0; i < 16; i++)
-      sprintf_s( buf + i * 2, 33 - i * 2, "%02x", digest[i] );
+      sprintf( buf + i * 2, "%02x", digest[i] );
 
     return std::string( buf );
   }
@@ -398,7 +398,7 @@ namespace blib {
   inline std::string md5( const std::string& str ) {
     const MD5 md5 = MD5( str );
 
-    return md5.hexdigest();
+    return std::move(md5.hexdigest());
   }
 
 }
