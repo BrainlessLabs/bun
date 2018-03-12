@@ -111,10 +111,9 @@ namespace blib {
 				return val;
 			}
 
-			template<>
-			inline auto to_valid_query_string<std::string>(std::string& val, std::string const sym = "\"") -> std::string& {
-				val += sym + val + sym;
-				return val;
+			inline auto to_valid_query_string(std::string const& val, std::string const sym = "\"") -> std::string {
+				const std::string ret_str = sym + val + sym;
+				return ret_str;
 			}
 		}
 	}
@@ -554,7 +553,7 @@ namespace blib {
 				/// @fn md5
 				/// @param oid The oid for the object
 				/// @brief Returns the md5 of the object
-				inline static std::string md5(T * obj, SimpleOID const & oid) {
+				inline static std::string md5(T const* obj, SimpleOID const & oid) {
 					const std::string str = QueryHelper<T>::objToJson(obj, oid);
 					const std::string md5 = blib::md5(str);
 					return std::move(md5);
@@ -565,23 +564,29 @@ namespace blib {
 				/// @param obj The object which we need to create to string
 				/// @brief Converts the object to a string representation and 
 				///		   returns the string representation.
-				inline static std::string objToString(T * obj, SimpleOID const & oid) {
+				inline static std::string objToString(T const* obj, SimpleOID const & oid) {
 					return QueryHelper<T>::objToJson(obj, oid);
 				}
 
 				struct ToJson {
 				private:
-					std::string& str;
+					std::string& _str;
 					const std::vector<std::string>& _member_names;
-					int _count;
+					int* _count_ptr;
 
 				public:
-					ToJson(std::string & str) :str(str), _member_names(TypeMetaData<T>::member_names()), _count(2) {}
+					ToJson(std::string & str, int* count_ptr) :_str(str), _member_names(TypeMetaData<T>::member_names()), _count_ptr(count_ptr){
+						*_count_ptr = 2;
+					}
 
 					template <typename T>
 					void operator()(T const& x) const
 					{
-						str += fmt::format("{} : {}",blib::bun::__private::to_valid_query_string(_member_names.at(_count++), "'"), x);
+						int& count = *_count_ptr;
+						std::string member_name = _member_names.at(count);
+						++count;
+						std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
+						_str += fmt::format("{} : {}", obj_name, x);
 					}
 				};
 
@@ -590,10 +595,11 @@ namespace blib {
 				/// @param obj The object which we need to create to string
 				/// @brief Converts the object to a json representation and 
 				///		   returns the json representation as a string
-				inline static std::string objToJson(T * obj, SimpleOID const & oid) {
-					T& v = *obj;
+				inline static std::string objToJson(T const* obj, SimpleOID const & oid) {
+					T const& v = *obj;
+					int count = 0;
 					std::string str = fmt::format("'oid_high': {}, 'oid_high': {}", oid.high, oid.low);
-					boost::fusion::for_each(v, QueryHelper<T>::ToJson(str));
+					boost::fusion::for_each(v, QueryHelper<T>::ToJson(str, &count));
 					str += "{" + str + "}";
 					return std::move(str);
 				}
@@ -617,7 +623,7 @@ namespace blib {
 				/// @fn getAllObjectsWithQuery
 				/// @param in_query Queries for which the objects will be returned.
 				/// @brief The function will get all the objects that match the passed query
-				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string&& in_query = std::string()) {
+				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string& in_query = std::string()) {
 					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
 
 					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " {}";
@@ -891,7 +897,7 @@ namespace blib {
 		template<typename T>
 		inline static std::vector <SimpleOID> getAllOids() {
 			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
-			const std::std::vector<SimpleOID> oids = blib::bun::__private::QueryHelper<T>::getAllOids()
+			const std::vector<SimpleOID> oids = blib::bun::__private::QueryHelper<T>::getAllOids();
 			t.commit();
 			return std::move(oids);
 		}
@@ -906,10 +912,10 @@ namespace blib {
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
 			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
-			const auto values = blib::bun::__private::QueryHelper<T>::getAllObjWithQuery(in_query);
+			auto values = blib::bun::__private::QueryHelper<T>::getAllObjectsWithQuery(in_query);
 			std::vector <PRef<T>> ret_vals;
-			for (const auto value : values) {
-				const PRef<T> ref(value.second.release(), val.first);
+			for (auto value : values) {
+				const PRef<T> ref(value.second, value.first.release());
 				ret_vals.push_back(ref);
 			}
 			t.commit();
@@ -1026,7 +1032,7 @@ namespace blib {
 				template<typename T>
 				struct TypesUsed {
 					using Type = void;
-				}
+				};
 
 				template<typename T>
 				struct FromInternals {
@@ -1300,10 +1306,10 @@ namespace soci{
 #define EXPAND_member_names(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_member_names_I, ELEMS_TUP)
 
 /// @brief generate the query and query fiels
-#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::_details::QueryVariablePlaceholderIndex<n>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
+#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<n>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
 #define DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), DEFINE_CLASS_STATIC_VARS_QUERY_I, CLASS_ELEMS_TUP)
 
-#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::_details::QueryVariablePlaceholderIndex<n>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
+#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<n>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
 #define GENERATE_CLASS_STATIC_VARS_QUERY(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), GENERATE_CLASS_STATIC_VARS_QUERY_I, ELEMS_TUP)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1340,7 +1346,7 @@ return names;\
 }\
 };\
 }}}\
-namespace blib{ namespace bun{ namespace query{ namespace __private{\
+namespace blib{ namespace bun{ namespace query{\
 namespace {\
 template<>\
 struct F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> {\
@@ -1348,7 +1354,7 @@ GENERATE_CLASS_STATIC_VARS_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 };\
 DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP)\
 }\
-}}}}\
+}}}\
 namespace soci{\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
 template<>\
