@@ -319,7 +319,7 @@ namespace blib {
 				};
 
 			public:
-				static std::string const& create_table_sql() {
+				inline static std::string const& create_table_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
@@ -330,7 +330,7 @@ namespace blib {
 					return sql;
 				}
 
-				static std::string const& drop_table_sql() {
+				inline static std::string const& drop_table_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
@@ -339,7 +339,7 @@ namespace blib {
 					return sql;
 				}
 
-				static std::string const& delete_row_sql() {
+				inline static std::string const& delete_row_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
@@ -348,7 +348,7 @@ namespace blib {
 					return sql;
 				}
 
-				static std::string const& insert_row_sql() {
+				inline static std::string const& insert_row_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
@@ -361,7 +361,7 @@ namespace blib {
 					return sql;
 				}
 
-				static std::string const& update_row_sql() {
+				inline static std::string const& update_row_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
@@ -373,7 +373,7 @@ namespace blib {
 					return sql;
 				}
 
-				static std::string const& select_rows_sql() {
+				inline static std::string const& select_rows_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
@@ -381,6 +381,11 @@ namespace blib {
 						boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
 						sql += " FROM '{}' ";
 					}
+					return sql;
+				}
+				
+				inline static std::string const& select_all_oid_sql() {
+					static const std::string sql = "SELECT oid_high, oid_low FROM '{}'";
 					return sql;
 				}
 			};
@@ -573,9 +578,37 @@ namespace blib {
 						}
 					}
 					catch (std::exception const & e) {
-						l().error("getAllObjectsWithQuery(""): {} ", e.what());
+						l().error("getAllObjectsWithQuery({}): {} ", e.what(), in_query);
 					}
 					return std::move(ret_values);
+				}
+				
+				inline static std::vector<SimpleOID> getAllOids() {
+					const std::std::vector<SimpleOID> oids = getAllOidsWithQuery<T>();
+					return std::move(oids);
+				};
+				
+				inline static std::vector<SimpleOID> getAllOidsWithQuery(std::string const in_query = std::string()) {
+					std::vector<SimpleOID> oids;
+					
+					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), TypeMetaData<T>::class_name()) + " {}";
+					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
+					const std::string sql = fmt::format(select_oid_sql, where_clasue);
+					QUERY_LOG(sql);
+					try{
+						soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
+						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
+							auto const& row = *row_itr;
+							const SimpleOID oid(row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high"),
+												row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low"));
+							oids.push_back(oid);
+						}						
+					}
+					catch (std::exception const & e) {
+						l().error("getAllOidsWithQuery({}): {} ", e.what(), in_query);
+					}
+					
+					return std::move(oids);
 				}
 			};
 		}
@@ -792,26 +825,29 @@ namespace blib {
 
 		template<typename T>
 		inline static std::vector <SimpleOID> getAllOids() {
-			//soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
-			return blib::bun::__private::QueryHelper<T>::getAllOids();
-			//t.commit();
+			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
+			const std::std::vector<SimpleOID> oids = blib::bun::__private::QueryHelper<T>::getAllOids()
+			t.commit();
+			return std::move(oids);
 		}
 
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjects() {
 			//soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
-			return getAllObjWithQuery<T>();
+			return getAllObjWithQuery<T>(std::string());
 			//t.commit();
 		}
 
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
+			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
 			const auto values = blib::bun::__private::QueryHelper<T>::getAllObjWithQuery(in_query);
 			std::vector <PRef<T>> ret_vals;
 			for (const auto value : values) {
 				const PRef<T> ref(value.second.release(), val.first);
 				ret_vals.push_back(ref);
 			}
+			t.commit();
 			return std::move(ret_vals);
 		}
 
@@ -824,6 +860,8 @@ namespace blib {
 
 /// ======================Query Start========================
 /// @brief The query templates starts here
+/// @details This block of code refpresents the grammar and the structure of the
+///			 query elements.
 namespace blib {
 	namespace bun {
 		namespace query {
@@ -833,7 +871,7 @@ namespace blib {
 				struct QueryVariablePlaceholderIndex : std::integral_constant <std::int32_t, I> {
 				};
 
-				// Grammar for the query Start
+				/// @brief Grammar for the query Start
 				struct PlaceHoldersTerminals : boost::proto::or_ <
 					boost::proto::terminal<QueryVariablePlaceholderIndex<0>>,
 					boost::proto::terminal<QueryVariablePlaceholderIndex<1>>,
@@ -905,16 +943,25 @@ namespace blib {
 				};
 
 				// Grammar for the query End
+				
+				/// @fn  mapping(const std::uint32_t in_index)
+				/// @brief Gets the type element at position passed in by index
+				/// {
+				///   static const std::vector<std::string> ret = { "name", "age", "height" };
+				///   return ret.at( in_index );
+				/// }				
 				template<typename T>
-				inline std::string const& mapping(const std::uint32_t in_index);
-				//{
-				//  static const std::vector<std::string> ret = { "name", "age", "height" };
-				//  return ret.at( in_index );
-				//}
+				inline std::string const& mapping(const std::uint32_t in_index) {
+					static const auto vals = blib::bunb::__private::TypeMetaData<T>::member_names();
+					return vals.at(in_index + 2); // member_names start from oid_high and oid_low
+				}
 
+
+				/// @brief boost::mpl::vector<decltype(test::Person::name), decltype(test::Person::age), decltype(test::Person::height)>;
 				template<typename T>
-				struct TypesUsed;
-				//boost::mpl::vector<decltype(test::Person::name), decltype(test::Person::age), decltype(test::Person::height)>;
+				struct TypesUsed {
+					using Type = void;
+				}
 
 				template<typename T>
 				struct FromInternals {
@@ -1044,8 +1091,10 @@ namespace blib {
 				};
 			}
 
-			// Fields for query
+			/// @brief Fields for query
 			namespace {
+				/// @class F
+				/// @brief This class represents the details of the query
 				template<typename T>
 				struct F;
 			}
@@ -1125,7 +1174,7 @@ namespace soci{
 
 		static void from_base(values const& v, indicator ind, ObjectHolderType& obj) {
 			indicator *i = &ind;
-			T& o = *(obj->obj);
+			T& o = *(obj.obj);
 			obj.oid.low = v.get<decltype(o.oid.low)>("oid_low");
 			obj.oid.high = v.get<decltype(o.oid.high)>("oid_high");
 			boost::fusion::for_each(o, FromBase(v));
