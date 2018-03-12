@@ -327,6 +327,8 @@ namespace blib {
 				};
 
 			public:
+				/// @fn create_table_sql
+				/// @brief Create table sql
 				inline static std::string const& create_table_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
@@ -338,6 +340,8 @@ namespace blib {
 					return sql;
 				}
 
+				/// @fn drop_table_sql
+				/// @brief Drop table sql
 				inline static std::string const& drop_table_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
@@ -347,6 +351,8 @@ namespace blib {
 					return sql;
 				}
 
+				/// @fn delete_row_sql
+				/// @brief Delete a row
 				inline static std::string const& delete_row_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
@@ -356,6 +362,8 @@ namespace blib {
 					return sql;
 				}
 
+				/// @fn insert_row_sql
+				/// @brief Insert row sql
 				inline static std::string const& insert_row_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
@@ -369,6 +377,8 @@ namespace blib {
 					return sql;
 				}
 
+				/// @fn update_row_sql
+				/// @brief Update row sql
 				inline static std::string const& update_row_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
@@ -381,6 +391,8 @@ namespace blib {
 					return sql;
 				}
 
+				/// @fn update_row_sql
+				/// @brief Update row sql
 				inline static std::string const& select_rows_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
@@ -392,6 +404,8 @@ namespace blib {
 					return sql;
 				}
 				
+				/// @fn select_all_oid_sql
+				/// @brief Select Oids sql
 				inline static std::string const& select_all_oid_sql() {
 					static const std::string sql = "SELECT oid_high, oid_low FROM '{}'";
 					return sql;
@@ -418,6 +432,8 @@ namespace blib {
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct QueryHelper {
+				/// @fn createSchema
+				/// @brief Create Schema
 				inline static void createSchema() {
 					const static std::string sql = fmt::format(SqlString<T>::create_table_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
@@ -429,6 +445,8 @@ namespace blib {
 					}
 				}
 
+				/// @fn createSchema
+				/// @brief Create Schema with parent table
 				inline static void createSchema(const std::string& parent_table) {
 					const std::string sql = fmt::format(SqlString<T>::create_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
@@ -440,6 +458,8 @@ namespace blib {
 					}
 				}
 
+				/// @fn deleteSchema
+				/// @brief Delete schema
 				inline static void deleteSchema() {
 					const static std::string sql = fmt::format(SqlString<T>::drop_table_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
@@ -451,6 +471,8 @@ namespace blib {
 					}
 				}
 
+				/// @fn deleteSchema
+				/// @brief Delete schema
 				inline static void deleteSchema(const std::string& parent_table) {
 					const std::string sql = fmt::format(SqlString<T>::drop_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
@@ -462,6 +484,9 @@ namespace blib {
 					}
 				}
 
+				/// @fn persistObj
+				/// @param obj This is the object that needs to be persisted
+				/// @brief Persist an object
 				inline static SimpleOID persistObj(T *obj) {
 					blib::bun::SimpleOID oid;
 					oid.populateLow();
@@ -481,6 +506,10 @@ namespace blib {
 					return std::move(oid);
 				}
 
+				/// @fn updateObj
+				/// @param obj This is the object that needs to be updated
+				/// @param oid the oid that needs to be updated
+				/// @brief Persist an object
 				inline static void updateObj(T * obj, SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name(), oid.high, oid.low);
 					QUERY_LOG(sql);
@@ -492,6 +521,9 @@ namespace blib {
 					}
 				}
 
+				/// @fn deleteObj
+				/// @param oid The object associated with this oid needs to be deleted.
+				/// @brief The object associated with this oid needs to be deleted.
 				inline static void deleteObj(SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
@@ -503,6 +535,9 @@ namespace blib {
 					}
 				}
 
+				/// @fn getObj
+				/// @param oid The oid for the object
+				/// @brief The object with the particular oid will be returned.
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}", TypeMetaData<T>::class_name(), oid.high, oid.low);
 					QUERY_LOG(sql);
@@ -516,12 +551,20 @@ namespace blib {
 					return std::move(obj);
 				}
 
+				/// @fn md5
+				/// @param oid The oid for the object
+				/// @brief Returns the md5 of the object
 				inline static std::string md5(T * obj, SimpleOID const & oid) {
 					const std::string str = QueryHelper<T>::objToJson(obj, oid);
 					const std::string md5 = blib::md5(str);
 					return std::move(md5);
 				}
 
+				/// @fn objToString
+				/// @param oid The oid for the object
+				/// @param obj The object which we need to create to string
+				/// @brief Converts the object to a string representation and 
+				///		   returns the string representation.
 				inline static std::string objToString(T * obj, SimpleOID const & oid) {
 					return QueryHelper<T>::objToJson(obj, oid);
 				}
@@ -542,6 +585,11 @@ namespace blib {
 					}
 				};
 
+				/// @fn objToJson
+				/// @param oid The oid for the object
+				/// @param obj The object which we need to create to string
+				/// @brief Converts the object to a json representation and 
+				///		   returns the json representation as a string
 				inline static std::string objToJson(T * obj, SimpleOID const & oid) {
 					T& v = *obj;
 					std::string str = fmt::format("'oid_high': {}, 'oid_high': {}", oid.high, oid.low);
@@ -566,6 +614,9 @@ namespace blib {
 					}
 				};
 
+				/// @fn getAllObjectsWithQuery
+				/// @param in_query Queries for which the objects will be returned.
+				/// @brief The function will get all the objects that match the passed query
 				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string&& in_query = std::string()) {
 					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
 
@@ -591,12 +642,17 @@ namespace blib {
 					}
 					return std::move(ret_values);
 				}
-				
+
+				/// @fn getAllOids
+				/// @brief Get all the oids			
 				inline static std::vector<SimpleOID> getAllOids() {
 					const std::std::vector<SimpleOID> oids = getAllOidsWithQuery<T>();
 					return std::move(oids);
 				};
-				
+
+				/// @fn getAllOidsWithQuery
+				/// @param in_query Queries for which the objects will be returned.
+				/// @brief Get all the oids with that match the query.
 				inline static std::vector<SimpleOID> getAllOidsWithQuery(std::string const in_query = std::string()) {
 					std::vector<SimpleOID> oids;
 					
