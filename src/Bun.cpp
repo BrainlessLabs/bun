@@ -17,13 +17,13 @@ namespace test {
 /////////////////////////////////////////////////
 SPECIALIZE_BUN_HELPER( (test::Person, name, age, height) );
 
-int main1() {
+int main() {
   namespace bun = blib::bun;
   namespace query = blib::bun::query;
 
   // Connect the db. If the db is not there it will be created.
   // It should include the whole path
-  bun::connect( "test.db" );
+  bun::connect( "objects.db" );
   // Create the schema. We can create the schema multile times. If its already created
   // it will be safely ignored
   bun::createSchema<test::Person>();

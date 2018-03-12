@@ -608,15 +608,18 @@ namespace blib {
 				private:
 					const soci::row& _row;
 					const std::vector<std::string>& _member_names;
-					int _count;
+					int* _count_ptr;
 
 				public:
-					GetAllObjects(const soci::row& row) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count(2) {}
+					GetAllObjects(const soci::row& row, int* count_ptr) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count_ptr(count_ptr) {
+						*_count_ptr = 2;
+					}
 
 					template <typename T>
-					void operator()(T& x)
+					void operator()(T& x) const
 					{
-						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(_count++));
+						int& count = *_count_ptr;
+						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(count++));
 					}
 				};
 
@@ -639,8 +642,9 @@ namespace blib {
 							pair.second.low = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low");
 							pair.first = std::make_unique<T>();
 							T& obj = *pair.first;
-							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row));
-							ret_values.push_back(pair);
+							int count = 0;
+							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row, &count));
+							ret_values.emplace_back(pair.first.release(), pair.second);
 						}
 					}
 					catch (std::exception const & e) {
@@ -650,9 +654,9 @@ namespace blib {
 				}
 
 				/// @fn getAllOids
-				/// @brief Get all the oids			
+				/// @brief Get all the oids
 				inline static std::vector<SimpleOID> getAllOids() {
-					const std::std::vector<SimpleOID> oids = getAllOidsWithQuery<T>();
+					const std::vector<SimpleOID> oids = QueryHelper<T>::getAllOidsWithQuery();
 					return std::move(oids);
 				};
 
@@ -912,9 +916,9 @@ namespace blib {
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
 			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
-			auto values = blib::bun::__private::QueryHelper<T>::getAllObjectsWithQuery(in_query);
+			std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> values = blib::bun::__private::QueryHelper<T>::getAllObjectsWithQuery(in_query);
 			std::vector <PRef<T>> ret_vals;
-			for (auto value : values) {
+			for (std::pair<std::unique_ptr <T>, SimpleOID>& value : values) {
 				const PRef<T> ref(value.second, value.first.release());
 				ret_vals.push_back(ref);
 			}
@@ -1023,7 +1027,7 @@ namespace blib {
 				/// }				
 				template<typename T>
 				inline std::string const& mapping(const std::uint32_t in_index) {
-					static const auto vals = blib::bunb::__private::TypeMetaData<T>::member_names();
+					static const auto vals = blib::bun::__private::TypeMetaData<T>::member_names();
 					return vals.at(in_index + 2); // member_names start from oid_high and oid_low
 				}
 
