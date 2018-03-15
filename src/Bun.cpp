@@ -8,7 +8,7 @@ namespace test {
   struct Person {
     std::string name;
     int age;
-    float height;
+    double height;
   };
 }
 
