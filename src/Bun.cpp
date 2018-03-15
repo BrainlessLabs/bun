@@ -23,7 +23,10 @@ int main() {
 
   // Connect the db. If the db is not there it will be created.
   // It should include the whole path
-  bun::connect( "objects.db" );
+  // For SQLite
+  //bun::connect( "objects.db" );
+  // For PostGres
+  bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
   // Create the schema. We can create the schema multile times. If its already created
   // it will be safely ignored
   bun::createSchema<test::Person>();
