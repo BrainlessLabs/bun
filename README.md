@@ -8,7 +8,8 @@ Bun is a simple to use C++ Object Relational Mapper (ORM) library
 [![OpenHub](https://www.openhub.net/p/brainlesslabs_bun/widgets/project_thin_badge.gif)](https://www.openhub.net/p/brainlesslabs_bun)
 <p>
 [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
-#Usage
+
+# Usage
 
 ```C++
 #include "blib/bun/Bun.hpp"
@@ -23,9 +24,9 @@ namespace test {
 }
 
 /////////////////////////////////////////////////
-/// Generate the database bindings at compile time.
+/// Generate the database bindings.
 /////////////////////////////////////////////////
-GENERATE_BINDING( (test::Person, name, age, height) );
+SPECIALIZE_BUN_HELPER( (test::Person, name, age, height) );
 
 int main() {
   namespace bun = blib::bun;
@@ -33,11 +34,16 @@ int main() {
 
   // Connect the db. If the db is not there it will be created.
   // It should include the whole path
-  bun::dbConnect( "test.db" );
+  // For SQLite
+  //bun::connect( "objects.db" );
+  // For PostGres
+  bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
   // Create the schema. We can create the schema multile times. If its already created
   // it will be safely ignored
   bun::createSchema<test::Person>();
-
+  
+  // Start transaction
+  bun::Transaction t;
   // Creat some entries in the database
   for (int i = 1; i < 1000; ++i) {
     // PRef is a reference to the persistant object.
@@ -56,6 +62,7 @@ int main() {
     //Getting the object from db using oid.
     bun::PRef<test::Person> p1( oid );
   }
+  t.commit();
 
   // To get all the object oids of a particular object.
   // person_oids is a vector of type std::vector<blib::bun<>SimpleOID<test::Person>>
