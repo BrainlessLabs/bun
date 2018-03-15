@@ -52,7 +52,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @brief Make this 0 if no log is needed, else make it 1
-#define QUERY_LOG_ON 1
+#define QUERY_LOG_ON 0
 /// @brief Log the query
 #define QUERY_LOG(log_string) BOOST_PP_EXPR_IF(QUERY_LOG_ON, l().info(log_string))
 
@@ -107,12 +107,18 @@ namespace blib {
 			/// @brief Helper class to persist any primitive types.
 			/////////////////////////////////////////////////
 			template<typename T>
-			inline auto to_valid_query_string(T& val) -> T& {
-				return val;
+			inline auto to_valid_query_string(T const& val) -> T& {
+				T ret = val;
+				return ret;
 			}
 
 			inline auto to_valid_query_string(std::string const& val, std::string const sym = "\"") -> std::string {
 				const std::string ret_str = sym + val + sym;
+				return ret_str;
+			}
+
+			inline auto to_valid_query_string(const char* val, std::string const sym = "\"") -> std::string {
+				const std::string ret_str = sym + std::string(val) + sym;
 				return ret_str;
 			}
 		}
@@ -331,8 +337,16 @@ namespace blib {
 				inline static std::string const& create_table_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
+					const static std::string oid_high_type =
+#if defined(BUN_SQLITE)
+						"BIGINT PRIMARY KEY AUTOINCREMENT";
+#elif defined(BUN_POSTGRES)
+						"BIGSERIAL PRIMARY KEY";
+#elif defined()
+						"BIGINT PRIMARY KEY AUTO_INCREMENT";
+#endif
 					if (sql.empty()) {
-						sql = "CREATE TABLE IF NOT EXISTS '{}' (oid_high INTEGER PRIMARY KEY AUTOINCREMENT, oid_low INTEGER NOT NULL, oid_ref INTEGER";
+						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid_high " + oid_high_type + ", oid_low BIGINT NOT NULL, oid_ref BIGINT";
 						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
 						sql += ")";
 					}
@@ -345,7 +359,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "DROP TABLE '{}'";
+						sql = "DROP TABLE IF EXISTS \"{}\"";
 					}
 					return sql;
 				}
@@ -356,7 +370,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "DELETE FROM '{}' WHERE oid_high = :oid_high AND oid_low = :oid_low";
+						sql = "DELETE FROM \"{}\" WHERE oid_high = :oid_high AND oid_low = :oid_low";
 					}
 					return sql;
 				}
@@ -367,7 +381,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "INSERT INTO '{}' (oid_low";
+						sql = "INSERT INTO \"{}\" (oid_low";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(sql));
 						sql += ") VALUES ({}";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(sql));
@@ -382,7 +396,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "UPDATE '{}' SET ";
+						sql = "UPDATE \"{}\" SET ";
 						std::string sql1;
 						boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql1));
 						sql += sql1 + " WHERE oid_high = {} AND oid_low = {}";
@@ -398,7 +412,7 @@ namespace blib {
 					if (sql.empty()) {
 						sql = "SELECT oid_high, oid_low";
 						boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
-						sql += " FROM '{}' ";
+						sql += " FROM \"{}\" ";
 					}
 					return sql;
 				}
@@ -406,7 +420,7 @@ namespace blib {
 				/// @fn select_all_oid_sql
 				/// @brief Select Oids sql
 				inline static std::string const& select_all_oid_sql() {
-					static const std::string sql = "SELECT oid_high, oid_low FROM '{}'";
+					static const std::string sql = "SELECT oid_high, oid_low FROM \"{}\"";
 					return sql;
 				}
 			};
