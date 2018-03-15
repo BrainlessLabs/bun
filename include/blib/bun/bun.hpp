@@ -1293,6 +1293,61 @@ namespace blib {
 	}
 }
 
+/// @brief SOCI conversion helpers
+namespace blib{
+	namespace bun {
+		namespace __private {
+			template<typename T>
+			struct type_conversion {
+			public:
+				using ObjType = T;
+			private:
+				struct FromBase {
+				private:
+					soci::values const& _val;
+					int _count;
+
+				public:
+					FromBase(soci::values const& val) :_val(val), _count(2) {}
+
+					template<typename T>
+					void operator()(T& x) const {
+						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
+						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
+					}
+				};
+
+			public:
+				static void from_base(soci::values const& v, soci::indicator, ObjType& obj) {
+					boost::fusion::for_each(obj, FromBase(v));
+				}
+
+			private:
+				struct ToBase {
+				private:
+					soci::values& _val;
+					int _count;
+
+				public:
+					ToBase(soci::values& val) :_val(val), _count(2) {}
+
+					template<typename T>
+					void operator()(T const& x) const{
+						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
+						const_cast<ToBase*>(this)->_val.set(obj_name, x);
+					}
+				};
+
+			public:
+				static void to_base(ObjType const& obj, soci::values& v, soci::indicator& ind) {
+					boost::fusion::for_each(obj, ToBase(v));
+				}
+			};
+		}
+	}
+}
+
+/// @brief Specialization for a particular object type
 /*
 namespace soci{
 	template<typename T>
@@ -1325,18 +1380,6 @@ namespace soci{
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros Start
 ///////////////////////////////////////////////////////////////////////////////
-
-/// @brief SOCI ORM Helper Macros
-/// @details from_base
-/// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
-#define EXPAND_MEMBER_ASSIGNENTS_from_base_I(z, n, ELEMS_TUP) c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP) = v.get<blib::bun::__private::ConvertCPPTypeToSOCISupportType<decltype(c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP))>::type>(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)));
-#define EXPAND_MEMBER_ASSIGNENTS_from_base(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_MEMBER_ASSIGNENTS_from_base_I, ELEMS_TUP)
-
-/// @details to_base
-/// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
-#define EXPAND_MEMBER_ASSIGNENTS_to_base_I(z, n, ELEMS_TUP) v.set(BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)), blib::bun::__private::convertToSOCISupportedType(c.BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)));
-#define EXPAND_MEMBER_ASSIGNENTS_to_base(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_MEMBER_ASSIGNENTS_to_base_I, ELEMS_TUP)
-
 #define GENERATE_TupType_I(z, n, CLASS_ELEMS_TUP) BOOST_PP_IF(n, BOOST_PP_COMMA, BOOST_PP_EMPTY)() std::add_pointer<std::remove_reference<std::remove_cv<decltype(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP) :: BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(1, n), CLASS_ELEMS_TUP))>::type>::type>::type
 #define GENERATE_TupType(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), GENERATE_TupType_I, CLASS_ELEMS_TUP)
 
@@ -1407,11 +1450,11 @@ typedef values base_type;\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 inline static void from_base(values const& v, indicator ind, ClassType& c){\
 BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
-EXPAND_MEMBER_ASSIGNENTS_from_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+blib::bun::__private::type_conversion<ClassType>::from_base(v, ind, c);\
 }\
 inline static void to_base(const ClassType& c, values& v, indicator& ind){\
 BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db");\
-EXPAND_MEMBER_ASSIGNENTS_to_base(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ));\
+blib::bun::__private::type_conversion<ClassType>::to_base(c, v, ind);\
 }\
 };\
 }\
