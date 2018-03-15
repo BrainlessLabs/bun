@@ -11,15 +11,11 @@
 #include "blib/bun/DbLogger.hpp"
 #include <memory>
 
-#define BUN_SQLITE
-
 #ifdef BUN_SQLITE
-
 #include <soci/sqlite3/soci-sqlite3.h>
-
-#elif BUN_POSTGRES
+#elif defined(BUN_POSTGRES)
 #include <soci/postgresql/soci-postgresql.h>
-#elif BUN_MYSQL
+#elif defined(BUN_MYSQL)
 #include <soci/mysql/soci-mysql.h>
 #endif
 
@@ -57,9 +53,9 @@ namespace blib {
                     const auto backend_factory =
 #ifdef BUN_SQLITE
                     soci::sqlite3;
-#elif BUN_POSTGRES
+#elif defined(BUN_POSTGRES)
                     soci::postgresql;
-#elif BUN_MYSQL
+#elif defined(BUN_MYSQL)
                     soci::mysql;
 #endif
                     try {
