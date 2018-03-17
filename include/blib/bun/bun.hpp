@@ -346,7 +346,7 @@ namespace blib {
 						"BIGINT PRIMARY KEY AUTO_INCREMENT";
 #endif
 					if (sql.empty()) {
-						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid_high " + oid_high_type + ", oid_low BIGINT NOT NULL, oid_ref BIGINT";
+						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid_high " + oid_high_type + ", oid_low BIGINT NOT NULL, oid_ref BIGINT, par_ref VARCHAR";
 						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
 						sql += ")";
 					}
@@ -410,13 +410,13 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "SELECT oid_high, oid_low";
-						boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
+						sql = "SELECT * ";
+						//boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
 						sql += " FROM \"{}\" ";
 					}
 					return sql;
 				}
-				
+
 				/// @fn select_all_oid_sql
 				/// @brief Select Oids sql
 				inline static std::string const& select_all_oid_sql() {
@@ -433,9 +433,9 @@ namespace blib {
 			/////////////////////////////////////////////////			
 			template<typename T>
 			struct SimpleObjHolder {
-				T* obj;
-				blib::bun::SimpleOID& oid;
-				SimpleObjHolder(T* obj_in, blib::bun::SimpleOID& oid_in) :obj(obj_in), oid(oid_in) {}
+				T* obj_ptr;
+				blib::bun::SimpleOID const& oid;
+				SimpleObjHolder(T* obj_ptr_in, blib::bun::SimpleOID const& oid_in) :obj_ptr(obj_ptr_in), oid(oid_in) {}
 			};
 
 			/////////////////////////////////////////////////
@@ -504,10 +504,10 @@ namespace blib {
 					blib::bun::SimpleOID oid;
 					oid.populateLow();
 					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name(), oid.low);
-					//SimpleObjHolder obj_holder(obj, oid);
+					SimpleObjHolder<T> obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(obj_holder);
 						long high = 0;
 						if (blib::bun::__private::DbBackend<>::i().session().get_last_insert_id(TypeMetaData<T>::class_name(), high)) {
 							oid.high = static_cast<decltype(oid.high)>(high);
@@ -525,9 +525,10 @@ namespace blib {
 				/// @brief Persist an object
 				inline static void updateObj(T * obj, SimpleOID const & oid) {
 					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name(), oid.high, oid.low);
+					SimpleObjHolder<T> obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(*obj);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(obj_holder);
 					}
 					catch (std::exception const & e) {
 						l().error("updateObj(): {} ", e.what());
@@ -559,7 +560,7 @@ namespace blib {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
 					catch (std::exception const & e) {
-						l().error("getObj(): {} ",  e.what());
+						l().error("getObj(): {} ", e.what());
 					}
 					return std::move(obj);
 				}
@@ -589,7 +590,7 @@ namespace blib {
 					int* _count_ptr;
 
 				public:
-					ToJson(std::string & str, int* count_ptr) :_str(str), _member_names(TypeMetaData<T>::member_names()), _count_ptr(count_ptr){
+					ToJson(std::string & str, int* count_ptr) :_str(str), _member_names(TypeMetaData<T>::member_names()), _count_ptr(count_ptr) {
 						*_count_ptr = 2;
 					}
 
@@ -679,24 +680,24 @@ namespace blib {
 				/// @brief Get all the oids with that match the query.
 				inline static std::vector<SimpleOID> getAllOidsWithQuery(std::string const in_query = std::string()) {
 					std::vector<SimpleOID> oids;
-					
+
 					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), TypeMetaData<T>::class_name()) + " {}";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
 					const std::string sql = fmt::format(select_oid_sql, where_clasue);
 					QUERY_LOG(sql);
-					try{
+					try {
 						soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
 							const SimpleOID oid(row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high"),
-												row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low"));
+								row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low"));
 							oids.push_back(oid);
-						}						
+						}
 					}
 					catch (std::exception const & e) {
 						l().error("getAllOidsWithQuery({}): {} ", e.what(), in_query);
 					}
-					
+
 					return std::move(oids);
 				}
 			};
@@ -1032,7 +1033,7 @@ namespace blib {
 				};
 
 				// Grammar for the query End
-				
+
 				/// @fn  mapping(const std::uint32_t in_index)
 				/// @brief Gets the type element at position passed in by index
 				/// {
@@ -1058,7 +1059,7 @@ namespace blib {
 
 					struct BunQueryFilterContex : boost::proto::callable_context<BunQueryFilterContex> {
 						typedef std::string result_type;
-						
+
 						/// fn BunQueryFilterContex
 						/// @brief default constructor
 						BunQueryFilterContex() {}
@@ -1078,7 +1079,7 @@ namespace blib {
 						/// @param the terminal terminal name
 						/// @brief returns valid terminal name
 						result_type operator ()(boost::proto::tag::terminal, std::string& in_term) const {
-							const auto ret = blib::bun::__private::to_valid_query_string(in_term);
+							const auto ret = blib::bun::__private::to_valid_query_string(in_term, std::string("'"));
 							return ret;
 						}
 
@@ -1088,7 +1089,7 @@ namespace blib {
 						/// @brief returns valid terminal name. Overloaded for character
 						result_type operator ()(boost::proto::tag::terminal, char const* in_term) const {
 							std::string str = std::string(in_term);
-							const auto ret = blib::bun::__private::to_valid_query_string(str);
+							const auto ret = blib::bun::__private::to_valid_query_string(str, std::string("'"));
 							return ret;
 						}
 
@@ -1169,7 +1170,7 @@ namespace blib {
 
 						template<typename L, typename R>
 						result_type operator()(boost::proto::tag::equal_to, L const& in_l, R const& in_r) const {
-							static const std::string operator_name = " == ";
+							static const std::string operator_name = " = ";
 							auto ctx = *this;
 							const auto left_string = boost::proto::eval(in_l, ctx);
 							const auto right_string = boost::proto::eval(in_r, ctx);
@@ -1275,7 +1276,7 @@ namespace blib {
 			std::unique_ptr<soci::transaction> _t_ptr;
 
 		public:
-			Transaction():_t_ptr(std::make_unique<soci::transaction>(blib::bun::__private::DbBackend<>::i().session())) {
+			Transaction() :_t_ptr(std::make_unique<soci::transaction>(blib::bun::__private::DbBackend<>::i().session())) {
 			}
 
 			~Transaction() {
@@ -1294,7 +1295,7 @@ namespace blib {
 }
 
 /// @brief SOCI conversion helpers
-namespace blib{
+namespace blib {
 	namespace bun {
 		namespace __private {
 			template<typename T>
@@ -1332,7 +1333,7 @@ namespace blib{
 					ToBase(soci::values& val) :_val(val), _count(2) {}
 
 					template<typename T>
-					void operator()(T const& x) const{
+					void operator()(T const& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
 						const_cast<ToBase*>(this)->_val.set(obj_name, x);
 					}
@@ -1348,34 +1349,62 @@ namespace blib{
 }
 
 /// @brief Specialization for a particular object type
-/*
-namespace soci{
+namespace soci {
 	template<typename T>
-	struct type_conversion<blib::bun::__private::SimpleObjHolder<T>>{
+	struct type_conversion<blib::bun::__private::SimpleObjHolder<T>> {
 		using ObjectHolderType = blib::bun::__private::SimpleObjHolder<T>;
+		using ObjType = T;
 		typedef values base_type;
 
-		struct FromBase{
+	private:
+		struct FromBase {
 		private:
-			values const& val;
+			soci::values const& _val;
+			const blib::bun::SimpleOID& _oid;
+			int _count;
 
 		public:
+			FromBase(soci::values const& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
+
 			template<typename T>
 			void operator()(T& x) const {
-				x = v.get<decltype(x)>("oid_low");
+				const std::string obj_name = blib::bun::__private::TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
+				x = _val.get<blib::bun::__private::ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
 			}
 		};
 
-		static void from_base(values const& v, indicator ind, ObjectHolderType& obj) {
-			indicator *i = &ind;
-			T& o = *(obj.obj);
-			obj.oid.low = v.get<decltype(o.oid.low)>("oid_low");
-			obj.oid.high = v.get<decltype(o.oid.high)>("oid_high");
-			boost::fusion::for_each(o, FromBase(v));
+	public:
+		static void from_base(soci::values const& v, soci::indicator, ObjectHolderType& obj_holder) {
+			ObjType& obj = *(obj_holder.obj_ptr);
+			const blib::bun::SimpleOID& oid = obj_holder.oid;
+			boost::fusion::for_each(obj, FromBase(v, oid));
+		}
+
+	private:
+		struct ToBase {
+		private:
+			soci::values& _val;
+			const blib::bun::SimpleOID& _oid;
+			int _count;
+
+		public:
+			ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
+
+			template<typename T>
+			void operator()(T const& x) const {
+				const std::string obj_name = blib::bun::__private::TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
+				const_cast<ToBase*>(this)->_val.set(obj_name, x);
+			}
+		};
+
+	public:
+		static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
+			ObjType const& obj = *(obj_holder.obj_ptr);
+			const blib::bun::SimpleOID& oid = obj_holder.oid;
+			boost::fusion::for_each(obj, ToBase(v, oid));
 		}
 	};
 }
-*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Macros Start
