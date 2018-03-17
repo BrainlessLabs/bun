@@ -29,6 +29,7 @@
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/proto/proto.hpp>
 #include <third_party/fmt/format.hpp>
+#include <msgpack.hpp>
 #include "blib/utils/MD5.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
@@ -107,8 +108,8 @@ namespace blib {
 			/// @brief Helper class to persist any primitive types.
 			/////////////////////////////////////////////////
 			template<typename T>
-			inline auto to_valid_query_string(T const& val) -> T& {
-				T ret = val;
+			inline auto to_valid_query_string(T const& val) -> T const& {
+				T const& ret = val;
 				return ret;
 			}
 
@@ -280,9 +281,11 @@ namespace blib {
 					void operator()(T const& x) const
 					{
 						using ObjType = std::remove_const<std::remove_pointer<typename T::first_type>::type>::type;
-						sql += "," + x.second +
-							" " +
-							blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
+						std::string type = blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
+						if (blib::bun::cppTypeEnumToDbTypeString<DbTypes::kComposite>() == type) {
+							type = "VARCHAR";
+						}
+						sql += "," + x.second + " " + type;
 					}
 				};
 
@@ -342,11 +345,11 @@ namespace blib {
 						"BIGINT PRIMARY KEY AUTOINCREMENT";
 #elif defined(BUN_POSTGRES)
 						"BIGSERIAL PRIMARY KEY";
-#elif defined()
+#elif defined(BUN_MYSQL)
 						"BIGINT PRIMARY KEY AUTO_INCREMENT";
 #endif
 					if (sql.empty()) {
-						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid_high " + oid_high_type + ", oid_low BIGINT NOT NULL, oid_ref BIGINT, par_ref VARCHAR";
+						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid_high " + oid_high_type + ", oid_low BIGINT NOT NULL, oid_ref BIGINT, parent_table_reference VARCHAR, parent_column_name VARCHAR";
 						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
 						sql += ")";
 					}
