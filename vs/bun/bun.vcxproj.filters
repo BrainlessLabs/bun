@@ -70,6 +70,9 @@
     <Filter Include="Source Files\sqlite">
       <UniqueIdentifier>{0f3cbf8c-5328-4bb5-ae05-69ce00d33e23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\third_party\sqlite">
+      <UniqueIdentifier>{5b7eae06-752d-4556-9074-badb3b325f2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -350,6 +353,12 @@
     </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\bun.hpp">
       <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\third_party\sqlite\sqlite3.h">
+      <Filter>Header Files\third_party\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\third_party\sqlite\sqlite3ext.h">
+      <Filter>Header Files\third_party\sqlite</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

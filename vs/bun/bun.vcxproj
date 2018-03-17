@@ -273,6 +273,8 @@
     <ClInclude Include="..\..\include\third_party\spdlog\sinks\wincolor_sink.h" />
     <ClInclude Include="..\..\include\third_party\spdlog\spdlog.h" />
     <ClInclude Include="..\..\include\third_party\spdlog\tweakme.h" />
+    <ClInclude Include="..\..\include\third_party\sqlite\sqlite3.h" />
+    <ClInclude Include="..\..\include\third_party\sqlite\sqlite3ext.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />
