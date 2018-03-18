@@ -1301,6 +1301,8 @@ namespace blib {
 namespace blib {
 	namespace bun {
 		namespace __private {
+			/// @class type_conversion
+			/// @brief 
 			template<typename T>
 			struct type_conversion {
 			public:
@@ -1309,7 +1311,7 @@ namespace blib {
 				struct FromBase {
 				private:
 					soci::values const& _val;
-					int _count;
+					std::uint_fast32_t _count;
 
 				public:
 					FromBase(soci::values const& val) :_val(val), _count(2) {}
@@ -1347,64 +1349,90 @@ namespace blib {
 					boost::fusion::for_each(obj, ToBase(v));
 				}
 			};
+
+			/// @class type_conversion
+			/// @brief partial specialization to support SimpleObjHolder
+			/// @details 
+			template<typename T>
+			struct type_conversion<SimpleObjHolder<T>> {
+				using ObjectHolderType = SimpleObjHolder<T>;
+				using ObjType = T;
+
+			private:
+				struct FromBase {
+				private:
+					soci::values const& _val;
+					const blib::bun::SimpleOID& _oid;
+					int _count;
+
+				public:
+					FromBase(soci::values const& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
+
+					template<typename T>
+					void operator()(T& x) const {
+						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
+						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
+					}
+				};
+
+			public:
+				static void from_base(soci::values const& v, soci::indicator, ObjectHolderType& obj_holder) {
+					ObjType& obj = *(obj_holder.obj_ptr);
+					const blib::bun::SimpleOID& oid = obj_holder.oid;
+					boost::fusion::for_each(obj, FromBase(v, oid));
+				}
+
+			private:
+				struct ToBase {
+				private:
+					soci::values& _val;
+					const blib::bun::SimpleOID& _oid;
+					std::uint_fast32_t _count;
+
+				public:
+					ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
+
+					template<typename T>
+					void operator()(T const& x) const {
+						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
+						const_cast<ToBase*>(this)->_val.set(obj_name, x);
+					}
+				};
+
+			public:
+				static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
+					ObjType const& obj = *(obj_holder.obj_ptr);
+					const blib::bun::SimpleOID& oid = obj_holder.oid;
+					boost::fusion::for_each(obj, ToBase(v, oid));
+				}
+			};
 		}
 	}
 }
 
-/// @brief Specialization for a particular object type
 namespace soci {
+	/// @class type_conversion
+	/// @brief SOCI class specialized to use SimpleObjHolder
 	template<typename T>
 	struct type_conversion<blib::bun::__private::SimpleObjHolder<T>> {
 		using ObjectHolderType = blib::bun::__private::SimpleObjHolder<T>;
 		using ObjType = T;
 		typedef values base_type;
 
-	private:
-		struct FromBase {
-		private:
-			soci::values const& _val;
-			const blib::bun::SimpleOID& _oid;
-			int _count;
-
-		public:
-			FromBase(soci::values const& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
-
-			template<typename T>
-			void operator()(T& x) const {
-				const std::string obj_name = blib::bun::__private::TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
-				x = _val.get<blib::bun::__private::ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
-			}
-		};
-
-	public:
-		static void from_base(soci::values const& v, soci::indicator, ObjectHolderType& obj_holder) {
-			ObjType& obj = *(obj_holder.obj_ptr);
-			const blib::bun::SimpleOID& oid = obj_holder.oid;
-			boost::fusion::for_each(obj, FromBase(v, oid));
+		/// @fn from_base
+		/// @param soci::values const& v
+		/// @param soci::indicator ind
+		/// @param ObjectHolderType& obj_holder
+		static void from_base(soci::values const& v, soci::indicator ind, ObjectHolderType& obj_holder) {
+			blib::bun::__private::type_conversion<ObjectHolderType>::from_base(v, ind, obj_holder);
 		}
 
-	private:
-		struct ToBase {
-		private:
-			soci::values& _val;
-			const blib::bun::SimpleOID& _oid;
-			int _count;
-
-		public:
-			ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
-
-			template<typename T>
-			void operator()(T const& x) const {
-				const std::string obj_name = blib::bun::__private::TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
-				const_cast<ToBase*>(this)->_val.set(obj_name, x);
-			}
-		};
-
-	public:
+		/// @fn to_base
+		/// @param ObjectHolderType const& obj_holder
+		/// @param soci::values& v
+		/// @param soci::indicator& ind
 		static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
-			ObjType const& obj = *(obj_holder.obj_ptr);
-			const blib::bun::SimpleOID& oid = obj_holder.oid;
-			boost::fusion::for_each(obj, ToBase(v, oid));
+			blib::bun::__private::type_conversion<ObjectHolderType>::to_base(obj_holder, v, ind);
 		}
 	};
 }

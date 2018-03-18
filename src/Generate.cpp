@@ -13,6 +13,10 @@ using namespace soci;
 using namespace std;
 
 namespace backery {
+	struct A {
+		int i;
+	};
+
 	struct Bun1 {
 		std::string bun_name;
 		float sugar_quantity;
@@ -21,18 +25,22 @@ namespace backery {
 		float yeast_quantity;
 		float butter_quantity;
 		int bun_length;
+		A a;
 	};
 }
+
+SPECIALIZE_BUN_HELPER((backery::A, i));
 
 namespace backery {
 	struct Bun {
 		std::string bun_name;
 		double sugar_quantity;
 		int bun_length;
+		A a;
 	};
 }
 
-SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length));
+SPECIALIZE_BUN_HELPER((backery::Bun, bun_name, sugar_quantity, bun_length, a));
 
 int main() {
 	auto str = blib::bun::__private::SqlString<backery::Bun>::create_table_sql();
