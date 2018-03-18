@@ -282,6 +282,7 @@ namespace blib {
 					{
 						using ObjType = std::remove_const<std::remove_pointer<typename T::first_type>::type>::type;
 						std::string type = blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
+						// If the type is of an object type then we will use VARCHAR to store the hash value
 						if (blib::bun::cppTypeEnumToDbTypeString<DbTypes::kComposite>() == type) {
 							type = "VARCHAR";
 						}
@@ -384,7 +385,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "INSERT INTO \"{}\" (oid_low";
+						sql = "INSERT INTO \"{}\" (oid_low, oid_ref, parent_table_reference, parent_column_name";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(sql));
 						sql += ") VALUES ({}";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(sql));
@@ -916,6 +917,8 @@ namespace blib {
 			t.commit();
 		}
 
+		/// @fn getAllOids
+		/// @brief Get all the oids as a vector
 		template<typename T>
 		inline static std::vector <SimpleOID> getAllOids() {
 			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
@@ -924,6 +927,8 @@ namespace blib {
 			return std::move(oids);
 		}
 
+		/// @fn getAllObjects
+		/// @brief Get all the objects as PRef
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjects() {
 			//soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
@@ -931,6 +936,8 @@ namespace blib {
 			//t.commit();
 		}
 
+		/// @fn getAllObjWithQuery
+		/// @brief Get all the objects as PRef that satisfy the query
 		template<typename T>
 		inline static std::vector <PRef<T>> getAllObjWithQuery(std::string const &in_query) {
 			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
@@ -944,6 +951,8 @@ namespace blib {
 			return std::move(ret_vals);
 		}
 
+		/// @fn connect
+		/// @brief Connect with the proper connection strings
 		bool connect(std::string const& connection_string) {
 			const auto ret = blib::bun::__private::DbBackend<blib::bun::__private::DbGenericType>::i().connect(connection_string);
 			return ret;
