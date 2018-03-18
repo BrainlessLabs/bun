@@ -15,6 +15,7 @@ using namespace std;
 namespace backery {
 	struct A {
 		int i;
+		A() = default;
 	};
 
 	struct Bun1 {
