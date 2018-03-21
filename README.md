@@ -12,10 +12,16 @@ Bun is a simple to use C++ Object Relational Mapper (ORM) library
 # Usage
 
 ```C++
-#include "blib/bun/Bun.hpp"
+/// @brief This BUN_POSTGRES defines that this is a postgres database. The other
+///        values are BUN_SQLITE and BUN_MYSQL
+#define BUN_POSTGRES
+
+/// @brief include the bun include file
+#include "blib/bun/bun.hpp"
 
 namespace test {
-  // Class that needs to be persisted
+  /// @class Person
+  /// @brief Class that needs to be persisted
   struct Person {
     std::string name;
     int age;
