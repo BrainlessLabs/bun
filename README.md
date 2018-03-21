@@ -1,13 +1,19 @@
 # bun
+## Description
 Bun is a simple to use C++ Object Relational Mapper (ORM) library
-<p>
+
 [Bun Page](http://brainlesslabs.github.io/bun/)
-<p>
-[CodeProject Article](http://www.codeproject.com/Tips/1100449/Cplusplus-Object-Relational-Mapping-ORM-Eating-the)
-<p>
+
 [![OpenHub](https://www.openhub.net/p/brainlesslabs_bun/widgets/project_thin_badge.gif)](https://www.openhub.net/p/brainlesslabs_bun)
-<p>
+
 [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+
+# Articles
+
+## Introduction to bun
+
+[CodeProject Article](http://www.codeproject.com/Tips/1100449/Cplusplus-Object-Relational-Mapping-ORM-Eating-the)
+
 
 # Usage
 
