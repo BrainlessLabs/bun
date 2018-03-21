@@ -1360,7 +1360,7 @@ namespace blib {
 
 			public:
 				static void to_base(ObjType const& obj, soci::values& v, soci::indicator& ind) {
-					boost::fusion::for_each(boost::fusion::filter_iterator<>(obj), ToBase(v));
+					boost::fusion::for_each(obj, ToBase(v));
 				}
 			};
 
@@ -1382,10 +1382,15 @@ namespace blib {
 				public:
 					FromBase(soci::values const& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
 
-					template<typename T>
+					template<typename T, bool IsComposite>
 					void operator()(T& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
 						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
+					}
+
+					template<typename T>
+					void operator()<T, true>(T& x) const {
+
 					}
 				};
 
