@@ -1284,24 +1284,28 @@ namespace blib {
 /// @brief Transaction
 namespace blib {
 	namespace bun {
+		/// @class Transaction
+		/// @brief The class that handles transaction
+		/// @detail The transaction class is a wrapper around the transaction
+		///			of SOCI. This supports all the methods of the soci::transaction class.
 		class Transaction {
 		private:
-			std::unique_ptr<soci::transaction> _t_ptr;
+			soci::transaction _t;
 
 		public:
-			Transaction() :_t_ptr(std::make_unique<soci::transaction>(blib::bun::__private::DbBackend<>::i().session())) {
+			Transaction() :_t(blib::bun::__private::DbBackend<>::i().session()) {
 			}
 
 			~Transaction() {
-				_t_ptr.release();
+				_t.~transaction();
 			}
 
 			void commit() {
-				_t_ptr->commit();
+				_t.commit();
 			}
 
 			void rollback() {
-				_t_ptr->rollback();
+				_t.rollback();
 			}
 		};
 	}
