@@ -1384,15 +1384,10 @@ namespace blib {
 				public:
 					FromBase(soci::values const& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
 
-					template<typename T, bool IsComposite>
+					template<typename T>
 					void operator()(T& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
 						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
-					}
-
-					template<typename T>
-					void operator()<T, true>(T& x) const {
-
 					}
 				};
 
@@ -1413,7 +1408,7 @@ namespace blib {
 				public:
 					ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
 
-					template<typename T>
+					template<typename T, bool IsComposite>
 					void operator()(T const& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
 						const_cast<ToBase*>(this)->_val.set(obj_name, x);
