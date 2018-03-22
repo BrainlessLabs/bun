@@ -33,7 +33,7 @@ int main() {
 
   // Create some entries in the database
  bun::Transaction t;
-  for (int i = 1; i < 2; ++i) {
+  for (int i = 1; i < 10000; ++i) {
     // PRef is a reference to the persistant object.
     // PRef keeps the ownership of the memory. Release the memory when it is destroyed.
     // Internally it holds the object in a unique_ptr
