@@ -65,10 +65,10 @@ int main() {
 	bun1.del();
 	for (int i = 0; i < 1000; ++i) {
 		blib::bun::PRef<backery::Bun> bunn = new backery::Bun;
-		const auto oid = bunn.save();
 		bunn->bun_length = i;
 		bunn->sugar_quantity = 55.6 * i;
 		bunn->bun_name = fmt::format("{}", bunn.toJson());
+		const auto oid = bunn.save();
 	}
 	return 1;
 }

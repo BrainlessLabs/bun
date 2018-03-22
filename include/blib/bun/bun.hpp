@@ -387,7 +387,7 @@ namespace blib {
 					if (sql.empty()) {
 						sql = "INSERT INTO \"{}\" (oid_low, oid_ref, parent_table_reference, parent_column_name";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(sql));
-						sql += ") VALUES ({}";
+						sql += ") VALUES ({}, {}, {}, {}";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(sql));
 						sql += ")";
 					}
@@ -400,7 +400,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "UPDATE \"{}\" SET ";
+						sql = "UPDATE \"{}\" SET oid_ref = {}, parent_table_reference = {}, parent_column_name = {}";
 						std::string sql1;
 						boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql1));
 						sql += sql1 + " WHERE oid_high = {} AND oid_low = {}";
@@ -504,10 +504,12 @@ namespace blib {
 				/// @fn persistObj
 				/// @param obj This is the object that needs to be persisted
 				/// @brief Persist an object
-				inline static SimpleOID persistObj(T *obj) {
+				inline static SimpleOID persistObj(T *obj, const SimpleOID::OidHighType oid_ref = 0, 
+					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
 					blib::bun::SimpleOID oid;
 					oid.populateLow();
-					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name(), oid.low);
+					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), TypeMetaData<T>::class_name(), oid.low,
+						oid_ref, to_valid_query_string(parent_table_reference, std::string("'")), to_valid_query_string(parent_column_name, std::string("'")));
 					SimpleObjHolder<T> obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
@@ -526,9 +528,12 @@ namespace blib {
 				/// @fn updateObj
 				/// @param obj This is the object that needs to be updated
 				/// @param oid the oid that needs to be updated
-				/// @brief Persist an object
-				inline static void updateObj(T * obj, SimpleOID const & oid) {
-					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(), TypeMetaData<T>::class_name(), oid.high, oid.low);
+				/// @brief Persist an object.
+				inline static void updateObj(T * obj, SimpleOID const & oid, const SimpleOID::OidHighType oid_ref = 0,
+					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
+					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(),
+						TypeMetaData<T>::class_name(), oid_ref, to_valid_query_string(parent_table_reference, std::string("'")),
+						to_valid_query_string(parent_column_name, std::string("'")), oid.high, oid.low);
 					SimpleObjHolder<T> obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
@@ -1401,7 +1406,7 @@ namespace blib {
 					template<typename T>
 					void operator()(T& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
-						FromBaseOperation<T, IsComposite<T>::value>::execute(x, obj_name, _val, oid);
+						FromBaseOperation<T, IsComposite<T>::value>::execute(x, obj_name, _val, _oid);
 					}
 				};
 
@@ -1422,7 +1427,7 @@ namespace blib {
 				public:
 					ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
 
-					template<typename T, bool IsComposite>
+					template<typename T>
 					void operator()(T const& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
 						const_cast<ToBase*>(this)->_val.set(obj_name, x);
