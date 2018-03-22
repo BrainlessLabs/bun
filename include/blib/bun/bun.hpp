@@ -1375,6 +1375,20 @@ namespace blib {
 				using ObjType = T;
 
 			private:
+				template<typename T, bool IsComposite = false>
+				struct FromBaseOperation{
+					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid){
+						x = val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);						
+					}
+				};
+				
+				template<typename T>
+				struct FromBaseOperation<T, true>{
+					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid){
+						//TODO
+					}
+				};
+				
 				struct FromBase {
 				private:
 					soci::values const& _val;
@@ -1387,7 +1401,7 @@ namespace blib {
 					template<typename T>
 					void operator()(T& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
-						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
+						FromBaseOperation<T, IsComposite<T>::value>::execute(x, obj_name, _val, oid);
 					}
 				};
 
