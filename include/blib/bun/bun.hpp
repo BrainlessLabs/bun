@@ -580,8 +580,7 @@ namespace blib {
 				/// @param oid The oid for the object
 				/// @brief Returns the md5 of the object
 				inline static std::string md5(T const* obj, SimpleOID const & oid) {
-					// TODO
-					const std::string str = "";// QueryHelper<T>::objToJson(obj, oid);
+					const std::string str = QueryHelper<T>::objToJson(obj, oid);
 					const std::string md5 = blib::md5(str);
 					return std::move(md5);
 				}
