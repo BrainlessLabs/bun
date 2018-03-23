@@ -360,25 +360,25 @@ namespace blib {
 				/// @fn drop_table_sql
 				/// @brief Drop table sql
 				inline static std::string const& drop_table_sql() {
-					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
-					static std::string sql;
-					if (sql.empty()) {
-						sql = "DROP TABLE IF EXISTS \"{}\"";
-					}
+					static const std::string sql = "DROP TABLE IF EXISTS \"{}\"";;
 					return sql;
 				}
+				
+				/// @fn delete_row_condition_sql
+				/// @brief Delete row sql with some condition
+				/// @default This is useful for deleting child rows
+				inline static std::string const& delete_row_condition_sql() {
+					static const std::string sql = "DELETE FROM \"{}\" WHERE {}";
+					return sql;					
+				}				
 
 				/// @fn delete_row_sql
 				/// @brief Delete a row
 				inline static std::string const& delete_row_sql() {
-					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
-					static std::string sql;
-					if (sql.empty()) {
-						sql = "DELETE FROM \"{}\" WHERE oid_high = :oid_high AND oid_low = :oid_low";
-					}
+					static const std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), "oid_high = :oid_high AND oid_low = :oid_low");
 					return sql;
 				}
-
+				
 				/// @fn insert_row_sql
 				/// @brief Insert row sql
 				inline static std::string const& insert_row_sql() {
@@ -411,13 +411,15 @@ namespace blib {
 				/// @fn update_row_sql
 				/// @brief Update row sql
 				inline static std::string const& select_rows_sql() {
-					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
-					static std::string sql;
+					//static const auto vecs = TypeMetaData<T>::tuple_type_pair();
+					static const std::string sql = "SELECT * FROM \"{}\" ";
+					/*
 					if (sql.empty()) {
 						sql = "SELECT * ";
 						//boost::fusion::for_each(vecs, SqlString<T>::SelectRows(sql));
 						sql += " FROM \"{}\" ";
 					}
+					*/
 					return sql;
 				}
 
@@ -1323,7 +1325,8 @@ namespace blib {
 	namespace bun {
 		namespace __private {
 			/// @class type_conversion
-			/// @brief 
+			/// @brief partial specialization to support regular objects
+			/// @details 
 			template<typename T>
 			struct type_conversion {
 			public:
@@ -1372,7 +1375,7 @@ namespace blib {
 			};
 
 			/// @class type_conversion
-			/// @brief partial specialization to support SimpleObjHolder
+			/// @brief partial specialization to support SimpleObjHolder<T>
 			/// @details 
 			template<typename T>
 			struct type_conversion<SimpleObjHolder<T>> {
