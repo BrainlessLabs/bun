@@ -564,11 +564,13 @@ namespace blib {
 				/// @param oid The oid for the object
 				/// @brief The object with the particular oid will be returned.
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
-					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}", TypeMetaData<T>::class_name(), oid.high, oid.low);
+					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}", 
+					TypeMetaData<T>::class_name(), oid.high, oid.low);
 					QUERY_LOG(sql);
 					std::unique_ptr <T> obj = std::make_unique<T>();
+					SimpleObjHolder<T> obj_holder(obj.get(), oid);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql;
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(obj_holder);
 					}
 					catch (std::exception const & e) {
 						l().error("getObj(): {} ", e.what());
@@ -1324,7 +1326,7 @@ namespace blib {
 	namespace bun {
 		namespace __private {
 			/// @class type_conversion
-			/// @brief partial specialization to support regular objects
+			/// @brief partial specialization to support regular objects T
 			/// @details 
 			template<typename T>
 			struct type_conversion {
