@@ -1540,17 +1540,17 @@ DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP)\
 }\
 }}}\
 namespace soci{\
-BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---");\
+BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---";)\
 template<>\
 struct type_conversion<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>{\
 typedef values base_type;\
 using ClassType = BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP);\
 inline static void from_base(values const& v, indicator ind, ClassType& c){\
-BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db");\
+BLIB_MACRO_COMMENTS_IF("@brief from_base gets the values from db";)\
 blib::bun::__private::type_conversion<ClassType>::from_base(v, ind, c);\
 }\
 inline static void to_base(const ClassType& c, values& v, indicator& ind){\
-BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db");\
+BLIB_MACRO_COMMENTS_IF("@brief to_base puts the values to db";)\
 blib::bun::__private::type_conversion<ClassType>::to_base(c, v, ind);\
 }\
 };\
