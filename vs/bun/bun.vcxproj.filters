@@ -348,9 +348,6 @@
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp">
       <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp">
-      <Filter>Header Files\blib\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\blib\utils\debug.hpp">
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
