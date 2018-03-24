@@ -572,7 +572,6 @@ namespace blib {
 				/// @param oid The object associated with this oid needs to be deleted.
 				/// @brief The object associated with this oid needs to be deleted.
 				inline static void deleteObj(SimpleOID const & oid) {
-					auto str = SqlString<T>::delete_row_sql();
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
 					try {
@@ -580,6 +579,27 @@ namespace blib {
 					}
 					catch (std::exception const & e) {
 						l().error("deleteObj(): {} ", e.what());
+					}
+				}
+
+				/// @fn deleteObjWithParentInfo
+				/// @param oid_ref 
+				/// @param parent_table_reference
+				/// @param parent_column_name
+				/// @brief The object associated with this oid needs to be deleted.
+				inline static void deleteObjWithParentInfo(
+					const SimpleOID::OidHighType oid_ref,
+					std::string const& parent_table_reference,
+					std::string const& parent_column_name) {
+					const std::string where_clause = fmt::format("oid_ref = {} AND parent_table_reference = {}, parent_column_name = {}", 
+						oid_ref, parent_table_reference, parent_column_name);
+					const static std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), TypeMetaData<T>::class_name(), where_clause);
+					QUERY_LOG(sql);
+					try {
+						blib::bun::__private::DbBackend<>::i().session() << sql;
+					}
+					catch (std::exception const & e) {
+						l().error("deleteObjWithParentInfo(): {} ", e.what());
 					}
 				}
 
