@@ -725,7 +725,7 @@ namespace blib {
 						}
 					}
 					catch (std::exception const & e) {
-						l().error("getAllOidsWithQuery({}): {} ", e.what(), in_query);
+						l().error("getAllOidsWithQuery({}): {} ", in_query, e.what());
 					}
 
 					return std::move(oids);
