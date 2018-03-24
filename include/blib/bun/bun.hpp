@@ -979,7 +979,7 @@ namespace blib {
 
 		/// @fn connect
 		/// @brief Connect with the proper connection strings
-		bool connect(std::string const& connection_string) {
+		inline bool connect(std::string const& connection_string) {
 			const auto ret = blib::bun::__private::DbBackend<blib::bun::__private::DbGenericType>::i().connect(connection_string);
 			return ret;
 		}
@@ -1366,7 +1366,7 @@ namespace blib {
 				};
 
 			public:
-				static void from_base(soci::values const& v, soci::indicator, ObjType& obj) {
+				inline static void from_base(soci::values const& v, soci::indicator, ObjType& obj) {
 					//boost::fusion::for_each(obj, FromBase(v));
 				}
 
@@ -1387,7 +1387,7 @@ namespace blib {
 				};
 
 			public:
-				static void to_base(ObjType const& obj, soci::values& v, soci::indicator& ind) {
+				inline static void to_base(ObjType const& obj, soci::values& v, soci::indicator& ind) {
 					//boost::fusion::for_each(obj, ToBase(v));
 				}
 			};
@@ -1404,14 +1404,14 @@ namespace blib {
 			private:
 				template<typename T, bool IsComposite = false>
 				struct FromBaseOperation {
-					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
+					inline static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
 						x = val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
 					}
 				};
 
 				template<typename T>
 				struct FromBaseOperation<T, true> {
-					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
+					inline static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
 						//TODO
 					}
 				};
@@ -1420,7 +1420,7 @@ namespace blib {
 				private:
 					soci::values const& _val;
 					const blib::bun::SimpleOID& _oid;
-					int _count;
+					std::uint16_t _count;
 
 				public:
 					FromBase(soci::values const& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
@@ -1433,7 +1433,7 @@ namespace blib {
 				};
 
 			public:
-				static void from_base(soci::values const& v, soci::indicator, ObjectHolderType& obj_holder) {
+				inline static void from_base(soci::values const& v, soci::indicator, ObjectHolderType& obj_holder) {
 					ObjType& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
 					boost::fusion::for_each(obj, FromBase(v, oid));
@@ -1457,7 +1457,7 @@ namespace blib {
 				};
 
 			public:
-				static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
+				inline static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
 					ObjType const& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
 					boost::fusion::for_each(obj, ToBase(v, oid));
@@ -1480,7 +1480,7 @@ namespace soci {
 		/// @param soci::values const& v
 		/// @param soci::indicator ind
 		/// @param ObjectHolderType& obj_holder
-		static void from_base(soci::values const& v, soci::indicator ind, ObjectHolderType& obj_holder) {
+		inline static void from_base(soci::values const& v, soci::indicator ind, ObjectHolderType& obj_holder) {
 			blib::bun::__private::type_conversion<ObjectHolderType>::from_base(v, ind, obj_holder);
 		}
 
@@ -1488,7 +1488,7 @@ namespace soci {
 		/// @param ObjectHolderType const& obj_holder
 		/// @param soci::values& v
 		/// @param soci::indicator& ind
-		static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
+		inline static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
 			blib::bun::__private::type_conversion<ObjectHolderType>::to_base(obj_holder, v, ind);
 		}
 	};
