@@ -659,18 +659,16 @@ namespace blib {
 				private:
 					const soci::row& _row;
 					const std::vector<std::string>& _member_names;
-					int* _count_ptr;
+					int _count;
 
 				public:
-					GetAllObjects(const soci::row& row, int* count_ptr) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count_ptr(count_ptr) {
-						*_count_ptr = 2;
+					GetAllObjects(const soci::row& row) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count(2) {
 					}
 
 					template <typename T>
 					void operator()(T& x) const
 					{
-						int& count = *_count_ptr;
-						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(count++));
+						x = _row.get<ConvertCPPTypeToSOCISupportType<T>::type>(_member_names.at(const_cast<GetAllObjects*>(this)->_count++));
 					}
 				};
 
@@ -689,12 +687,13 @@ namespace blib {
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
 							std::pair<std::unique_ptr <T>, SimpleOID> pair;
-							pair.second.high = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high");
-							pair.second.low = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low");
+							pair.second.high = row.get<long long>("oid_high");
+							pair.second.low = row.get<long long>("oid_low");
+							//pair.second.high = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high");
+							//pair.second.low = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low");
 							pair.first = std::make_unique<T>();
 							T& obj = *pair.first;
-							int count = 0;
-							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row, &count));
+							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row));
 							ret_values.emplace_back(pair.first.release(), pair.second);
 						}
 					}
@@ -725,8 +724,7 @@ namespace blib {
 						soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
-							const SimpleOID oid(row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high"),
-								row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low"));
+							const SimpleOID oid(row.get<long long>("oid_high"), row.get<long long>("oid_low"));
 							oids.push_back(oid);
 						}
 					}
