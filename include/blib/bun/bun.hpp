@@ -624,20 +624,17 @@ namespace blib {
 				private:
 					std::string& _str;
 					const std::vector<std::string>& _member_names;
-					int* _count_ptr;
+					int _count;
 
 				public:
-					ToJson(std::string & str, int* count_ptr) :_str(str), _member_names(TypeMetaData<T>::member_names()), _count_ptr(count_ptr) {
-						*_count_ptr = 2;
+					ToJson(std::string & str) :_str(str), _member_names(TypeMetaData<T>::member_names()), _count(2) {
 					}
 
 					template <typename T>
 					void operator()(T const& x) const
 					{
-						int& count = *_count_ptr;
-						std::string member_name = _member_names.at(count);
-						++count;
-						std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
+						const std::string member_name = _member_names.at(const_cast<ToJson*>(this)->_count++);
+						const std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
 						_str += fmt::format("{} : {}", obj_name, to_json<decltype(x)>(x));
 					}
 				};
@@ -648,9 +645,8 @@ namespace blib {
 				/// @brief Converts the object to a json representation and 
 				///		   returns the json representation as a string
 				inline static std::string objToJson(T const& obj) {
-					int count = 0;
 					std::string str;
-					boost::fusion::for_each(obj, QueryHelper<T>::ToJson(str, &count));
+					boost::fusion::for_each(obj, QueryHelper<T>::ToJson(str));
 					str += "{" + str + "}";
 					return std::move(str);
 				}
