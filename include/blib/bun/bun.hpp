@@ -35,7 +35,6 @@
 #include "blib/bun/DbLogger.hpp"
 #include "blib/bun/SimpleOID.hpp"
 #include "blib/bun/CppTypeToSQLString.hpp"
-#include "blib/utils/JSONUtils.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @basic Basic Persistance Start
@@ -53,7 +52,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @brief Make this 0 if no log is needed, else make it 1
-#define QUERY_LOG_ON 0
+#define QUERY_LOG_ON 1
 /// @brief Log the query
 #define QUERY_LOG(log_string) BOOST_PP_EXPR_IF(QUERY_LOG_ON, l().info(log_string))
 
@@ -76,7 +75,7 @@ namespace blib {
 		///        Specialize this class for all the class which can be persistent.
 		/////////////////////////////////////////////////
 		template<typename T>
-		struct IsPersistant : boost::mpl::bool_<std::is_integral<T>::value> {
+		struct IsPersistant : boost::mpl::bool_<std::is_fundamental<T>::value || std::is_arithmetic<T>::value || std::is_floating_point<T>::value> {
 		};
 
 		template<>
@@ -121,6 +120,28 @@ namespace blib {
 			inline auto to_valid_query_string(const char* val, std::string const sym = "\"") -> std::string {
 				const std::string ret_str = sym + std::string(val) + sym;
 				return ret_str;
+			}
+
+			/// @fn tojson_string
+			/// @brief Convert into a json representable key value
+			template<typename T>
+			inline auto tojson_string(T const& value)->T {
+				return value;
+			}
+
+			auto tojson_string(std::string& value)->std::string {
+				std::string& quote = std::string("'");
+				const std::string ret = quote + value + quote;
+				return std::move(ret);
+			}
+
+			/// @fn to_json
+			/// @brief Convert to json
+			template<typename T>
+			inline auto to_json(T const& value) -> std::string {
+				//static_assert(blib::bun::IsPersistant<T>::value, "Cannot convert to json. Specialization for to_json conversion does not exist");
+				const std::string ret = fmt::format("{}", value);
+				return ret;
 			}
 		}
 	}
@@ -281,9 +302,10 @@ namespace blib {
 					void operator()(T const& x) const
 					{
 						using ObjType = std::remove_const<std::remove_pointer<typename T::first_type>::type>::type;
+						static const std::string composite_type = blib::bun::cppTypeEnumToDbTypeString<DbTypes::kComposite>();
 						std::string type = blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
 						// If the type is of an object type then we will use VARCHAR to store the hash value
-						if (blib::bun::cppTypeEnumToDbTypeString<DbTypes::kComposite>() == type) {
+						if (composite_type == type) {
 							type = "VARCHAR";
 						}
 						sql += "," + x.second + " " + type;
@@ -363,22 +385,22 @@ namespace blib {
 					static const std::string sql = "DROP TABLE IF EXISTS \"{}\"";;
 					return sql;
 				}
-				
+
 				/// @fn delete_row_condition_sql
 				/// @brief Delete row sql with some condition
 				/// @default This is useful for deleting child rows
 				inline static std::string const& delete_row_condition_sql() {
 					static const std::string sql = "DELETE FROM \"{}\" WHERE {}";
-					return sql;					
-				}				
+					return sql;
+				}
 
 				/// @fn delete_row_sql
 				/// @brief Delete a row
 				inline static std::string const& delete_row_sql() {
-					static const std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), "oid_high = :oid_high AND oid_low = :oid_low");
+					static const std::string sql = "DELETE FROM \"{}\" WHERE oid_high = :oid_high AND oid_low = :oid_low";
 					return sql;
 				}
-				
+
 				/// @fn insert_row_sql
 				/// @brief Insert row sql
 				inline static std::string const& insert_row_sql() {
@@ -400,7 +422,7 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "UPDATE \"{}\" SET oid_ref = {}, parent_table_reference = {}, parent_column_name = {}";
+						sql = "UPDATE \"{}\" SET oid_ref = {}, parent_table_reference = {}, parent_column_name = {},";
 						std::string sql1;
 						boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql1));
 						sql += sql1 + " WHERE oid_high = {} AND oid_low = {}";
@@ -506,7 +528,7 @@ namespace blib {
 				/// @fn persistObj
 				/// @param obj This is the object that needs to be persisted
 				/// @brief Persist an object
-				inline static SimpleOID persistObj(T *obj, const SimpleOID::OidHighType oid_ref = 0, 
+				inline static SimpleOID persistObj(T *obj, const SimpleOID::OidHighType oid_ref = 0,
 					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
 					blib::bun::SimpleOID oid;
 					oid.populateLow();
@@ -550,6 +572,7 @@ namespace blib {
 				/// @param oid The object associated with this oid needs to be deleted.
 				/// @brief The object associated with this oid needs to be deleted.
 				inline static void deleteObj(SimpleOID const & oid) {
+					auto str = SqlString<T>::delete_row_sql();
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), TypeMetaData<T>::class_name());
 					QUERY_LOG(sql);
 					try {
@@ -564,8 +587,8 @@ namespace blib {
 				/// @param oid The oid for the object
 				/// @brief The object with the particular oid will be returned.
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
-					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}", 
-					TypeMetaData<T>::class_name(), oid.high, oid.low);
+					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}",
+						TypeMetaData<T>::class_name(), oid.high, oid.low);
 					QUERY_LOG(sql);
 					std::unique_ptr <T> obj = std::make_unique<T>();
 					SimpleObjHolder<T> obj_holder(obj.get(), oid);
@@ -581,8 +604,9 @@ namespace blib {
 				/// @fn md5
 				/// @param oid The oid for the object
 				/// @brief Returns the md5 of the object
-				inline static std::string md5(T const* obj, SimpleOID const & oid) {
-					const std::string str = QueryHelper<T>::objToJson(obj, oid);
+				inline static std::string md5(T const& obj, SimpleOID const & oid) {
+					const std::string json = QueryHelper<T>::objToJson(obj);
+					const std::string str = "{" + fmt::format("'oid_high': {}, 'oid_low': {}, '{}': {}", oid.high, oid.low, TypeMetaData<T>::class_name(), json) + "}";
 					const std::string md5 = blib::md5(str);
 					return std::move(md5);
 				}
@@ -592,8 +616,8 @@ namespace blib {
 				/// @param obj The object which we need to create to string
 				/// @brief Converts the object to a string representation and 
 				///		   returns the string representation.
-				inline static std::string objToString(T const* obj, SimpleOID const & oid) {
-					return QueryHelper<T>::objToJson(obj, oid);
+				inline static std::string objToString(T const& obj) {
+					return QueryHelper<T>::objToJson(obj);
 				}
 
 				struct ToJson {
@@ -614,7 +638,7 @@ namespace blib {
 						std::string member_name = _member_names.at(count);
 						++count;
 						std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
-						_str += fmt::format("{} : {}", obj_name, x);
+						_str += fmt::format("{} : {}", obj_name, to_json<decltype(x)>(x));
 					}
 				};
 
@@ -623,11 +647,10 @@ namespace blib {
 				/// @param obj The object which we need to create to string
 				/// @brief Converts the object to a json representation and 
 				///		   returns the json representation as a string
-				inline static std::string objToJson(T const* obj, SimpleOID const & oid) {
-					T const& v = *obj;
+				inline static std::string objToJson(T const& obj) {
 					int count = 0;
-					std::string str = fmt::format("'oid_high': {}, 'oid_high': {}", oid.high, oid.low);
-					boost::fusion::for_each(v, QueryHelper<T>::ToJson(str, &count));
+					std::string str;
+					boost::fusion::for_each(obj, QueryHelper<T>::ToJson(str, &count));
 					str += "{" + str + "}";
 					return std::move(str);
 				}
@@ -657,12 +680,12 @@ namespace blib {
 				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(const std::string& in_query = std::string()) {
 					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
 
-					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + " {}";
+					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), TypeMetaData<T>::class_name()) + "{}";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
 					const std::string sql = fmt::format(select_sql, where_clasue);
 					QUERY_LOG(sql);
 					try {
-						soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
+						soci::rowset<soci::row> rows = (DbBackend<>::i().session().prepare << sql);
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
 							std::pair<std::unique_ptr <T>, SimpleOID> pair;
@@ -676,7 +699,7 @@ namespace blib {
 						}
 					}
 					catch (std::exception const & e) {
-						l().error("getAllObjectsWithQuery({}): {} ", e.what(), in_query);
+						l().error("getAllObjectsWithQuery({}): {} ", in_query, e.what());
 					}
 					return std::move(ret_values);
 				}
@@ -812,7 +835,7 @@ namespace blib {
 			///          If the MD5 are different then it returns true else
 			///          it returns false.
 			bool dirty() {
-				const auto md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
+				const auto md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
 				if (md5 != _md5) {
 					_flags[static_cast<std::uint8_t>(FlagsE::kDirty)] = 1;
 				}
@@ -833,7 +856,7 @@ namespace blib {
 				else {
 					blib::bun::__private::QueryHelper<ObjType>::updateObj(_obj.get(), oid);
 				}
-				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
+				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
 				_flags.reset();
 				return oid;
 			}
@@ -875,7 +898,7 @@ namespace blib {
 			/// @fn toJson
 			/// @brief Returns a JSON representation of the object.
 			std::string toJson() const {
-				return blib::bun::__private::QueryHelper<T>::objToJson(_obj.get(), oid);
+				return blib::bun::__private::QueryHelper<T>::objToJson(*_obj.get());
 			}
 
 		private:
@@ -885,7 +908,7 @@ namespace blib {
 			void load(OidType const &in_oid) {
 				oid = in_oid;
 				_obj = blib::bun::__private::QueryHelper<ObjType>::getObj(oid);
-				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(_obj.get(), oid);
+				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
 				_flags.reset();
 			}
 
@@ -1327,7 +1350,7 @@ namespace blib {
 		namespace __private {
 			/// @class type_conversion
 			/// @brief partial specialization to support regular objects T
-			/// @details 
+			/// @details
 			template<typename T>
 			struct type_conversion {
 			public:
@@ -1350,7 +1373,7 @@ namespace blib {
 
 			public:
 				static void from_base(soci::values const& v, soci::indicator, ObjType& obj) {
-					boost::fusion::for_each(obj, FromBase(v));
+					//boost::fusion::for_each(obj, FromBase(v));
 				}
 
 			private:
@@ -1371,9 +1394,10 @@ namespace blib {
 
 			public:
 				static void to_base(ObjType const& obj, soci::values& v, soci::indicator& ind) {
-					boost::fusion::for_each(obj, ToBase(v));
+					//boost::fusion::for_each(obj, ToBase(v));
 				}
 			};
+
 
 			/// @class type_conversion
 			/// @brief partial specialization to support SimpleObjHolder<T>
@@ -1385,19 +1409,19 @@ namespace blib {
 
 			private:
 				template<typename T, bool IsComposite = false>
-				struct FromBaseOperation{
-					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid){
-						x = val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);						
+				struct FromBaseOperation {
+					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
+						x = val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
 					}
 				};
-				
+
 				template<typename T>
-				struct FromBaseOperation<T, true>{
-					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid){
+				struct FromBaseOperation<T, true> {
+					static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
 						//TODO
 					}
 				};
-				
+
 				struct FromBase {
 				private:
 					soci::values const& _val;
@@ -1531,6 +1555,10 @@ static const std::vector<std::string> names = {"oid_high", "oid_low" EXPAND_memb
 return names;\
 }\
 };\
+template<>\
+inline auto to_json<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>(BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP) const& value) -> std::string {\
+return QueryHelper<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::objToJson(value);\
+}\
 }}}\
 namespace blib{ namespace bun{ namespace query{\
 namespace {\
