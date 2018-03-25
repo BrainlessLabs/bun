@@ -591,8 +591,8 @@ namespace blib {
 					const SimpleOID::OidHighType oid_ref,
 					std::string const& parent_table_reference,
 					std::string const& parent_column_name) {
-					const std::string where_clause = fmt::format("oid_ref = {} AND parent_table_reference = {}, parent_column_name = {}", 
-						oid_ref, parent_table_reference, parent_column_name);
+					const std::string where_clause = fmt::format("oid_ref = {} AND parent_table_reference = {} AND parent_column_name = {}", 
+						oid_ref, to_valid_query_string(parent_table_reference, "'"), to_valid_query_string(parent_column_name, "'"));
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), TypeMetaData<T>::class_name(), where_clause);
 					QUERY_LOG(sql);
 					try {
@@ -655,7 +655,7 @@ namespace blib {
 					{
 						const std::string member_name = _member_names.at(const_cast<ToJson*>(this)->_count++);
 						const std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
-						_str += fmt::format("{} : {}", obj_name, to_json<decltype(x)>(x));
+						_str += fmt::format("{} : {}", obj_name, to_json<T>(x));
 					}
 				};
 
@@ -1381,7 +1381,7 @@ namespace blib {
 					template<typename T>
 					void operator()(T& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<FromBase*>(this)->_count++);
-						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
+						x = _val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<T>::type>::type>(obj_name);
 					}
 				};
 
@@ -1425,14 +1425,17 @@ namespace blib {
 				template<typename T, bool IsComposite = false>
 				struct FromBaseOperation {
 					inline static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
-						x = val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<decltype(x)>::type>::type>(obj_name);
+						x = val.get<ConvertCPPTypeToSOCISupportType<std::remove_reference<T>::type>::type>(obj_name);
 					}
 				};
 
 				template<typename T>
 				struct FromBaseOperation<T, true> {
 					inline static void execute(T& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
-						//TODO
+						const auto oid_ref = parent_oid.high;
+						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
+						//QueryHelper<T>::deleteObjWithParentInfo(oid_ref, parent_table_reference, obj_name);
+						//QueryHelper<T>::persistObj(&x, oid_ref, parent_table_reference, obj_name);
 					}
 				};
 
@@ -1460,6 +1463,25 @@ namespace blib {
 				}
 
 			private:
+				template<typename T, bool IsComposite = false>
+				struct ToBaseOperation {
+					inline static void execute(T& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid) {
+						soci::indicator ind;
+						val.set<ConvertCPPTypeToSOCISupportType<std::remove_reference<T>::type>::type>(obj_name, x, ind);
+					}
+				};
+
+				template<typename T>
+				struct ToBaseOperation<T, true> {
+					inline static void execute(T& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid) {
+						const auto oid_ref = to_valid_query_string(parent_oid.high);
+						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
+						const std::string& parent_column_name = obj_name;
+						QueryHelper<T>::deleteObjWithParentInfo(oid_ref, parent_table_reference, parent_column_name);
+						QueryHelper<T>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
+					}
+				};
+
 				struct ToBase {
 				private:
 					soci::values& _val;
@@ -1470,15 +1492,16 @@ namespace blib {
 					ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
 
 					template<typename T>
-					void operator()(T const& x) const {
+					void operator()(T& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
-						const_cast<ToBase*>(this)->_val.set(obj_name, x);
+						//const_cast<ToBase*>(this)->_val.set(obj_name, x);const_cast<ToBase*>(this)->
+						ToBaseOperation<T, IsComposite<T>::value>::execute(x, obj_name, _val, _oid);
 					}
 				};
 
 			public:
-				inline static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
-					ObjType const& obj = *(obj_holder.obj_ptr);
+				inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
+					ObjType& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
 					boost::fusion::for_each(obj, ToBase(v, oid));
 				}
@@ -1508,7 +1531,8 @@ namespace soci {
 		/// @param ObjectHolderType const& obj_holder
 		/// @param soci::values& v
 		/// @param soci::indicator& ind
-		inline static void to_base(ObjectHolderType const& obj_holder, soci::values& v, soci::indicator& ind) {
+		inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
+			auto indi = ind;
 			blib::bun::__private::type_conversion<ObjectHolderType>::to_base(obj_holder, v, ind);
 		}
 	};
@@ -1583,6 +1607,8 @@ GENERATE_CLASS_STATIC_VARS_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP)\
 }\
 }}}\
+
+/*
 namespace soci{\
 BLIB_MACRO_COMMENTS_IF("@brief --Specialization for SOCI ORM Start---";)\
 template<>\
@@ -1599,5 +1625,6 @@ blib::bun::__private::type_conversion<ClassType>::to_base(c, v, ind);\
 }\
 };\
 }\
+*/
 
 /// SPECIALIZE_BUN_HELPER End
