@@ -443,7 +443,7 @@ namespace blib {
 					catch (std::exception const & e) {
 						l().error("persistObj(): {} ", e.what());
 					}
-					return std::move(oid);
+                    return oid;
 				}
 
 				/// @fn updateObj
@@ -525,7 +525,7 @@ namespace blib {
 					const std::string json = QueryHelper<T>::objToJson(obj);
 					const std::string str = "{" + fmt::format("'oid_high': {}, 'oid_low': {}, '{}': {}", oid.high, oid.low, TypeMetaData<T>::class_name(), json) + "}";
 					const std::string md5 = blib::md5(str);
-					return std::move(md5);
+                    return md5;
 				}
 
 				/// @fn objToString
@@ -565,7 +565,7 @@ namespace blib {
 					std::string str;
 					boost::fusion::for_each(obj, QueryHelper<T>::ToJson(str));
 					str += "{" + str + "}";
-					return std::move(str);
+                    return str;
 				}
 
 				struct GetAllObjects {
@@ -620,8 +620,8 @@ namespace blib {
 				/// @brief Get all the oids
 				inline static std::vector<SimpleOID> getAllOids() {
 					const std::vector<SimpleOID> oids = QueryHelper<T>::getAllOidsWithQuery();
-					return std::move(oids);
-				};
+                    return oids;
+                }
 
 				/// @fn getAllOidsWithQuery
 				/// @param in_query Queries for which the objects will be returned.
@@ -637,7 +637,9 @@ namespace blib {
 						soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
-							const SimpleOID oid(row.get<long long>("oid_high"), row.get<long long>("oid_low"));
+                            const SimpleOID oid(static_cast<SimpleOID::OidHighType>(row.get<long long>("oid_high")),
+                                                static_cast<SimpleOID::OidHighType>(row.get<long long>("oid_low"))
+                                                );
 							oids.push_back(oid);
 						}
 					}
@@ -645,7 +647,7 @@ namespace blib {
 						l().error("getAllOidsWithQuery({}): {} ", in_query, e.what());
 					}
 
-					return std::move(oids);
+                    return oids;
 				}
 			};
 		}
@@ -710,7 +712,7 @@ namespace blib {
 			PRef(OidType const &in_oid, ObjType *in_obj) : oid(in_oid), _obj(in_obj) {
 			}
 
-			/// @fm reset
+            /// @fn reset
 			/// @brief Resets the current PRef and assigns another object to it.
 			/// @param in_obj The other object to assign it to.
 			void reset(ObjType *in_obj) {
@@ -869,7 +871,7 @@ namespace blib {
 			soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
 			const std::vector<SimpleOID> oids = blib::bun::__private::QueryHelper<T>::getAllOids();
 			t.commit();
-			return std::move(oids);
+            return oids;
 		}
 
         /// @fn getAllObjWithQuery
@@ -916,6 +918,7 @@ namespace blib {
 
 				template<std::int32_t I>
 				struct QueryVariablePlaceholderIndex : std::integral_constant <std::int32_t, I> {
+                  QueryVariablePlaceholderIndex(){}
 				};
 
 				/// @brief Grammar for the query Start
@@ -1150,14 +1153,14 @@ namespace blib {
 						}
 
 						template<typename TerminalType, typename L, typename R>
-						result_type operator()(TerminalType, L const& in_l, R const& in_r) const {
+                        result_type operator()(TerminalType, L const& /*in_l*/, R const& /*in_r*/) const {
                             //static_assert(false, "Operator not supported in Bun");
 							const std::string ret = "Operator not supported in Bun";
 							return ret;
 						}
 
 						template<typename TerminalType, typename L>
-						result_type operator()(TerminalType, L const& in_l) const {
+                        result_type operator()(TerminalType, L const& /*in_l*/) const {
                             //static_assert(false, "Operator not supported in Bun");
 							const std::string ret = "Operator not supported in Bun";
 							return ret;
@@ -1236,7 +1239,7 @@ namespace blib {
 	namespace bun {
 		/// @class Transaction
 		/// @brief The class that handles transaction
-		/// @detail The transaction class is a wrapper around the transaction
+        /// @details The transaction class is a wrapper around the transaction
 		///			of SOCI. This supports all the methods of the soci::transaction class.
 		class Transaction {
 		private:
@@ -1327,7 +1330,7 @@ namespace blib {
 			private:
                 template<typename O, bool IsComposite = false>
 				struct FromBaseOperation {
-                    inline static void execute(O& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
+                    inline static void execute(O& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& /*parent_oid*/) {
                         x = val.get<typename ConvertCPPTypeToSOCISupportType<typename std::remove_reference<O>::type>::type>(obj_name);
 					}
 				};
@@ -1403,7 +1406,7 @@ namespace blib {
 				};
 
 			public:
-				inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
+                inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& /*ind*/) {
 					ObjType& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
 					boost::fusion::for_each(obj, ToBase(v, oid));
@@ -1435,7 +1438,6 @@ namespace soci {
 		/// @param soci::values& v
 		/// @param soci::indicator& ind
 		inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
-			auto indi = ind;
 			blib::bun::__private::type_conversion<ObjectHolderType>::to_base(obj_holder, v, ind);
 		}
 	};
