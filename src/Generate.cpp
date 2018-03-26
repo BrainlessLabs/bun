@@ -36,7 +36,7 @@ namespace bakery {
 		double sugar_quantity;
 		int bun_length;
 		std::string json;
-		int a;
+		A a;
 		Bun() :bun_name(), sugar_quantity(123.12), bun_length(77), a(12) {}
 	};
 }
@@ -139,24 +139,24 @@ int main() {
 	bunn->bun_name = "666";
 	bunn->sugar_quantity = 66.6;
 	bunn->json = "{666}";
-	bunn->a = 666;
+	bunn->a.i = 666;
 	const auto oid = bunn.save();
 	bunn->bun_length = 11;
 	bunn->bun_name = "test";
 	bunn->sugar_quantity = 55.6;
-	bunn.save();
+	//bunn.save();
 	//blib::bun::SimpleOID oid1(1, 5582309293008);
 	//blib::bun::PRef<bakery::Bun> bun1(oid1);
 	//bun1.del();
 	
-	for (int i = 0; i < 10000; ++i) {
+	for (int i = 0; i < 0; ++i) {
 		blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
 		bunn->bun_name = i % 2 ? "Delete Me" : "Do not Delete Me";
 		bunn->bun_length = i;
 		bunn->sugar_quantity = 55.6 * i;
 		bunn->json = "";
 		bunn->json = fmt::format("{}", bunn.toJson());
-		bunn->a = i * 13;
+		bunn->a.i = i * 13;
 		const auto oid = bunn.save();
 	}
 
