@@ -98,7 +98,7 @@ void persistPerson() {
 	p.id = oid.low;
 	p.lastName = "Smith";
 	p.firstName = "Pat";
-	blib::bun::__private::DbBackend<>::i().session() << "CREATE TABLE IF NOT EXISTS person (id BIGINTEGER PRIMARY KEY, first_name VARCHAR, last_name VARCHAR)";
+	blib::bun::__private::DbBackend<>::i().session() << "CREATE TABLE IF NOT EXISTS person (id BIGINT PRIMARY KEY, first_name VARCHAR, last_name VARCHAR)";
 	blib::bun::__private::DbBackend<>::i().session() << "insert into person(id, first_name, last_name) "
 		"values(:ID, :FIRST_NAME, :LAST_NAME)", use(p);
 
@@ -122,7 +122,7 @@ int main() {
 
 	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
 	try {
-		persistPerson();
+		//persistPerson();
 	}
 	catch (std::exception const & e) {
 		blib::bun::l().error("{}", e.what());
@@ -131,27 +131,32 @@ int main() {
 	
 
 	//blib::bun::connect("objects.db");
-	//blib::bun::createSchema<bakery::A>();
-	//blib::bun::createSchema<bakery::Bun>();
+	blib::bun::createSchema<bakery::A>();
+	blib::bun::createSchema<bakery::Bun>();
 
-	//blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
-	//const auto oid = bunn.save();
-	//bunn->bun_length = 11;
-	//bunn->bun_name = "test";
-	//bunn->sugar_quantity = 55.6;
-	//bunn.save();
+	blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
+	bunn->bun_length = 6;
+	bunn->bun_name = "666";
+	bunn->sugar_quantity = 66.6;
+	bunn->json = "{666}";
+	bunn->a = 666;
+	const auto oid = bunn.save();
+	bunn->bun_length = 11;
+	bunn->bun_name = "test";
+	bunn->sugar_quantity = 55.6;
+	bunn.save();
 	//blib::bun::SimpleOID oid1(1, 5582309293008);
 	//blib::bun::PRef<bakery::Bun> bun1(oid1);
 	//bun1.del();
-	/*
-	for (int i = 0; i < 0; ++i) {
+	
+	for (int i = 0; i < 10000; ++i) {
 		blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
 		bunn->bun_name = i % 2 ? "Delete Me" : "Do not Delete Me";
 		bunn->bun_length = i;
 		bunn->sugar_quantity = 55.6 * i;
 		bunn->json = "";
 		bunn->json = fmt::format("{}", bunn.toJson());
-		//bunn->a.i = i * 13;
+		bunn->a = i * 13;
 		const auto oid = bunn.save();
 	}
 
@@ -160,7 +165,7 @@ int main() {
 	FromBun fromBun;
 
 	auto valid_query = BunFields::bun_length > 1 && BunFields::bun_name == "Delete Me";
-	*/
+	
 	/*
 	std::cout << "Press any key to delete" << std::endl;
 	char c;
