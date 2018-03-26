@@ -1383,7 +1383,8 @@ namespace blib {
 						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
 						const std::string& parent_column_name = obj_name;
                         QueryHelper<O>::deleteObjWithParentInfo(oid_ref, parent_table_reference, parent_column_name);
-                        QueryHelper<O>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
+                        const blib::bun::SimpleOID oid = QueryHelper<O>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
+						val.set<typename ConvertCPPTypeToSOCISupportType<blib::bun::SimpleOID::OidHighType>::type>(obj_name, oid.high, ind);
 					}
 				};
 
