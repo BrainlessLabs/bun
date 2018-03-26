@@ -84,24 +84,6 @@ namespace blib {
 
 		namespace __private {
 			/////////////////////////////////////////////////
-			/// @class DbTableType
-			/// @brief Helper for converting primitive types to db types
-			/////////////////////////////////////////////////
-			template<typename T>
-			struct DbTableType {
-				using type = T;
-			};
-
-			/////////////////////////////////////////////////
-			/// @class PrimitiveType
-			/// @brief Helper class to persist any primitive types.
-			/////////////////////////////////////////////////
-			template<typename T>
-			struct PrimitiveType {
-				blib::bun::SimpleOID oid;
-			};
-
-			/////////////////////////////////////////////////
 			/// @fn to_valid_query_string
 			/// @param val
 			/// @brief Helper class to persist any primitive types.
@@ -150,18 +132,6 @@ namespace blib {
 namespace blib {
 	namespace bun {
 		namespace __private {
-			/////////////////////////////////////////////////
-			/// @class EnclosureType
-			/// @brief Holds what kind of mapper type
-			/////////////////////////////////////////////////
-			enum class EnclosureType {
-				kUnknown = 0,
-				kBaseType,
-				kVector,
-				kUniquePointer,
-				kSharedPointer
-			};
-
 			/////////////////////////////////////////////////
 			/// @class IsComposite
 			/// @brief True if the element is a class/struct that can be persisted
