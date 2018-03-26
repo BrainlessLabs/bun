@@ -1371,15 +1371,14 @@ namespace blib {
 			private:
                 template<typename O, bool IsComposite = false>
 				struct ToBaseOperation {
-                    inline static void execute(O& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid) {
-						soci::indicator ind;
+                    inline static void execute(O& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid, soci::indicator& ind) {
                         val.set<typename ConvertCPPTypeToSOCISupportType<typename std::remove_reference<O>::type>::type>(obj_name, x, ind);
 					}
 				};
 
                 template<typename O>
                 struct ToBaseOperation<O, true> {
-                    inline static void execute(O& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid) {
+                    inline static void execute(O& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid, soci::indicator& ind) {
 						const auto oid_ref = to_valid_query_string(parent_oid.high);
 						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
 						const std::string& parent_column_name = obj_name;
@@ -1393,23 +1392,24 @@ namespace blib {
 					soci::values& _val;
 					const blib::bun::SimpleOID& _oid;
 					std::uint_fast32_t _count;
+					soci::indicator& _ind;
 
 				public:
-					ToBase(soci::values& val, blib::bun::SimpleOID const& oid) :_val(val), _oid(oid), _count(2) {}
+					ToBase(soci::values& val, blib::bun::SimpleOID const& oid, soci::indicator& ind) :_val(val), _oid(oid), _count(2), _ind(ind) {}
 
                     template<typename O>
                     void operator()(O& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
 						//const_cast<ToBase*>(this)->_val.set(obj_name, x);const_cast<ToBase*>(this)->
-                        ToBaseOperation<O, IsComposite<O>::value>::execute(x, obj_name, _val, _oid);
+                        ToBaseOperation<O, IsComposite<O>::value>::execute(x, obj_name, _val, _oid, _ind);
 					}
 				};
 
 			public:
-                inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& /*ind*/) {
+                inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
 					ObjType& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
-					boost::fusion::for_each(obj, ToBase(v, oid));
+					boost::fusion::for_each(obj, ToBase(v, oid, ind));
 				}
 			};
 		}
