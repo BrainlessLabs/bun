@@ -163,84 +163,11 @@ namespace blib {
 			};
 
 			/////////////////////////////////////////////////
-			/// @class FindEncloseeTypeMeta
-			/// @brief Deducts the enclosee type
-			/////////////////////////////////////////////////				
-			template<typename T>
-			struct FindEncloseeTypeMeta {
-				using type = T;
-			};
-
-			template<typename T>
-			struct FindEncloseeTypeMeta<std::vector<T>> {
-				using type = T;
-			};
-
-			template<typename T>
-			struct FindEncloseeTypeMeta<std::unique_ptr<T>> {
-				using type = T;
-			};
-
-			template<typename T>
-			struct FindEncloseeTypeMeta<std::shared_ptr<T>> {
-				using type = T;
-			};
-
-			/////////////////////////////////////////////////
-			/// @class IsUniquePointer
-			/// @brief Find if this is a unique pointer
-			/////////////////////////////////////////////////
-			template<typename T>
-			struct IsUniquePointer : boost::mpl::bool_<false> {
-			};
-
-			template<typename T>
-			struct IsUniquePointer<std::unique_ptr<T>> : boost::mpl::bool_<true> {
-			};
-
-			/////////////////////////////////////////////////
-			/// @class IsSharedPointer
-			/// @brief Find if this is a shared pointer
-			/////////////////////////////////////////////////
-			template<typename T>
-			struct IsSharedPointer : boost::mpl::bool_<false> {
-			};
-
-			template<typename T>
-			struct IsSharedPointer<std::shared_ptr<T>> : boost::mpl::bool_<true> {
-			};
-
-			/////////////////////////////////////////////////
 			/// @class IsComposite
 			/// @brief True if the element is a class/struct that can be persisted
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct IsComposite : boost::mpl::bool_<false> {
-			};
-
-			/////////////////////////////////////////////////
-			/// @class IsContainer
-			/// @brief True if the variable is a container type
-			/////////////////////////////////////////////////
-			template<typename T>
-			struct IsContainer : boost::mpl::bool_<false> {
-			};
-
-			template<typename T>
-			struct IsContainer<std::vector<T>> : boost::mpl::bool_<true> {
-			};
-
-			template<typename T>
-			struct IsContainer<std::list<T>> : boost::mpl::bool_<true> {
-			};
-
-			template<typename T>
-			struct IsContainer<std::set<T>> : boost::mpl::bool_<true> {
-			};
-
-			/// @brief Consider a regular pointer as a shared pointer too
-			template<typename T>
-			struct IsSharedPointer<T*> : boost::mpl::bool_<true> {
 			};
 
 			/////////////////////////////////////////////////
@@ -755,6 +682,7 @@ namespace blib {
 	}
 }
 
+/// ======================PRef Class Start========================
 namespace blib {
 	namespace bun {
 		/////////////////////////////////////////////////
@@ -938,6 +866,7 @@ namespace blib {
 	}
 }
 
+/// ======================Global Functions Start========================
 namespace blib {
 	namespace bun {
 		/////////////////////////////////////////////////
@@ -1104,17 +1033,21 @@ namespace blib {
 					return vals.at(in_index + 2); // member_names start from oid_high and oid_low
 				}
 
-
+				/// @class TypesUsed
 				/// @brief boost::mpl::vector<decltype(test::Person::name), decltype(test::Person::age), decltype(test::Person::height)>;
 				template<typename T>
 				struct TypesUsed {
 					using Type = void;
 				};
 
+				/// @class FromInternals
+				/// @brief Helper class to be used in From query
 				template<typename T>
 				struct FromInternals {
 					using TypesUsed = typename TypesUsed<T>::Type;
-
+					
+					/// @class BunQueryFilterContex
+					/// @brief The context for filter queries in SQL
 					struct BunQueryFilterContex : boost::proto::callable_context<BunQueryFilterContex> {
 						typedef std::string result_type;
 
