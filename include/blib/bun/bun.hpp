@@ -1362,6 +1362,8 @@ namespace blib {
 				};
 
 			public:
+				/// @fn from_base Setting the values in the object
+				/// @brief This will take the database value and put it in the object. Database -> Object
 				inline static void from_base(soci::values const& v, soci::indicator, ObjectHolderType& obj_holder) {
 					ObjType& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
@@ -1408,6 +1410,8 @@ namespace blib {
 				};
 
 			public:
+				/// @fn to_base Setting the values in the database
+				/// @brief This will take the object value and persist it in the database. Object -> Database
                 inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
 					ObjType& obj = *(obj_holder.obj_ptr);
 					const blib::bun::SimpleOID& oid = obj_holder.oid;
