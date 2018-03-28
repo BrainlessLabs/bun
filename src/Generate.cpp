@@ -15,7 +15,7 @@ using namespace std;
 namespace bakery {
 	struct A {
 		int i;
-		A(const int i) :i(i) {};
+		A(const int i = 667) :i(i) {};
 	};
 
 	struct Bun1 {
@@ -148,8 +148,11 @@ int main() {
 	//blib::bun::SimpleOID oid1(1, 5582309293008);
 	//blib::bun::PRef<bakery::Bun> bun1(oid1);
 	//bun1.del();
-	
-	for (int i = 0; i < 0; ++i) {
+
+	std::cout << "How many objects to insert? " << std::endl;
+	int count = 0;
+	std::cin >> count;
+	for (int i = 0; i < count; ++i) {
 		blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
 		bunn->bun_name = i % 2 ? "Delete Me" : "Do not Delete Me";
 		bunn->bun_length = i;
@@ -158,6 +161,7 @@ int main() {
 		bunn->json = fmt::format("{}", bunn.toJson());
 		bunn->a.i = i * 13;
 		const auto oid = bunn.save();
+		std::cout << "Adding to db: \n" << bunn.toJson() << std::endl;
 	}
 
 	using BunFields = query::F<bakery::Bun>;
@@ -166,14 +170,15 @@ int main() {
 
 	auto valid_query = BunFields::bun_length > 1 && BunFields::bun_name == "Delete Me";
 	
-	/*
+	
 	std::cout << "Press any key to delete" << std::endl;
 	char c;
 	std::cin >> c;
 	auto buns = fromBun.where(valid_query).objects();
 	for (auto bun : buns) {
+		std::cout << "Delete from db: \n" << bun.toJson() << std::endl;
 		bun.del();
 	}
-	*/
+	
 	return 1;
 }

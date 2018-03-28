@@ -39,7 +39,7 @@ namespace blib {
             /// @brief holds the lower order bytes.
 			OidLowType low;
 
-            SimpleOID() = default;
+			SimpleOID() : high(0), low(0) {}
 
             ~SimpleOID() = default;
 
