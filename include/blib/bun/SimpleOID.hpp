@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <chrono>
+#include <third_party/fmt/format.hpp>
 
 namespace blib {
     namespace bun {
@@ -141,6 +142,12 @@ namespace blib {
                 }
 
                 return ret;
+            }
+            
+            /// @fn to_json
+            std::string to_json() const {
+                const std::string json = "{" + fmt::format("'odi_high': {}, 'oid_low': {}", high, low) + "}";
+                return json;
             }
         };
     }
