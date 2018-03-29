@@ -483,6 +483,16 @@ namespace blib {
 						l().error("updateObj(): {} ", e.what());
 					}
 				}
+				
+				/// @class DeleteObjects
+				/// @brief Helper class to delete the objects of the enclosed scope too.
+				struct DeleteObjects {
+				private:
+				public:
+                    template <typename O>
+                    void operator()(O const& x) const {
+					}					
+				};
 
 				/// @fn deleteObj
 				/// @param oid The object associated with this oid needs to be deleted.
@@ -517,7 +527,7 @@ namespace blib {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
 					catch (std::exception const & e) {
-						l().error("deleteObjWithParentInfo(): {} ", e.what());
+						l().error("deleteObjWithParentInfo({}): {} ", where_clause, e.what());
 					}
 				}
 
@@ -570,8 +580,7 @@ namespace blib {
 					}
 
                     template <typename O>
-                    void operator()(O const& x) const
-					{
+                    void operator()(O const& x) const {
 						const std::string member_name = _member_names.at(const_cast<ToJson*>(this)->_count++);
 						const std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
                         _str += fmt::format("{} : {}", obj_name, to_json<O>(x));
@@ -826,12 +835,12 @@ namespace blib {
 				_flags.reset();
 			}
 
-			PRef &operator=(ObjType *in_obj) {
+			PRef& operator=(ObjType *in_obj) {
 				reset(in_obj);
 				return *this;
 			}
 
-			PRef &operator=(PRef &in_other) {
+			PRef& operator=(PRef &in_other) {
 				copyFrom(in_other);
 				return *this;
 			}
