@@ -260,16 +260,8 @@ namespace blib {
 				inline static std::string const& create_table_sql() {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
-					const static std::string oid_high_type =
-#if defined(BUN_SQLITE)
-						"BIGINT PRIMARY KEY AUTOINCREMENT";
-#elif defined(BUN_POSTGRES)
-						"BIGSERIAL PRIMARY KEY";
-#elif defined(BUN_MYSQL)
-						"BIGINT PRIMARY KEY AUTO_INCREMENT";
-#endif
 					if (sql.empty()) {
-						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid_high " + oid_high_type + ", oid_low BIGINT NOT NULL, oid_ref BIGINT, parent_table_reference VARCHAR, parent_column_name VARCHAR";
+						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid VARCHAR PRIMARY KEY, oid_ref VARCHAR, parent_table_reference VARCHAR, parent_column_name VARCHAR";
 						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
 						sql += ")";
 					}
@@ -294,7 +286,7 @@ namespace blib {
 				/// @fn delete_row_sql
 				/// @brief Delete a row
 				inline static std::string const& delete_row_sql() {
-					static const std::string sql = "DELETE FROM \"{}\" WHERE oid_high = :oid_high AND oid_low = :oid_low";
+					static const std::string sql = "DELETE FROM \"{}\" WHERE oid = :oid";
 					return sql;
 				}
 
@@ -304,15 +296,11 @@ namespace blib {
 					static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static std::string sql;
 					if (sql.empty()) {
-						sql = "INSERT INTO \"{}\" (oid_low, oid_ref, parent_table_reference, parent_column_name";
+						sql = "INSERT INTO \"{}\" (oid, oid_ref, parent_table_reference, parent_column_name";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowNames(sql));
 						sql += ") VALUES ({}, {}, {}, {}";
 						boost::fusion::for_each(vecs, SqlString<T>::InsertRowVal(sql));
-						sql += ")"
-#if defined(BUN_POSTGRES)
-							"RETURNING oid_high"
-#endif
-						;
+						sql += ")";
 					}
 					return sql;
 				}
@@ -326,13 +314,13 @@ namespace blib {
 						sql = "UPDATE \"{}\" SET oid_ref = {}, parent_table_reference = {}, parent_column_name = {},";
 						std::string sql1;
 						boost::fusion::for_each(vecs, SqlString<T>::UpdateRow(sql1));
-						sql += sql1 + " WHERE oid_high = {} AND oid_low = {}";
+						sql += sql1 + " WHERE oid = {}";
 					}
 					return sql;
 				}
 
-				/// @fn update_row_sql
-				/// @brief Update row sql
+				/// @fn select_rows_sql
+				/// @brief Select row sql
 				inline static std::string const& select_rows_sql() {
 					//static const auto vecs = TypeMetaData<T>::tuple_type_pair();
 					static const std::string sql = "SELECT * FROM \"{}\" ";
@@ -342,14 +330,7 @@ namespace blib {
 				/// @fn select_all_oid_sql
 				/// @brief Select Oids sql
 				inline static std::string const& select_all_oid_sql() {
-					static const std::string sql = "SELECT oid_high, oid_low FROM \"{}\"";
-					return sql;
-				}
-
-				/// @fn last_inserted_id_mysql_sql
-				/// @brief Get the last inserted id from the insert statement
-				inline static std::string const& last_inserted_id_mysql_sql() {
-					static const std::string sql = "SELECT LAST_INSERT_ID()";
+					static const std::string sql = "SELECT oid FROM \"{}\"";
 					return sql;
 				}
 			};
@@ -429,36 +410,20 @@ namespace blib {
 				/// @fn persistObj
 				/// @param obj This is the object that needs to be persisted
 				/// @brief Persist an object
-				inline static SimpleOID persistObj(T *obj, const SimpleOID::OidHighType oid_ref = 0,
+				inline static SimpleOID persistObj(T *obj, const SimpleOID& oid_ref = SimpleOID(),
 					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
 					blib::bun::SimpleOID oid;
-					oid.populateLow();
+					oid.populate();
 					const static std::string& class_name = TypeMetaData<T>::class_name();
-					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), class_name, oid.low,
-						oid_ref, to_valid_query_string(parent_table_reference, std::string("'")), to_valid_query_string(parent_column_name, std::string("'")));
+					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), class_name, to_valid_query_string(oid.to_string(), "'"),
+						to_valid_query_string(oid_ref.to_string(), "'"),
+						to_valid_query_string(parent_table_reference, std::string("'")), to_valid_query_string(parent_column_name, std::string("'")));
 					SimpleObjHolder<T> obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
-						long high = 0;
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(obj_holder)
-#if defined(BUN_POSTGRES)
-							,soci::into(high)
-#endif
-							;
-						if (blib::bun::__private::DbBackend<>::i().session().get_last_insert_id(class_name, high)) {
-							//oid.high = static_cast<decltype(oid.high)>(high);
-						}
-						else {
-#if defined(BUN_SQLITE)
-							high = 0; last_inserted_id_mysql_sql
-#elif defined(BUN_POSTGRES)
-#elif defined(BUN_MYSQL)
-							blib::bun::__private::DbBackend<>::i().session() << SqlString<T>::last_inserted_id_mysql_sql(), soci::info(high);
-#endif
-						}
-						oid.high = static_cast<decltype(oid.high)>(high);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(obj_holder);
 					}
-					catch (std::exception const & e) {
+					catch (std::exception const& e) {
 						l().error("persistObj(): {} ", e.what());
 					}
                     return oid;
@@ -468,18 +433,18 @@ namespace blib {
 				/// @param obj This is the object that needs to be updated
 				/// @param oid the oid that needs to be updated
 				/// @brief Persist an object.
-				inline static void updateObj(T * obj, SimpleOID const & oid, const SimpleOID::OidHighType oid_ref = 0,
+				inline static void updateObj(T * obj, SimpleOID const& oid, const SimpleOID& oid_ref = SimpleOID(),
 					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
 					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(),
-						class_name, oid_ref, to_valid_query_string(parent_table_reference, std::string("'")),
-						to_valid_query_string(parent_column_name, std::string("'")), oid.high, oid.low);
+						class_name, to_valid_query_string(oid_ref.to_string(), "'"), to_valid_query_string(parent_table_reference, std::string("'")),
+						to_valid_query_string(parent_column_name, std::string("'")), to_valid_query_string(oid.to_string(), "'"));
 					SimpleObjHolder<T> obj_holder(obj, oid);
 					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(obj_holder);
 					}
-					catch (std::exception const & e) {
+					catch (std::exception const& e) {
 						l().error("updateObj(): {} ", e.what());
 					}
 				}
@@ -502,7 +467,7 @@ namespace blib {
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), class_name);
 					QUERY_LOG(sql);
 					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.high), soci::use(oid.low);
+						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.to_string());
 					}
 					catch (std::exception const & e) {
 						l().error("deleteObj(): {} ", e.what());
@@ -515,18 +480,20 @@ namespace blib {
 				/// @param parent_column_name
 				/// @brief The object associated with this oid needs to be deleted.
 				inline static void deleteObjWithParentInfo(
-					const SimpleOID::OidHighType oid_ref,
+					const SimpleOID& oid_ref,
 					std::string const& parent_table_reference,
 					std::string const& parent_column_name) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
 					const std::string where_clause = fmt::format("oid_ref = {} AND parent_table_reference = {} AND parent_column_name = {}", 
-						oid_ref, to_valid_query_string(parent_table_reference, "'"), to_valid_query_string(parent_column_name, "'"));
+						to_valid_query_string(oid_ref.to_string(), "'"),
+						to_valid_query_string(parent_table_reference, "'"),
+						to_valid_query_string(parent_column_name, "'"));
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), class_name, where_clause);
 					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
 					}
-					catch (std::exception const & e) {
+					catch (std::exception const& e) {
 						l().error("deleteObjWithParentInfo({}): {} ", where_clause, e.what());
 					}
 				}
@@ -536,15 +503,15 @@ namespace blib {
 				/// @brief The object with the particular oid will be returned.
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
-					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid_high = {} AND oid_low = {}",
-						class_name, oid.high, oid.low);
+					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid = {}",
+						class_name, to_valid_query_string(oid.to_string(), "'"));
 					QUERY_LOG(sql);
-					std::unique_ptr <T> obj = std::make_unique<T>();
+					const std::unique_ptr <T> obj = std::make_unique<T>();
 					SimpleObjHolder<T> obj_holder(obj.get(), oid);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(obj_holder);
 					}
-					catch (std::exception const & e) {
+					catch (std::exception const& e) {
 						l().error("getObj(): {} ", e.what());
 					}
 					return std::move(obj);
@@ -555,7 +522,8 @@ namespace blib {
 				/// @brief Returns the md5 of the object
 				inline static std::string md5(T const& obj, SimpleOID const & oid) {
 					const std::string json = QueryHelper<T>::objToJson(obj);
-					const std::string str = "{" + fmt::format("'oid_high': {}, 'oid_low': {}, '{}': {}", oid.high, oid.low, TypeMetaData<T>::class_name(), json) + "}";
+					const static std::string class_name = TypeMetaData<T>::class_name();
+					const std::string str = "{" + fmt::format("'oid': '{}', 'class_name': '{}', 'json': '{}'", oid.to_string() , class_name, json) + "}";
 					const std::string md5 = blib::md5(str);
                     return md5;
 				}
@@ -631,10 +599,7 @@ namespace blib {
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
 							std::pair<std::unique_ptr <T>, SimpleOID> pair;
-							pair.second.high = row.get<long long>("oid_high");
-							pair.second.low = row.get<long long>("oid_low");
-							//pair.second.high = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidHighType>::type>("oid_high");
-							//pair.second.low = row.get<ConvertCPPTypeToSOCISupportType<SimpleOID::OidLowType>::type>("oid_low");
+							pair.second = row.get<std::string>("oid");
 							pair.first = std::make_unique<T>();
 							T& obj = *pair.first;
 							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row));
@@ -652,10 +617,12 @@ namespace blib {
 				/// @param in_query Queries for which the objects will be returned.
 				/// @brief Get all the oids with that match the query.
 				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllNestedObjectssWithQuery(std::string const in_query = std::string(),
-					const SimpleOID::OidHighType oid_ref = 0,
+					const SimpleOID& oid_ref = 0,
 					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
-					const std::string query = fmt::format("{} AND oid_ref = {} AND parent_table_reference = {} AND parent_column_name = {}", oid_ref, 
-						to_valid_query_string(parent_table_reference, "'"), to_valid_query_string(parent_column_name, "'"));
+					const std::string query = fmt::format("{} AND oid_ref = {} AND parent_table_reference = {} AND parent_column_name = {}", 
+						to_valid_query_string(oid_ref.to_string(), "'"),
+						to_valid_query_string(parent_table_reference, "'"),
+						to_valid_query_string(parent_column_name, "'"));
 					QUERY_LOG(query);
 					return QueryHelper<T>::getAllObjectsWithQuery(query);
 				}
@@ -672,19 +639,16 @@ namespace blib {
 				/// @brief Get all the oids with that match the query.
 				inline static std::vector<SimpleOID> getAllOidsWithQuery(std::string const in_query = std::string()) {
 					std::vector<SimpleOID> oids;
-
-					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), TypeMetaData<T>::class_name()) + " {}";
+					const std::string& class_name = TypeMetaData<T>::class_name();
+					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), class_name) + " {}";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
 					const std::string sql = fmt::format(select_oid_sql, where_clasue);
 					QUERY_LOG(sql);
 					try {
 						const soci::rowset<soci::row> rows = (blib::bun::__private::DbBackend<>::i().session().prepare << sql);
-						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
+						for (auto row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
-							oids.emplace_back(
-								static_cast<SimpleOID::OidHighType>(row.get<long long>("oid_high")),
-								static_cast<SimpleOID::OidHighType>(row.get<long long>("oid_low"))
-							);
+							oids.emplace_back(row.get<std::string>("oid"));
 						}
 					}
 					catch (std::exception const & e) {
@@ -710,18 +674,14 @@ namespace blib {
 		template<typename T>
 		class PRef {
 		private:
-			enum class FlagsE : std::uint8_t {
-				kDirty = 0
-			};
-
 			/// @typedef OidType = SimpleOID
 			using OidType = SimpleOID;
+
 			/// @var std::unique_ptr<T> _obj
 			/// @brief Stores the object. The unique pointer is specialized
 			///        for that object type.
 			std::unique_ptr<T> _obj;
-			/// @var  std::bitset<4> _flags
-			std::bitset<4> _flags;
+
 			/// @var std::string _md5
 			/// @brief Holds the MD5 sum of this object.
 			std::string _md5;
@@ -736,47 +696,44 @@ namespace blib {
 			OidType oid;
 
 		public:
-			PRef() = default;
+			PRef() : _obj(), _md5(), oid() {}
 
 			PRef(PRef const &in_other) : oid(in_other.oid) {
 				load(oid);
 			}
 
-			PRef(PRef &in_other) : oid(in_other.oid), _flags(in_other._flags), _md5(in_other._md5),
+			PRef(PRef &in_other) : oid(in_other.oid),
+				_md5(in_other._md5),
 				_obj(in_other._obj.release()) {
 			}
 
-			PRef(ObjType *in_obj) : _obj(in_obj) {
-			}
+			PRef(ObjType *in_obj) : _obj(in_obj) {}
 
 			PRef(OidType const &in_oid) : oid(in_oid) {
 				load(oid);
 			}
 
-			PRef(OidType const &in_oid, ObjType *in_obj) : oid(in_oid), _obj(in_obj) {
-			}
+			PRef(OidType const &in_oid, ObjType *in_obj) : oid(in_oid), _obj(in_obj) {}
 
             /// @fn reset
 			/// @brief Resets the current PRef and assigns another object to it.
 			/// @param in_obj The other object to assign it to.
 			void reset(ObjType *in_obj) {
 				_obj.reset(in_obj);
-				_flags.reset();
-				_md5 = "";
+				oid.clear();
+				_md5.clear();
 			}
 
 			/// @fn release
 			/// @brief Reset the PRef to hold nothing.
 			///        The oid is set to 0 and the object released.
 			ObjType *release() {
-				oid.high = 0;
-				oid.low = 0;
-				_flags.reset();
-				_md5 = "";
+				oid.clear();
+				_md5.clear();
 				return _obj.release();
 			}
 
-			~PRef() = default;
+			~PRef() {};
 
 			auto operator*()->decltype(*_obj) {
 				return *_obj;
@@ -794,11 +751,8 @@ namespace blib {
 			///          it returns false.
 			bool dirty() {
 				const auto md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
-				if (md5 != _md5) {
-					_flags[static_cast<std::uint8_t>(FlagsE::kDirty)] = 1;
-				}
-
-				return _flags[static_cast<std::uint8_t>(FlagsE::kDirty)] ? true : false;
+				// If the md5 dont match then there is a change in the objects state.
+				return md5 != _md5 ? true : false;
 			}
 
 			/// @fn persist
@@ -815,7 +769,6 @@ namespace blib {
 					blib::bun::__private::QueryHelper<ObjType>::updateObj(_obj.get(), oid);
 				}
 				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
-				_flags.reset();
 				return oid;
 			}
 
@@ -832,7 +785,6 @@ namespace blib {
 				blib::bun::__private::QueryHelper<ObjType>::deleteObj(oid);
 				_md5.clear();
 				oid.clear();
-				_flags.reset();
 			}
 
 			PRef& operator=(ObjType *in_obj) {
@@ -867,7 +819,6 @@ namespace blib {
 				oid = in_oid;
 				_obj = blib::bun::__private::QueryHelper<ObjType>::getObj(oid);
 				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
-				_flags.reset();
 			}
 
 			/// @fn copyFrom(PRef &in_other)
@@ -875,7 +826,6 @@ namespace blib {
 			void copyFrom(PRef &in_other) {
 				oid = in_other.oid;
 				_md5 = in_other._md5;
-				_flags = in_other._flags;
 				_obj = in_other._obj;
 			}
 		};
@@ -1381,7 +1331,7 @@ namespace blib {
                 template<typename O>
                 struct FromBaseOperation<O, true> {
                     inline static void execute(O& x, const std::string& obj_name, soci::values const& val, const blib::bun::SimpleOID& parent_oid) {
-						const auto oid_ref = parent_oid.low;
+						const blib::bun::SimpleOID& oid_ref = parent_oid;
 						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
 						// TODO
 						using RetType = std::vector<std::pair<std::unique_ptr <O>, SimpleOID>>;
@@ -1426,12 +1376,12 @@ namespace blib {
                 template<typename O>
                 struct ToBaseOperation<O, true> {
                     inline static void execute(O& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid, soci::indicator& ind) {
-						const auto oid_ref = parent_oid.low;
+						const blib::bun::SimpleOID&  oid_ref = parent_oid;
 						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
 						const std::string& parent_column_name = obj_name;
 						// Do not delete if parent oid.high is 0. If parent 
 						// oid.high is 0 then this object is not yet persisted.
-						if (parent_oid.high != 0) {
+						if (parent_oid.empty() != 0) {
 							// Delete everything before inserting. There is no
 							// update essentially. Just delete and insert of any nested objects.
 							QueryHelper<O>::deleteObjWithParentInfo(oid_ref, parent_table_reference, parent_column_name);
@@ -1457,7 +1407,6 @@ namespace blib {
                     template<typename O>
                     void operator()(O& x) const {
 						const std::string obj_name = TypeMetaData<ObjType>::member_names().at(const_cast<ToBase*>(this)->_count++);
-						//const_cast<ToBase*>(this)->_val.set(obj_name, x);const_cast<ToBase*>(this)->
                         ToBaseOperation<O, IsComposite<O>::value>::execute(x, obj_name, _val, _oid, _ind);
 					}
 				};
@@ -1518,10 +1467,10 @@ namespace soci {
 #define EXPAND_member_names(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_member_names_I, ELEMS_TUP)
 
 /// @brief generate the query and query fields
-#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<BOOST_PP_ADD(n, 5)>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
+#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<BOOST_PP_ADD(n, 4)>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
 #define DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), DEFINE_CLASS_STATIC_VARS_QUERY_I, CLASS_ELEMS_TUP)
 
-#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<BOOST_PP_ADD(n, 5)>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
+#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<BOOST_PP_ADD(n, 4)>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
 #define GENERATE_CLASS_STATIC_VARS_QUERY(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), GENERATE_CLASS_STATIC_VARS_QUERY_I, ELEMS_TUP)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1566,18 +1515,16 @@ namespace blib{ namespace bun{ namespace query{\
 namespace {\
 template<>\
 struct F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> {\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<0>>::type const oid_high;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<1>>::type const oid_low;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<2>>::type const oid_ref;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<3>>::type const enclosing_table_reference;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<4>>::type const enclosing_variable_name;\
+static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<0>>::type const oid;\
+static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<1>>::type const oid_ref;\
+static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<2>>::type const enclosing_table_reference;\
+static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<3>>::type const enclosing_variable_name;\
 GENERATE_CLASS_STATIC_VARS_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 };\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<0>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid_high;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<1>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid_low;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<2>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid_ref;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<3>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::enclosing_table_reference;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<4>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::enclosing_variable_name;\
+boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<0>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid;\
+boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<1>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid_ref;\
+boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<2>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::enclosing_table_reference;\
+boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<3>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::enclosing_variable_name;\
 DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP)\
 }\
 }}}\
