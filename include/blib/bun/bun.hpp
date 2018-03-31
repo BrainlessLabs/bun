@@ -346,6 +346,9 @@ namespace blib {
 				T* obj_ptr;
 				blib::bun::SimpleOID const& oid;
 				SimpleObjHolder(T* obj_ptr_in, blib::bun::SimpleOID const& oid_in) :obj_ptr(obj_ptr_in), oid(oid_in) {}
+				~SimpleObjHolder() {
+					obj_ptr = nullptr;
+				}
 			};
 
 			/////////////////////////////////////////////////
@@ -368,19 +371,6 @@ namespace blib {
 					}
 				}
 
-				/// @fn createSchema
-				/// @brief Create Schema with parent table
-				inline static void createSchema(const std::string& parent_table) {
-					const std::string sql = fmt::format(SqlString<T>::create_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
-					QUERY_LOG(sql);
-					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql;
-					}
-					catch (std::exception const & e) {
-						l().error("createSchema({}): {} ", parent_table, e.what());
-					}
-				}
-
 				/// @fn deleteSchema
 				/// @brief Delete schema
 				inline static void deleteSchema() {
@@ -394,19 +384,6 @@ namespace blib {
 					}
 				}
 
-				/// @fn deleteSchema
-				/// @brief Delete schema
-				inline static void deleteSchema(const std::string& parent_table) {
-					const std::string sql = fmt::format(SqlString<T>::drop_table_sql(), parent_table + "_" + TypeMetaData<T>::class_name());
-					QUERY_LOG(sql);
-					try {
-						blib::bun::__private::DbBackend<>::i().session() << sql;
-					}
-					catch (std::exception const & e) {
-						l().error("deleteSchema({}): {} ", parent_table, e.what());
-					}
-				}
-
 				/// @fn persistObj
 				/// @param obj This is the object that needs to be persisted
 				/// @brief Persist an object
@@ -415,7 +392,7 @@ namespace blib {
 					blib::bun::SimpleOID oid;
 					oid.populate();
 					const static std::string& class_name = TypeMetaData<T>::class_name();
-					const static std::string sql = fmt::format(SqlString<T>::insert_row_sql(), class_name, to_valid_query_string(oid.to_string(), "'"),
+					const std::string sql = fmt::format(SqlString<T>::insert_row_sql(), class_name, to_valid_query_string(oid.to_string(), "'"),
 						to_valid_query_string(oid_ref.to_string(), "'"),
 						to_valid_query_string(parent_table_reference, std::string("'")), to_valid_query_string(parent_column_name, std::string("'")));
 					SimpleObjHolder<T> obj_holder(obj, oid);
@@ -436,7 +413,7 @@ namespace blib {
 				inline static void updateObj(T * obj, SimpleOID const& oid, const SimpleOID& oid_ref = SimpleOID(),
 					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
-					const static std::string sql = fmt::format(SqlString<T>::update_row_sql(),
+					const std::string sql = fmt::format(SqlString<T>::update_row_sql(),
 						class_name, to_valid_query_string(oid_ref.to_string(), "'"), to_valid_query_string(parent_table_reference, std::string("'")),
 						to_valid_query_string(parent_column_name, std::string("'")), to_valid_query_string(oid.to_string(), "'"));
 					SimpleObjHolder<T> obj_holder(obj, oid);
@@ -488,7 +465,7 @@ namespace blib {
 						to_valid_query_string(oid_ref.to_string(), "'"),
 						to_valid_query_string(parent_table_reference, "'"),
 						to_valid_query_string(parent_column_name, "'"));
-					const static std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), class_name, where_clause);
+					const std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), class_name, where_clause);
 					QUERY_LOG(sql);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql;
@@ -503,7 +480,7 @@ namespace blib {
 				/// @brief The object with the particular oid will be returned.
 				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
-					const static std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid = {}",
+					const std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid = {}",
 						class_name, to_valid_query_string(oid.to_string(), "'"));
 					QUERY_LOG(sql);
 					const std::unique_ptr <T> obj = std::make_unique<T>();
@@ -522,7 +499,7 @@ namespace blib {
 				/// @brief Returns the md5 of the object
 				inline static std::string md5(T const& obj, SimpleOID const & oid) {
 					const std::string json = QueryHelper<T>::objToJson(obj);
-					const static std::string class_name = TypeMetaData<T>::class_name();
+					const static std::string& class_name = TypeMetaData<T>::class_name();
 					const std::string str = "{" + fmt::format("'oid': '{}', 'class_name': '{}', 'json': '{}'", oid.to_string() , class_name, json) + "}";
 					const std::string md5 = blib::md5(str);
                     return md5;
@@ -639,7 +616,7 @@ namespace blib {
 				/// @brief Get all the oids with that match the query.
 				inline static std::vector<SimpleOID> getAllOidsWithQuery(std::string const in_query = std::string()) {
 					std::vector<SimpleOID> oids;
-					const std::string& class_name = TypeMetaData<T>::class_name();
+					const static std::string& class_name = TypeMetaData<T>::class_name();
 					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), class_name) + " {}";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
 					const std::string sql = fmt::format(select_oid_sql, where_clasue);
@@ -1446,6 +1423,7 @@ namespace soci {
 		/// @param soci::values& v
 		/// @param soci::indicator& ind
 		inline static void to_base(ObjectHolderType& obj_holder, soci::values& v, soci::indicator& ind) {
+			const std::string oid = obj_holder.oid.to_string();
 			blib::bun::__private::type_conversion<ObjectHolderType>::to_base(obj_holder, v, ind);
 		}
 	};
