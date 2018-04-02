@@ -1313,6 +1313,12 @@ namespace blib {
 						// TODO
 						using RetType = std::vector<std::pair<std::unique_ptr <O>, SimpleOID>>;
 						const RetType values = blib::bun::__private::QueryHelper<O>::getAllNestedObjectssWithQuery("", oid_ref, parent_table_reference, obj_name);
+						if (!values.empty()) {
+							x = *values.at(0).first;
+						}
+						else {
+							l().error("FromBaseOperation::execute: Could not fetch object values");
+						}
 					}
 				};
 
