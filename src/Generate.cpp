@@ -41,12 +41,31 @@ namespace bakery {
 	};
 }
 
-SPECIALIZE_BUN_HELPER((bakery::A, i));
-SPECIALIZE_BUN_HELPER((bakery::Bun, bun_name, sugar_quantity, bun_length, json, a));
+//SPECIALIZE_BUN_HELPER((bakery::A, i));
+//SPECIALIZE_BUN_HELPER((bakery::Bun, bun_name, sugar_quantity, bun_length, json, a));
+
+struct Child {
+	int cf1;
+	Child() : cf1(11) {}
+	Child& operator=(const int i) {
+		cf1 = i;
+		return *this;
+	}
+};
+
+struct Parent {
+	int f1;
+	std::string f2;
+	int f3;
+	Parent() :f1(1), f2("2"), f3() {}
+};
+
+SPECIALIZE_BUN_HELPER((Child, cf1));
+SPECIALIZE_BUN_HELPER((Parent, f1, f2, f3));
 
 struct Person
 {
-	int id;
+	std::string id;
 	std::string firstName;
 	std::string lastName;
 	std::string gender;
@@ -93,9 +112,9 @@ namespace soci
 
 void persistPerson() {
 	blib::bun::SimpleOID oid;
-	oid.populateLow();
+	oid.populate();
 	Person p;
-	p.id = oid.low;
+	p.id = oid.to_string();
 	p.lastName = "Smith";
 	p.firstName = "Pat";
 	blib::bun::__private::DbBackend<>::i().session() << "CREATE TABLE IF NOT EXISTS person (id BIGINT PRIMARY KEY, first_name VARCHAR, last_name VARCHAR)";
@@ -131,54 +150,81 @@ int main() {
 	
 
 	//blib::bun::connect("objects.db");
-	blib::bun::createSchema<bakery::A>();
-	blib::bun::createSchema<bakery::Bun>();
+	//blib::bun::createSchema<bakery::A>();
+	//blib::bun::createSchema<bakery::Bun>();
 
-	blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
-	bunn->bun_length = 6;
-	bunn->bun_name = "666";
-	bunn->sugar_quantity = 66.6;
-	bunn->json = "{666}";
-	bunn->a.i = 666;
-	const auto oid = bunn.save();
-	bunn->bun_length = 11;
-	bunn->bun_name = "test";
-	bunn->sugar_quantity = 55.6;
+	//blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
+	//bunn->bun_length = 6;
+	//bunn->bun_name = "666";
+	//bunn->sugar_quantity = 66.6;
+	//bunn->json = "{666}";
+	////bunn->a.i = 666;
+	//const auto oid = bunn.save();
+	//bunn->bun_length = 11;
+	//bunn->bun_name = "test";
+	//bunn->sugar_quantity = 55.6;
 	//bunn.save();
 	//blib::bun::SimpleOID oid1(1, 5582309293008);
 	//blib::bun::PRef<bakery::Bun> bun1(oid1);
 	//bun1.del();
 
+	//std::cout << "How many objects to insert? " << std::endl;
+	//int count = 0;
+	//std::cin >> count;
+	//for (int i = 0; i < count; ++i) {
+	//	blib::bun::l().info("===============Start===================");
+	//	blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
+	//	bunn->bun_name = i % 2 ? "Delete Me" : "Do not Delete Me";
+	//	bunn->bun_length = i;
+	//	bunn->sugar_quantity = 55.6 * i;
+	//	bunn->json = "";
+	//	bunn->json = fmt::format("{}", bunn.toJson());
+	//	//bunn->a.i = i * 13;
+	//	
+	//	const auto oid = bunn.save();
+	//	std::cout << "Added to db: \n" << bunn.toJson() << std::endl;
+	//	blib::bun::l().info("===============End===================\n");
+	//}
+
+	blib::bun::createSchema<Child>();
+	blib::bun::createSchema<Parent>();
 	std::cout << "How many objects to insert? " << std::endl;
 	int count = 0;
 	std::cin >> count;
 	for (int i = 0; i < count; ++i) {
-		blib::bun::PRef<bakery::Bun> bunn = new bakery::Bun;
-		bunn->bun_name = i % 2 ? "Delete Me" : "Do not Delete Me";
-		bunn->bun_length = i;
-		bunn->sugar_quantity = 55.6 * i;
-		bunn->json = "";
-		bunn->json = fmt::format("{}", bunn.toJson());
-		bunn->a.i = i * 13;
-		const auto oid = bunn.save();
-		std::cout << "Adding to db: \n" << bunn.toJson() << std::endl;
+		blib::bun::l().info("===============Start===================");
+		blib::bun::PRef<Parent> p = new Parent;
+		p->f1 = i;
+		p->f2 = i % 2 ? "Delete Me" : "Do not Delete Me";
+		p->f3 = 10 * i;
+		p.persist();
+		//blib::bun::SimpleOID oid;
+		//oid.populate();
+		//std::cout << oid.to_string() << std::endl;
+		std::cout << "Added to db: \n" << p.toJson() << std::endl;
+		blib::bun::l().info("===============End===================\n");
 	}
 
-	using BunFields = query::F<bakery::Bun>;
-	using FromBun = query::From<bakery::Bun>;
-	FromBun fromBun;
-
-	auto valid_query = BunFields::bun_length > 1 && BunFields::bun_name == "Delete Me";
-	
-	
-	std::cout << "Press any key to delete" << std::endl;
-	char c;
-	std::cin >> c;
-	auto buns = fromBun.where(valid_query).objects();
-	for (auto bun : buns) {
-		std::cout << "Delete from db: \n" << bun.toJson() << std::endl;
-		bun.del();
+	auto parents = blib::bun::getAllObjects<Parent>();
+	for (auto p : parents) {
+		std::cout << p.toJson() << std::endl;
 	}
-	
+
+	//using BunFields = query::F<bakery::Bun>;
+	//using FromBun = query::From<bakery::Bun>;
+	//FromBun fromBun;
+
+	//auto valid_query = BunFields::bun_length > 1 && BunFields::bun_name == "Delete Me";
+	//
+	//
+	//std::cout << "Press any key to delete" << std::endl;
+	//char c;
+	//std::cin >> c;
+	//auto buns = fromBun.where(valid_query).objects();
+	//for (auto bun : buns) {
+	//	std::cout << "Delete from db: \n" << bun.toJson() << std::endl;
+	//	bun.del();
+	//}
+	//
 	return 1;
 }
