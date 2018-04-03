@@ -437,7 +437,7 @@ namespace blib {
 					
                     template <typename O>
                     void operator()(O const& x) const {
-                    	QueryHelper<O>::deleteObj(_oid);
+                    	QueryHelper<O>::deleteObjWithParentInfo(_oid);
 					}					
 				};
 
@@ -469,13 +469,19 @@ namespace blib {
 				/// @brief The object associated with this oid needs to be deleted.
 				inline static void deleteObjWithParentInfo(
 					const SimpleOID& oid_ref,
-					std::string const& parent_table_reference,
-					std::string const& parent_column_name) {
+					std::string const& parent_table_reference = std::string(),
+					std::string const& parent_column_name = std::string()) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
-					const std::string where_clause = fmt::format("oid_ref = {} AND parent_table_reference = {} AND parent_column_name = {}", 
-						to_valid_query_string(oid_ref.to_string(), "'"),
-						to_valid_query_string(parent_table_reference, "'"),
-						to_valid_query_string(parent_column_name, "'"));
+					std::string where_clause = fmt::format("oid_ref = {}", to_valid_query_string(oid_ref.to_string(), "'"));
+					
+					if(!parent_table_reference.empty()) {
+						where_clause += fmt::format(" AND parent_table_reference = {}", to_valid_query_string(parent_table_reference, "'"));
+					}
+
+					if(!parent_column_name.empty()) {
+						where_clause += fmt::format(" AND parent_column_name = {}", to_valid_query_string(parent_column_name, "'"));
+					}
+					
 					const std::string sql = fmt::format(SqlString<T>::delete_row_condition_sql(), class_name, where_clause);
 					QUERY_LOG(sql);
 					try {
@@ -1370,21 +1376,22 @@ namespace blib {
                 template<typename O>
                 struct ToBaseOperation<O, true> {
                     inline static void execute(O& x, const std::string& obj_name, soci::values& val, const blib::bun::SimpleOID& parent_oid, soci::indicator& ind) {
-						const blib::bun::SimpleOID&  oid_ref = parent_oid;
+						const blib::bun::SimpleOID& oid_ref = parent_oid;
 						const std::string& parent_table_reference = TypeMetaData<ObjType>::class_name();
 						const std::string& parent_column_name = obj_name;
-						// Do not delete if parent oid.high is 0. If parent 
-						// oid.high is 0 then this object is not yet persisted.
-						if (parent_oid.empty() != 0) {
+						// Do not delete if parent oid is nill. If parent 
+						// oid is nill then this object is not yet persisted.
+						if (oid_ref.empty() != 0) {
 							// Delete everything before inserting. There is no
 							// update essentially. Just delete and insert of any nested objects.
-							QueryHelper<O>::deleteObj(oid_ref);
+							QueryHelper<O>::deleteObjWithParentInfo(oid_ref);
 						}
 						// Get the oid of the nested object after persisting it
                         const blib::bun::SimpleOID oid = QueryHelper<O>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
                         // Get the json representation of the nested object and store it in the parent object
 						const std::string oids = oid.to_json();
-						val.set<typename ConvertCPPTypeToSOCISupportType<std::string>::type>(obj_name, oids, ind);
+						// TODO : Fix this. This has the context of current query execution. Needs to set the value in parent.
+						//val.set<typename ConvertCPPTypeToSOCISupportType<std::string>::type>(obj_name, oids, ind);
 					}
 				};
 
