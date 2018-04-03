@@ -56,7 +56,7 @@ struct Child {
 struct Parent {
 	int f1;
 	std::string f2;
-	int f3;
+	Child f3;
 	Parent() :f1(1), f2("2"), f3() {}
 };
 
@@ -204,7 +204,8 @@ int main() {
 		std::cout << "Added to db: \n" << p.toJson() << std::endl;
 		blib::bun::l().info("===============End===================\n");
 	}
-
+	
+	std::cout << "Get all objects and show" << std::endl;
 	auto parents = blib::bun::getAllObjects<Parent>();
 	for (auto p : parents) {
 		std::cout << p.toJson() << std::endl;
