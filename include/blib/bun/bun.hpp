@@ -26,6 +26,8 @@
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/support/pair.hpp>
 #include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/include/algorithm.hpp>
+#include <boost/fusion/include/filter_if.hpp>
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
@@ -487,7 +489,7 @@ namespace blib {
 					try {
 						if(obj != nullptr){
 							// Delete all the nested objects.
-							boost::fusion::for_each(filter_if<blib::bun::__private::IsComposite<_>>(*obj), DeleteObjects(oid));
+							boost::fusion::for_each(boost::fusion::filter_if<blib::bun::__private::IsComposite<boost::mpl::_>>(*obj), DeleteObjects(oid));
 						}
 						
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.to_string());
@@ -596,6 +598,21 @@ namespace blib {
                     return str;
 				}
 
+				
+				template<typename T, bool IsComposite>
+				struct GetAllObjectsImpl {
+					inline static void impl(T& x, const soci::row& row, const std::string& member_name) {
+						x = row.get<ConvertCPPTypeToSOCISupportType<T>::type>(member_name);
+					}
+				};
+
+				template<typename T>
+				struct GetAllObjectsImpl<T, true> {
+					inline static void impl(T& x, const soci::row& row, const std::string& member_name) {
+
+					}
+				};
+
 				struct GetAllObjects {
 				private:
 					const soci::row& _row;
@@ -608,7 +625,9 @@ namespace blib {
 
                     template <typename O>
                     void operator()(O& x) const {
-						x = _row.get<ConvertCPPTypeToSOCISupportType<O>::type>(_member_names.at(const_cast<GetAllObjects*>(this)->_count++));
+						const std::string& member_name = _member_names.at(const_cast<GetAllObjects*>(this)->_count++);
+						GetAllObjectsImpl<O, IsComposite<O>::value>::impl(x, _row, member_name);
+						//x = _row.get<ConvertCPPTypeToSOCISupportType<O>::type>(_member_names.at(const_cast<GetAllObjects*>(this)->_count++));
 					}
 				};
 
@@ -1425,7 +1444,7 @@ namespace blib {
 						if (oid_ref.empty() != 0) {
 							// Delete everything before inserting. There is no
 							// update essentially. Just delete and insert of any nested objects.
-							QueryHelper<O>::deleteObjWithParentInfo(oid_ref, &x);
+							QueryHelper<O>::deleteObj(oid_ref, &x);
 						}
 						// Get the oid of the nested object after persisting it
                         const blib::bun::SimpleOID oid = QueryHelper<O>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
