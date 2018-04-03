@@ -430,20 +430,31 @@ namespace blib {
 				/// @brief Helper class to delete the objects of the enclosed scope too.
 				struct DeleteObjects {
 				private:
+					SimpleOID const& _oid;
+					
 				public:
+					DeleteObjects(SimpleOID const& oid):_oid(oid){}
+					
                     template <typename O>
                     void operator()(O const& x) const {
+                    	QueryHelper<O>::deleteObj(_oid);
 					}					
 				};
 
 				/// @fn deleteObj
 				/// @param oid The object associated with this oid needs to be deleted.
+				/// @param obj The object that needs to be deleted
 				/// @brief The object associated with this oid needs to be deleted.
-				inline static void deleteObj(SimpleOID const & oid) {
+				inline static void deleteObj(SimpleOID const& oid, T* obj = nullptr) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
 					const static std::string sql = fmt::format(SqlString<T>::delete_row_sql(), class_name);
 					QUERY_LOG(sql);
 					try {
+						if(obj != nullptr){
+							// Delete all the nested objects.
+							boost::fusion::for_each(filter_if<blib::bun::__private::IsComposite<_>>(*obj), DeleteObjects(oid));
+						}
+						
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::use(oid.to_string());
 					}
 					catch (std::exception const & e) {
@@ -478,7 +489,7 @@ namespace blib {
 				/// @fn getObj
 				/// @param oid The oid for the object
 				/// @brief The object with the particular oid will be returned.
-				inline static std::unique_ptr <T> getObj(SimpleOID const & oid) {
+				inline static std::unique_ptr<T> getObj(SimpleOID const & oid) {
 					static const std::string& class_name = TypeMetaData<T>::class_name();
 					const std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid = {}",
 						class_name, to_valid_query_string(oid.to_string(), "'"));
@@ -1367,7 +1378,7 @@ namespace blib {
 						if (parent_oid.empty() != 0) {
 							// Delete everything before inserting. There is no
 							// update essentially. Just delete and insert of any nested objects.
-							QueryHelper<O>::deleteObjWithParentInfo(oid_ref, parent_table_reference, parent_column_name);
+							QueryHelper<O>::deleteObj(oid_ref);
 						}
 						// Get the oid of the nested object after persisting it
                         const blib::bun::SimpleOID oid = QueryHelper<O>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
