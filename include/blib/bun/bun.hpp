@@ -171,13 +171,19 @@ namespace blib {
 			struct IsComposite : boost::mpl::bool_<false> {
 			};
 
+
+			template< class T >
+			struct remove_cvref {
+				typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+			};
+
 			/////////////////////////////////////////////////
 			/// @class StripQualifiersAndMakePointer
 			/// @brief String all the qualifiers like const, volatile, removes reference and adds a pointer.
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct StripQualifiersAndMakePointer {
-				using type = typename std::add_pointer<typename std::remove_cvref<T>::type>::type;
+				using type = typename std::add_pointer<typename remove_cvref<T>::type>::type;
 			};
 
 			/////////////////////////////////////////////////
