@@ -27,6 +27,7 @@
 #include <boost/fusion/support/pair.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/preprocessor/tuple/rem.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
 #include <third_party/fmt/format.hpp>
 #include <msgpack.hpp>
@@ -64,8 +65,37 @@
 /// @details We need to pass only the data members as a tuple to this macro
 /// @param ELEMS_TUP = (bun_name, sugar_quantity, flour_quantity, milk_quantity, yeast_quantity, butter_quantity, bun_length)
 /// @brief Expands the class members for CREATE TABLE
-#define EXPAND_CLASS_MEMBERS_createSchema_I(z, n, ELEMS_TUP) ", " BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)) " {}"
-#define EXPAND_CLASS_MEMBERS_createSchema(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_MEMBERS_createSchema_I, ELEMS_TUP)
+//#define EXPAND_CLASS_MEMBERS_createSchema_I(z, n, ELEMS_TUP) ", " BOOST_STRINGIZE(BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP)) " {}"
+//#define EXPAND_CLASS_MEMBERS_createSchema(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_CLASS_MEMBERS_createSchema_I, ELEMS_TUP)
+
+namespace blib {
+	namespace bun{
+		template<typename T>
+		struct PersistantNativeTypes {
+			using ValueType = T;
+			using SelfType = PersistantNativeTypes<ValueType>;
+
+			ValueType val;
+			
+			PersistantNativeTypes() : val(){}
+			PersistantNativeTypes(PersistantNativeTypes const& other) : val(other.val){}
+			PersistantNativeTypes(ValueType const other) : val(other){}
+			
+			SelfType& operator=(SelfType const& other) {
+				val = other.val;
+			}
+			
+			SelfType& operator=(ValueType const& other) {
+				val = other;
+			}
+			
+			template<typename O>
+			SelfType& operator=(O const& other) {
+				val = blib::bun::__private::convertToSOCISupportedType<O>(other);
+			}
+		};
+	}
+}
 
 namespace blib {
 	namespace bun {
@@ -146,9 +176,7 @@ namespace blib {
 			/////////////////////////////////////////////////
 			template<typename T>
 			struct StripQualifiersAndMakePointer {
-				using no_cv_type = typename std::remove_cv<T>::type;
-				using no_cv_no_ref = typename std::remove_reference<no_cv_type>::type;
-				using type = typename std::add_pointer<no_cv_no_ref>::type;
+				using type = typename std::add_pointer<typename std::remove_cvref<T>::type>::type;
 			};
 
 			/////////////////////////////////////////////////
@@ -776,7 +804,7 @@ namespace blib {
 			/// @brief Delets the persistent object.
 			///        Clears the MD5 and the flags.
 			void del() {
-				blib::bun::__private::QueryHelper<ObjType>::deleteObj(oid);
+				blib::bun::__private::QueryHelper<ObjType>::deleteObj(oid, _obj.get());
 				_md5.clear();
 				oid.clear();
 			}
@@ -786,7 +814,7 @@ namespace blib {
 				return *this;
 			}
 
-			PRef& operator=(PRef &in_other) {
+			PRef& operator=(PRef& in_other) {
 				copyFrom(in_other);
 				return *this;
 			}
@@ -1384,7 +1412,7 @@ namespace blib {
 						if (oid_ref.empty() != 0) {
 							// Delete everything before inserting. There is no
 							// update essentially. Just delete and insert of any nested objects.
-							QueryHelper<O>::deleteObjWithParentInfo(oid_ref);
+							QueryHelper<O>::deleteObjWithParentInfo(oid_ref, &x);
 						}
 						// Get the oid of the nested object after persisting it
                         const blib::bun::SimpleOID oid = QueryHelper<O>::persistObj(&x, oid_ref, parent_table_reference, parent_column_name);
