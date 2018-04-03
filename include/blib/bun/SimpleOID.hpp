@@ -21,9 +21,7 @@ namespace blib {
         /// @class SimpleOID
         /// @brief Class to generate and hold a simple OID.
         /// @details The OID generation is very simple.
-        ///          The low value can be generate using the current time.
-        ///          High should be filled to create a unique OID.
-        ///          Both high and low are of std::uint64_t
+        ///          The OID is generated using boost UUID.
         struct SimpleOID {
             /// @typedef SelfType=SimpleOID
             using SelfType = SimpleOID;
@@ -33,8 +31,8 @@ namespace blib {
 			/// @typedef TagType = boost::uuids::uuid
 			/// @brief Type to hold oid value
 			using TagType = boost::uuids::uuid;
-            /// @var std::uint64_t high
-            /// @brief hold the higher order bytes.
+            /// @var TagType tag
+            /// @brief Holds the UUID generated.
 			TagType tag;
 
 			SimpleOID() : tag() {}
@@ -42,9 +40,8 @@ namespace blib {
             ~SimpleOID() = default;
 
             /// @fn SimpleOID
-            /// @brief Pass both the high and low to be populated.
-            /// @param in_high Passed to high
-            /// @param in_low Passed to low
+            /// @brief Pass other oid to populate this.
+            /// @param other Passed in oid
             SimpleOID(const SimpleOID& other) :
                     tag(other.tag) {
             }
@@ -55,8 +52,8 @@ namespace blib {
 			}
 
             /// @fn populateAll
-            /// @brief Get the current time and populate high and low both.
-            ///        Uses the std::crono for getting the time.
+            /// @brief Gets a new UUID and populates that.
+            ///        Uses boost::uuid library for the task
             void populate() {
 				tag = boost::uuids::random_generator()();
             }
@@ -112,16 +109,21 @@ namespace blib {
             }
             
             /// @fn to_json
+            /// @brief Returns the json representation of the UUID
             std::string to_json() const {
                 const std::string json = "{" + fmt::format("'oid': '{}'", to_string()) + "}";
                 return json;
             }
 
+            /// @fn to_string
+            /// @brief Returns the string representation of the UUID
 			std::string to_string() const {
 				const std::string ret = boost::uuids::to_string(tag);
 				return ret;
 			}
-
+			
+			/// @fn empty
+			/// @brief Returns true if the oid is nil else returns false
 			bool empty() const {
 				return tag.is_nil();
 			}
