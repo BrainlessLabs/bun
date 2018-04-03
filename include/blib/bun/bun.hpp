@@ -73,9 +73,10 @@ namespace blib {
 		template<typename T>
 		struct PersistantNativeTypes {
 			using ValueType = T;
+			using DbFriendlyValueType = typename blib::bun::__private::ConvertCPPTypeToSOCISupportType<ValueType>::type;
 			using SelfType = PersistantNativeTypes<ValueType>;
 
-			ValueType val;
+			DbFriendlyValueType val;
 			
 			PersistantNativeTypes() : val(){}
 			PersistantNativeTypes(PersistantNativeTypes const& other) : val(other.val){}
@@ -600,8 +601,7 @@ namespace blib {
 					}
 
                     template <typename O>
-                    void operator()(O& x) const
-					{
+                    void operator()(O& x) const {
 						x = _row.get<ConvertCPPTypeToSOCISupportType<O>::type>(_member_names.at(const_cast<GetAllObjects*>(this)->_count++));
 					}
 				};
@@ -617,6 +617,7 @@ namespace blib {
 					const std::string sql = fmt::format(select_sql, where_clasue);
 					QUERY_LOG(sql);
 					try {
+						// Fetch the results as rowset
 						soci::rowset<soci::row> rows = (DbBackend<>::i().session().prepare << sql);
 						for (soci::rowset<soci::row>::const_iterator row_itr = rows.begin(); row_itr != rows.end(); ++row_itr) {
 							auto const& row = *row_itr;
@@ -639,7 +640,7 @@ namespace blib {
 				/// @param in_query Queries for which the objects will be returned.
 				/// @brief Get all the oids with that match the query.
 				inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllNestedObjectssWithQuery(std::string const in_query = std::string(),
-					const SimpleOID& oid_ref = 0,
+					const SimpleOID& oid_ref = SimpleOID(),
 					std::string const& parent_table_reference = std::string(), std::string const& parent_column_name = std::string()) {
 					const std::string query = fmt::format("{} AND oid_ref = {} AND parent_table_reference = {} AND parent_column_name = {}", 
 						to_valid_query_string(oid_ref.to_string(), "'"),
@@ -662,7 +663,7 @@ namespace blib {
 				inline static std::vector<SimpleOID> getAllOidsWithQuery(std::string const in_query = std::string()) {
 					std::vector<SimpleOID> oids;
 					const static std::string& class_name = TypeMetaData<T>::class_name();
-					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), class_name) + " {}";
+					const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), class_name) + " {} ORDER BY oid";
 					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
 					const std::string sql = fmt::format(select_oid_sql, where_clasue);
 					QUERY_LOG(sql);
@@ -918,6 +919,12 @@ namespace blib {
 		inline bool connect(std::string const& connection_string) {
 			const auto ret = blib::bun::__private::DbBackend<blib::bun::__private::DbGenericType>::i().connect(connection_string);
 			return ret;
+		}
+		
+		/// @fn generateMetaData
+		/// @brief Generate the metadata needed for various functionalities of Bun to work.
+		inline bool generateMetaData() {
+			return true;
 		}
 	}
 }
@@ -1419,7 +1426,7 @@ namespace blib {
                         // Get the json representation of the nested object and store it in the parent object
 						const std::string oids = oid.to_json();
 						// TODO : Fix this. This has the context of current query execution. Needs to set the value in parent.
-						//val.set<typename ConvertCPPTypeToSOCISupportType<std::string>::type>(obj_name, oids, ind);
+						val.set<typename ConvertCPPTypeToSOCISupportType<std::string>::type>(obj_name, oids, ind);
 					}
 				};
 
