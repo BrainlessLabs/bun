@@ -1543,10 +1543,10 @@ namespace soci {
 #define EXPAND_member_names(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), EXPAND_member_names_I, ELEMS_TUP)
 
 /// @brief generate the query and query fields
-#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<BOOST_PP_ADD(n, 4)>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
+#define DEFINE_CLASS_STATIC_VARS_QUERY_I(z, n, CLASS_ELEMS_TUP) boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<n>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::BOOST_PP_TUPLE_ELEM(BOOST_PP_ADD(n, 1), CLASS_ELEMS_TUP);
 #define DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(CLASS_ELEMS_TUP), 1), DEFINE_CLASS_STATIC_VARS_QUERY_I, CLASS_ELEMS_TUP)
 
-#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<BOOST_PP_ADD(n, 4)>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
+#define GENERATE_CLASS_STATIC_VARS_QUERY_I(z, n, ELEMS_TUP) static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<n>>::type const BOOST_PP_TUPLE_ELEM(n, ELEMS_TUP);
 #define GENERATE_CLASS_STATIC_VARS_QUERY(ELEMS_TUP) BOOST_PP_REPEAT(BOOST_PP_TUPLE_SIZE(ELEMS_TUP), GENERATE_CLASS_STATIC_VARS_QUERY_I, ELEMS_TUP)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1591,16 +1591,8 @@ namespace blib{ namespace bun{ namespace query{\
 namespace {\
 template<>\
 struct F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)> {\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<0>>::type const oid;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<1>>::type const oid_ref;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<2>>::type const enclosing_table_reference;\
-static boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<3>>::type const enclosing_variable_name;\
 GENERATE_CLASS_STATIC_VARS_QUERY(BOOST_PP_TUPLE_POP_FRONT( CLASS_ELEMS_TUP ))\
 };\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<0>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<1>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::oid_ref;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<2>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::enclosing_table_reference;\
-boost::proto::terminal<blib::bun::query::__private::QueryVariablePlaceholderIndex<3>>::type const F<BOOST_PP_TUPLE_ELEM(0, CLASS_ELEMS_TUP)>::enclosing_variable_name;\
 DEFINE_CLASS_STATIC_VARS_QUERY(CLASS_ELEMS_TUP)\
 }\
 }}}\
