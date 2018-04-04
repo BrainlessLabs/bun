@@ -28,6 +28,7 @@
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/include/algorithm.hpp>
 #include <boost/fusion/include/filter_if.hpp>
+#include <boost/fusion/include/copy.hpp>
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
@@ -601,32 +602,45 @@ namespace blib {
 				
 				template<typename T, bool IsComposite>
 				struct GetAllObjectsImpl {
-					inline static void impl(T& x, const soci::row& row, const std::string& member_name) {
+					inline static void impl(T& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
 						x = row.get<ConvertCPPTypeToSOCISupportType<T>::type>(member_name);
 					}
 				};
 
 				template<typename T>
 				struct GetAllObjectsImpl<T, true> {
-					inline static void impl(T& x, const soci::row& row, const std::string& member_name) {
-
+					inline static void impl(T& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
+						const std::string sql = fmt::format("oid_ref = {} AND parent_column_name = {}",
+							to_valid_query_string(oid_ref, "'"),
+							to_valid_query_string(member_name, "'"));
+						std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> objs = QueryHelper<T>::getAllObjectsWithQuery(sql);
+						if (objs.empty()) {
+							l().error("GetAllObjectsImpl() for member name:{} has no elements ", member_name);
+						}
+						else {
+							std::pair<std::unique_ptr <T>, SimpleOID>& obj = objs.at(0);
+							boost::fusion::copy(*obj.first, x);
+							x;
+						}
 					}
 				};
 
 				struct GetAllObjects {
 				private:
 					const soci::row& _row;
+					const std::string& _oid_ref;
 					const std::vector<std::string>& _member_names;
 					int _count;
 
 				public:
-					GetAllObjects(const soci::row& row) :_row(row), _member_names(TypeMetaData<T>::member_names()), _count(2) {
+					GetAllObjects(const soci::row& row, const std::string& oid_ref) :_row(row), _oid_ref(oid_ref),
+						_member_names(TypeMetaData<T>::member_names()), _count(2) {
 					}
 
                     template <typename O>
                     void operator()(O& x) const {
 						const std::string& member_name = _member_names.at(const_cast<GetAllObjects*>(this)->_count++);
-						GetAllObjectsImpl<O, IsComposite<O>::value>::impl(x, _row, member_name);
+						GetAllObjectsImpl<O, IsComposite<O>::value>::impl(x, _row, member_name, _oid_ref);
 						//x = _row.get<ConvertCPPTypeToSOCISupportType<O>::type>(_member_names.at(const_cast<GetAllObjects*>(this)->_count++));
 					}
 				};
@@ -650,7 +664,7 @@ namespace blib {
 							pair.second = row.get<std::string>("oid");
 							pair.first = std::make_unique<T>();
 							T& obj = *pair.first;
-							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row));
+							boost::fusion::for_each(obj, QueryHelper<T>::GetAllObjects(row, pair.second.to_string()));
 							ret_values.emplace_back(pair.first.release(), pair.second);
 						}
 					}
