@@ -138,13 +138,14 @@
       </PrecompiledHeader>
       <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;BOOST_ALL_NO_LIB;FMT_HEADER_ONLY;BUN_POSTGRES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\include\third_party;$(SolutionDir)..\include\third_party\sqlite;$(BOOST_DIR);$(SOCI_DIR)\include;$(POSTGRES)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\include\third_party;$(SolutionDir)..\include\third_party\sqlite;$(BOOST_DIR);$(SOCI_DIR)\include;$(POSTGRES)\include;$(SolutionDir)..\include\third_party\msgpack</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnablePREfast>true</EnablePREfast>
-      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformation>true</BrowseInformation>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,11 +168,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\Bun.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\Generate.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
     </ClCompile>
@@ -195,7 +196,6 @@
     <ClInclude Include="..\..\include\blib\bun\DbLogger.hpp" />
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp" />
     <ClInclude Include="..\..\include\blib\utils\debug.hpp" />
-    <ClInclude Include="..\..\include\blib\utils\JSONUtils.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />
     <ClInclude Include="..\..\include\blib\utils\Singleton.hpp" />
     <ClInclude Include="..\..\include\third_party\fmt\format.hpp" />
@@ -205,6 +205,8 @@
     <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\boost_uuid.hpp" />
     <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\std_time_t.hpp" />
     <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\utility\function_traits.hpp" />
+    <ClInclude Include="..\..\include\third_party\msgpack\msgpack.h" />
+    <ClInclude Include="..\..\include\third_party\msgpack\msgpack.hpp" />
     <ClInclude Include="..\..\include\third_party\rapidjson\allocators.h" />
     <ClInclude Include="..\..\include\third_party\rapidjson\document.h" />
     <ClInclude Include="..\..\include\third_party\rapidjson\encodedstream.h" />
@@ -273,6 +275,8 @@
     <ClInclude Include="..\..\include\third_party\spdlog\sinks\wincolor_sink.h" />
     <ClInclude Include="..\..\include\third_party\spdlog\spdlog.h" />
     <ClInclude Include="..\..\include\third_party\spdlog\tweakme.h" />
+    <ClInclude Include="..\..\include\third_party\sqlite\sqlite3.h" />
+    <ClInclude Include="..\..\include\third_party\sqlite\sqlite3ext.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />

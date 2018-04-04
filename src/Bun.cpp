@@ -8,7 +8,7 @@ namespace test {
   struct Person {
     std::string name;
     int age;
-    float height;
+    double height;
   };
 }
 
@@ -69,11 +69,11 @@ int main() {
   // Grammar are checked for validity of syntax at compile time itself.
   // Currently only &&, ||, <, <=, >, >=, ==, != are supported. They have their respective meaning
   // Below is a valid query grammar
-  auto valid_query = PersonFields::age > 10 && PersonFields::name != "Brainless_0";
+  auto valid_query = PersonFields::age > 10 && PersonFields::name != "Brainless_1";
   std::cout << "Valid Grammar?: " << query::IsValidQuery<decltype(valid_query)>::value << std::endl;
 
   // Oops + is not a valid grammar
-  auto invalid_query = PersonFields::age + 10 && PersonFields::name != "Brainless_0";
+  auto invalid_query = PersonFields::age + 10 && PersonFields::name != "Brainless_1";
   std::cout << "Valid Grammar?: " << query::IsValidQuery<decltype(invalid_query)>::value << std::endl;
 
   // Now let us execute the query.
@@ -81,9 +81,9 @@ int main() {
   const auto objs = fromPerson.where( valid_query ).where( valid_query ).objects();
   // Can even use following way of query
   // As you see we can join queries 
-  const auto q = PersonFields::age > 21 && PersonFields::name == "test";
+  const auto q = PersonFields::age > 21 && PersonFields::name == "Brainless_1";
   const auto objs_again = FromPerson().where( q ).objects();
-  const auto objs_again_q = FromPerson().where( PersonFields::age > 21 && PersonFields::name == "test" ).objects();
+  const auto objs_again_q = FromPerson().where( PersonFields::age > 21 && PersonFields::name == "Brainless_1" ).objects();
   // Not going to compile if you enable the below line. Will get the "Syntax error in Bun Query" compile time message.
   //const auto objs1 = FromPerson.where( invalid_query ).objects();
 

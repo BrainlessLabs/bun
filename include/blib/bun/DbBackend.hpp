@@ -92,10 +92,15 @@ namespace blib {
 				using type = double;
 			};
 
+			template<>
+			struct ConvertCPPTypeToSOCISupportType<std::uint64_t> {
+				using type = unsigned long long;
+			};
+
 			/// @brief Works for all stuff where the default type conversion operator is overloaded.
 			template<typename T>
-			typename ConvertCPPTypeToSOCISupportType<T>::type convertToSOCISupportedType(T const & val) {
-				const auto ret = (ConvertCPPTypeToSOCISupportType<T>::type)(val);
+			typename ConvertCPPTypeToSOCISupportType<T>::type convertToSOCISupportedType(T const& val) {
+				const auto ret = static_cast<ConvertCPPTypeToSOCISupportType<T>::type>(val);
 				return ret;
 			}
 

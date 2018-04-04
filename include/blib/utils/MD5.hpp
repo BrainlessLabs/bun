@@ -375,7 +375,7 @@ namespace blib {
 
   //////////////////////////////
 
-  // return hex representation of digest as string
+  /// @brief return hex representation of digest as string
   inline std::string MD5::hexdigest() const {
     if (!finalized)
       return "";
@@ -395,10 +395,11 @@ namespace blib {
 
   //////////////////////////////
 
+  /// @fn md5
+  /// @brief The function returns the md5 of a string passed.
+  /// @param the string for which md5 needs to be calculated.
   inline std::string md5( const std::string& str ) {
-    const MD5 md5 = MD5( str );
-
+    const MD5 md5( str );
     return std::move(md5.hexdigest());
   }
-
 }

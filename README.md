@@ -1,20 +1,33 @@
 # bun
+## Description
 Bun is a simple to use C++ Object Relational Mapper (ORM) library
-<p>
+
 [Bun Page](http://brainlesslabs.github.io/bun/)
-<p>
-[CodeProject Article](http://www.codeproject.com/Tips/1100449/Cplusplus-Object-Relational-Mapping-ORM-Eating-the)
-<p>
+
 [![OpenHub](https://www.openhub.net/p/brainlesslabs_bun/widgets/project_thin_badge.gif)](https://www.openhub.net/p/brainlesslabs_bun)
-<p>
+
 [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
-#Usage
+
+# Articles
+
+## Introduction to bun
+
+[CodeProject Article](http://www.codeproject.com/Tips/1100449/Cplusplus-Object-Relational-Mapping-ORM-Eating-the)
+
+
+# Usage
 
 ```C++
-#include "blib/bun/Bun.hpp"
+/// @brief This BUN_POSTGRES defines that this is a postgres database. The other
+///        values are BUN_SQLITE and BUN_MYSQL
+#define BUN_POSTGRES
+
+/// @brief include the bun include file
+#include "blib/bun/bun.hpp"
 
 namespace test {
-  // Class that needs to be persisted
+  /// @class Person
+  /// @brief Class that needs to be persisted
   struct Person {
     std::string name;
     int age;
@@ -23,9 +36,9 @@ namespace test {
 }
 
 /////////////////////////////////////////////////
-/// Generate the database bindings at compile time.
+/// Generate the database bindings.
 /////////////////////////////////////////////////
-GENERATE_BINDING( (test::Person, name, age, height) );
+SPECIALIZE_BUN_HELPER( (test::Person, name, age, height) );
 
 int main() {
   namespace bun = blib::bun;
@@ -33,11 +46,16 @@ int main() {
 
   // Connect the db. If the db is not there it will be created.
   // It should include the whole path
-  bun::dbConnect( "test.db" );
+  // For SQLite
+  //bun::connect( "objects.db" );
+  // For PostGres
+  bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
   // Create the schema. We can create the schema multile times. If its already created
   // it will be safely ignored
   bun::createSchema<test::Person>();
-
+  
+  // Start transaction
+  bun::Transaction t;
   // Creat some entries in the database
   for (int i = 1; i < 1000; ++i) {
     // PRef is a reference to the persistant object.
@@ -56,6 +74,7 @@ int main() {
     //Getting the object from db using oid.
     bun::PRef<test::Person> p1( oid );
   }
+  t.commit();
 
   // To get all the object oids of a particular object.
   // person_oids is a vector of type std::vector<blib::bun<>SimpleOID<test::Person>>
