@@ -1281,7 +1281,7 @@ namespace blib {
 					return _query;
 				}
 
-				decltype(_objects)& objects() {
+				auto objects()->decltype(_objects)& {
 					_objects = blib::bun::getAllObjWithQuery<T>(_query);
 					return _objects;
 				}
