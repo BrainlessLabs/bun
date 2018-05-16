@@ -1308,7 +1308,7 @@ namespace blib {
 			/// @class UniqueConstraint
 			/// @brief Helper class to be used to add 
 			template<typename T>
-			struct UniqueConstraint {
+			struct UniqueConstraintInternal {
 				using TypesUsed = typename TypesUsed<T>::Type;
 				/// @class BunConstraintContex
 				/// @brief The context for Unique Constraint
@@ -1353,7 +1353,7 @@ namespace blib {
 		private:
 			template<typename ExpressionType>
 			std::string eval(ExpressionType const& in_expr) {
-				typename __private::FromInternals<T>::BunQueryFilterContex ctx;
+				typename __private::UniqueConstraintInternal<T>::BunQueryFilterContex ctx;
 				const std::string ret = boost::proto::eval(in_expr, ctx);
 				return ret;
 			}
