@@ -166,6 +166,10 @@ namespace blib {
 namespace blib {
 	namespace bun {
 		namespace __private {
+			struct ConfigurationOptions {
+				static std::set<std::string> unique_constraint;
+			};
+
 			/////////////////////////////////////////////////
 			/// @class IsComposite
 			/// @brief True if the element is a class/struct that can be persisted
@@ -1085,11 +1089,11 @@ namespace blib {
 					struct BunQueryFilterContex : boost::proto::callable_context<BunQueryFilterContex> {
 						typedef std::string result_type;
 
-						/// fn BunQueryFilterContex
+						/// @fn BunQueryFilterContex
 						/// @brief default constructor
 						BunQueryFilterContex() {}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param the terminal name
 						/// @brief returns valid terminal name
@@ -1099,7 +1103,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param the terminal terminal name
 						/// @brief returns valid terminal name
@@ -1108,7 +1112,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param the terminal name
 						/// @brief returns valid terminal name. Overloaded for character
@@ -1118,7 +1122,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param The index of the variable for lookup
 						/// @brief returns the name from the mapping
@@ -1128,7 +1132,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param Logical 
 						/// @param left param
 						/// @param right param
@@ -1294,6 +1298,69 @@ namespace blib {
 	}
 }
 /// ======================Query End========================
+
+/// ======================Configuration Start========================
+namespace blib {
+	namespace bun {
+		struct UniqueConstraint {};
+
+		namespace __private {
+			/// @class UniqueConstraint
+			/// @brief Helper class to be used to add 
+			template<typename T>
+			struct UniqueConstraint {
+				using TypesUsed = typename TypesUsed<T>::Type;
+				/// @class BunConstraintContex
+				/// @brief The context for Unique Constraint
+				struct BunConstraintContex : boost::proto::callable_context<BunConstraintContex> {
+					using result_type=std::string;
+
+					/// @fn BunConstraintContex
+					/// @brief default constructor
+					BunConstraintContex() {}
+
+					/// @fn operator()
+					/// @param The terminal tag
+					/// @param The index of the variable for lookup
+					/// @brief returns the name from the mapping
+					template<std::uint32_t I>
+					result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> in_term) const {
+						const auto ret = mapping<T>(I);
+						return ret;
+					}
+
+					/*result_type operator()(boost::proto::tag::terminal, blib::bun::UniqueConstraint in_term) const {
+						static const std::string ret = "UNIQUE";
+						return ret;
+					}*/
+
+					template<typename L>
+					result_type operator()(boost::proto::tag::equal_to, L const& in_l, blib::bun::UniqueConstraint in_r) const {
+						auto ctx = *this;
+						const auto left_string = boost::proto::eval(in_l, ctx);
+						ConfigurationOptions::unique_constraint.insert(left_string);
+						return left_string;
+					}
+				};
+			};
+		} // __private
+
+		  /////////////////////////////////////////////////
+		  /// @brief Cinfiguration class.
+		  /////////////////////////////////////////////////
+		template<typename T>
+		struct Configuration {
+		private:
+			template<typename ExpressionType>
+			std::string eval(ExpressionType const& in_expr) {
+				typename __private::FromInternals<T>::BunQueryFilterContex ctx;
+				const std::string ret = boost::proto::eval(in_expr, ctx);
+				return ret;
+			}
+		};
+	}
+}
+/// ======================Configuration End========================
 
 /// @brief Transaction
 namespace blib {
