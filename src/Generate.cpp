@@ -150,7 +150,7 @@ int main() {
 
 	using AFields = query::F<bakery::A>;
 	blib::bun::Configuration<bakery::A> a_config;
-	a_config.set(AFields::i = blib::bun::unique_constraint)(AFields::i = blib::bun::unique_constraint);
+	a_config.set(AFields::i = blib::bun::unique_constraint);
 	str = blib::bun::__private::SqlString<bakery::A>::create_table_sql();
 	//blib::bun::connect("objects.db");
 	blib::bun::createSchema<bakery::A>();

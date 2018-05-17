@@ -323,6 +323,7 @@ namespace blib {
 								unique_str += elem;
 							}
 							unique_str += ")";
+							sql += unique_str;
 						}
 						sql += ")";
 					}
@@ -1366,10 +1367,11 @@ namespace blib {
 						return ret;
 					}
 
-					template<typename L>
-					result_type operator()(boost::proto::tag::assign, L const& in_l, blib::bun::UniqueConstraint const in_r) const {
+					template<typename L, typename R>
+					result_type operator()(boost::proto::tag::assign, L const& in_l, R const& in_r) const {
 						auto ctx = *this;
 						const auto left_string = boost::proto::eval(in_l, ctx);
+						const auto right_string = boost::proto::eval(in_r, ctx);
 						ConfigurationOptions<T>::unique_constraint_set().insert(left_string);
 						return left_string;
 					}
