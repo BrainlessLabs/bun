@@ -166,6 +166,14 @@ namespace blib {
 namespace blib {
 	namespace bun {
 		namespace __private {
+			template<typename T>
+			struct ConfigurationOptions {
+				inline static std::set<std::string>& unique_constraint_set() {
+					static std::set<std::string> constraint_set;
+					return constraint_set;
+				}
+			};
+
 			/////////////////////////////////////////////////
 			/// @class IsComposite
 			/// @brief True if the element is a class/struct that can be persisted
@@ -301,6 +309,22 @@ namespace blib {
 					if (sql.empty()) {
 						sql = "CREATE TABLE IF NOT EXISTS \"{}\" (oid VARCHAR PRIMARY KEY, oid_ref VARCHAR, parent_table_reference VARCHAR, parent_column_name VARCHAR";
 						boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
+						const auto& unique_constraint_set = ConfigurationOptions<T>::unique_constraint_set();
+						if (!unique_constraint_set.empty()) {
+							std::string unique_str = ", CONSTRAINT \"unique_constraint" + TypeMetaData<T>::class_name() + "\" UNIQUE (";
+							bool include_comma = false;
+							for (const auto& elem : unique_constraint_set) {
+								if (include_comma) {
+									unique_str += ",";
+								}
+								else {
+									include_comma = true;
+								}
+								unique_str += elem;
+							}
+							unique_str += ")";
+							sql += unique_str;
+						}
 						sql += ")";
 					}
 					return sql;
@@ -974,12 +998,14 @@ namespace blib {
 ///			 query elements.
 namespace blib {
 	namespace bun {
+		/// @class Configuration terminal
+		struct UniqueConstraint {};
 		namespace query {
 			namespace __private {
 
 				template<std::int32_t I>
 				struct QueryVariablePlaceholderIndex : std::integral_constant <std::int32_t, I> {
-                  QueryVariablePlaceholderIndex(){}
+					QueryVariablePlaceholderIndex() {}
 				};
 
 				/// @brief Grammar for the query Start
@@ -1019,9 +1045,21 @@ namespace blib {
 				> {
 				};
 
+				/// @class ConfigurationTerminals
+				/// @brief Terminal for configuration
+				struct ConfigurationTerminals : boost::proto::or_<
+					boost::proto::terminal<blib::bun::UniqueConstraint>
+				>{};
+
 				struct AllTerminals : boost::proto::or_<
 					PlaceHoldersTerminals,
 					QueryLiteralTerminals
+				> {
+				};
+
+				/// @brief Configuration
+				struct ConfigUniqueKeyGrammer : boost::proto::or_<
+					boost::proto::assign<AllTerminals, ConfigurationTerminals>
 				> {
 				};
 
@@ -1048,6 +1086,7 @@ namespace blib {
 					GreaterSymbols,
 					LessSymbols,
 					EqualSymbols,
+					ConfigUniqueKeyGrammer,
 					boost::proto::logical_and<BunQueryGrammar, BunQueryGrammar>,
 					boost::proto::logical_or<BunQueryGrammar, BunQueryGrammar>
 				> {
@@ -1085,11 +1124,11 @@ namespace blib {
 					struct BunQueryFilterContex : boost::proto::callable_context<BunQueryFilterContex> {
 						typedef std::string result_type;
 
-						/// fn BunQueryFilterContex
+						/// @fn BunQueryFilterContex
 						/// @brief default constructor
 						BunQueryFilterContex() {}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param the terminal name
 						/// @brief returns valid terminal name
@@ -1099,7 +1138,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param the terminal terminal name
 						/// @brief returns valid terminal name
@@ -1108,7 +1147,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param the terminal name
 						/// @brief returns valid terminal name. Overloaded for character
@@ -1118,7 +1157,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param The terminal tag
 						/// @param The index of the variable for lookup
 						/// @brief returns the name from the mapping
@@ -1128,7 +1167,7 @@ namespace blib {
 							return ret;
 						}
 
-						/// fn operator()
+						/// @fn operator()
 						/// @param Logical 
 						/// @param left param
 						/// @param right param
@@ -1281,7 +1320,7 @@ namespace blib {
 					return _query;
 				}
 
-				decltype(_objects)& objects() {
+				auto objects()->decltype(_objects)& {
 					_objects = blib::bun::getAllObjWithQuery<T>(_query);
 					return _objects;
 				}
@@ -1294,6 +1333,96 @@ namespace blib {
 	}
 }
 /// ======================Query End========================
+
+/// ======================Configuration Start========================
+namespace blib {
+	namespace bun {
+		namespace __private {
+			/// @class UniqueConstraint
+			/// @brief Helper class to be used to add 
+			template<typename T>
+			struct UniqueConstraintInternal {
+				//using TypesUsed = typename TypesUsed<T>::Type;
+				/// @class BunConstraintContex
+				/// @brief The context for Unique Constraint
+				struct BunConstraintContex : boost::proto::callable_context<BunConstraintContex> {
+					using result_type=std::string;
+
+					/// @fn BunConstraintContex
+					/// @brief default constructor
+					BunConstraintContex() {}
+
+					/// @fn operator()
+					/// @param The terminal tag
+					/// @param The index of the variable for lookup
+					/// @brief returns the name from the mapping
+					template<std::uint32_t I>
+					result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> in_term) const {
+						const auto ret = blib::bun::query::__private::mapping<T>(I);
+						return ret;
+					}
+
+					result_type operator()(boost::proto::tag::terminal, blib::bun::UniqueConstraint in_term) const {
+						static const std::string ret = "UNIQUE";
+						return ret;
+					}
+
+					template<typename L, typename R>
+					result_type operator()(boost::proto::tag::assign, L const& in_l, R const& in_r) const {
+						auto ctx = *this;
+						const auto left_string = boost::proto::eval(in_l, ctx);
+						const auto right_string = boost::proto::eval(in_r, ctx);
+						ConfigurationOptions<T>::unique_constraint_set().insert(left_string);
+						return left_string;
+					}
+				};
+			};
+		} // __private
+
+		  /////////////////////////////////////////////////
+		  /// @brief Cinfiguration class.
+		  /////////////////////////////////////////////////
+		template<typename T>
+		struct Configuration {
+		private:
+			template<typename ExpressionType>
+			std::string eval(ExpressionType const& in_expr) {
+				typename __private::UniqueConstraintInternal<T>::BunConstraintContex ctx;
+				const std::string ret = boost::proto::eval(in_expr, ctx);
+				return ret;
+			}
+
+			static std::string const& className() {
+				static const auto table_name = blib::bun::__private::TypeMetaData<T>::class_name();
+				return table_name;
+			}
+
+		public:
+			Configuration() = default;
+
+			template<typename ExpressionType>
+			Configuration& set(ExpressionType const& in_expr) {
+				static_assert(boost::proto::matches<ExpressionType, blib::bun::query::__private::BunQueryGrammar>::value, "Syntax error in Bun Configuration Expression");
+				const std::string query_string = eval(in_expr);
+				return *this;
+			}
+
+			template<typename ExpressionType>
+			Configuration& operator()(ExpressionType const& in_expr) {
+				return set(in_expr);
+			}
+
+			std::set<std::string> const& uniques() const {
+				return bun::__private::ConfigurationOptions<T>::unique_constraint_set();
+			}
+		};
+
+		namespace {
+			static blib::bun::UniqueConstraint unique_constraint;
+		}
+	}
+}
+/// ======================Configuration End========================
 
 /// @brief Transaction
 namespace blib {

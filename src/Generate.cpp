@@ -147,8 +147,15 @@ int main() {
 		blib::bun::l().error("{}", e.what());
 		std::cout << e.what() << std::endl;
 	}
-	
 
+	// We can also define constraints naturally as follows
+	using AFields = query::F<bakery::A>;
+	blib::bun::Configuration<bakery::A> a_config;
+	// This is a unique key constrains thats applied.
+	// Constraint are applied globally. They need to be set before the
+	// execution of the create schema statement
+	a_config.set(AFields::i = blib::bun::unique_constraint);
+	str = blib::bun::__private::SqlString<bakery::A>::create_table_sql();
 	//blib::bun::connect("objects.db");
 	blib::bun::createSchema<bakery::A>();
 	blib::bun::createSchema<bakery::Bun>();
@@ -164,6 +171,12 @@ int main() {
 	bunn->bun_name = "test";
 	bunn->sugar_quantity = 55.6;
 	bunn.save();
+
+	// This will throw exceptions due to duplicate key.
+	for (int i = 0; i < 5; ++i) {
+		blib::bun::PRef<bakery::A> a = new bakery::A;
+		a->i = 10;
+	}
 
 	std::cout << "How many objects to insert? " << std::endl;
 	int count = 0;
