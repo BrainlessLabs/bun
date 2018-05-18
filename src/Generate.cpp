@@ -168,6 +168,12 @@ int main() {
 	bunn->sugar_quantity = 55.6;
 	bunn.save();
 
+	// This will throw exceptions due to duplicate key.
+	for (int i = 0; i < 5; ++i) {
+		blib::bun::PRef<bakery::A> a = new bakery::A;
+		a->i = 10;
+	}
+
 	std::cout << "How many objects to insert? " << std::endl;
 	int count = 0;
 	std::cin >> count;
