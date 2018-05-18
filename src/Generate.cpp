@@ -148,8 +148,12 @@ int main() {
 		std::cout << e.what() << std::endl;
 	}
 
+	// We can also define constraints naturally as follows
 	using AFields = query::F<bakery::A>;
 	blib::bun::Configuration<bakery::A> a_config;
+	// This is a unique key constrains thats applied.
+	// Constraint are applied globally. They need to be set before the
+	// execution of the create schema statement
 	a_config.set(AFields::i = blib::bun::unique_constraint);
 	str = blib::bun::__private::SqlString<bakery::A>::create_table_sql();
 	//blib::bun::connect("objects.db");
