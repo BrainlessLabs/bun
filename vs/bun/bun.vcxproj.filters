@@ -76,6 +76,9 @@
     <Filter Include="Header Files\third_party\msgpack">
       <UniqueIdentifier>{4e8915ed-b89f-43c7-98d5-4882002f50c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\third_party\unqlite">
+      <UniqueIdentifier>{43a41ccd-db38-4e91-b2eb-24a8a4f21c9b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -101,6 +104,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Bun.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\unqlite.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -365,6 +371,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\third_party\msgpack\msgpack.hpp">
       <Filter>Header Files\third_party\msgpack</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h">
+      <Filter>Header Files\third_party\unqlite</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

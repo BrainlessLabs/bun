@@ -139,7 +139,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;BOOST_ALL_NO_LIB;FMT_HEADER_ONLY;BUN_SQLITE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\include\third_party;$(SolutionDir)..\include\third_party\sqlite;$(BOOST_DIR);$(SOCI_DIR)\include;$(POSTGRES)\include;$(SolutionDir)..\include\third_party\msgpack</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\include\third_party;$(SolutionDir)..\include\third_party\unqlite;$(SolutionDir)..\include\third_party\sqlite;$(BOOST_DIR);$(SOCI_DIR)\include;$(POSTGRES)\include;$(SolutionDir)..\include\third_party\msgpack</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnablePREfast>true</EnablePREfast>
       <BrowseInformation>true</BrowseInformation>
@@ -189,6 +189,7 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level2</WarningLevel>
       <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</MinimalRebuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\unqlite.c" />
     <ClCompile Include="bun.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -282,6 +283,7 @@
     <ClInclude Include="..\..\include\third_party\spdlog\tweakme.h" />
     <ClInclude Include="..\..\include\third_party\sqlite\sqlite3.h" />
     <ClInclude Include="..\..\include\third_party\sqlite\sqlite3ext.h" />
+    <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />
