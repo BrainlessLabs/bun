@@ -138,8 +138,11 @@ int main() {
 
 	auto str = blib::bun::__private::SqlString<bakery::Bun>::create_table_sql();
 	str = blib::bun::__private::SqlString<bakery::Bun>::insert_row_sql();
-
+#if defined(BUN_SQLITE)
+	bun::connect("obj.db");
+#elif defined(BUN_POSTGRES)
 	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
+#endif
 	try {
 		//persistPerson();
 	}

@@ -562,7 +562,7 @@ namespace blib {
 					const std::string sql = fmt::format(SqlString<T>::select_rows_sql() + " WHERE oid = {}",
 						class_name, to_valid_query_string(oid.to_string(), "'"));
 					QUERY_LOG(sql);
-					const std::unique_ptr <T> obj = std::make_unique<T>();
+					std::unique_ptr <T> obj = std::make_unique<T>();
 					SimpleObjHolder<T> obj_holder(obj.get(), oid);
 					try {
 						blib::bun::__private::DbBackend<>::i().session() << sql, soci::into(obj_holder);
