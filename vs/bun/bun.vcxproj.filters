@@ -375,6 +375,12 @@
     <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h">
       <Filter>Header Files\third_party\unqlite</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\kv.hpp">
+      <Filter>Header Files\blib\bun</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\endian.hpp">
+      <Filter>Header Files\blib\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />

@@ -200,6 +200,8 @@
     <ClInclude Include="..\..\include\blib\bun\CppTypeToSQLString.hpp" />
     <ClInclude Include="..\..\include\blib\bun\DbBackend.hpp" />
     <ClInclude Include="..\..\include\blib\bun\DbLogger.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\endian.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\kv.hpp" />
     <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp" />
     <ClInclude Include="..\..\include\blib\utils\debug.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />

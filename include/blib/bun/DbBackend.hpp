@@ -109,5 +109,13 @@ namespace blib {
 				return std::move(ret);
 			}
         }
+
+		using DbGenericType = __private::DbGenericType;
+
+		using DbTypeSqlite = __private::DbGenericType;
+
+		using DbTypePostgres = __private::DbGenericType;
+
+		using DbTypeMySql = __private::DbGenericType;
     }
 }

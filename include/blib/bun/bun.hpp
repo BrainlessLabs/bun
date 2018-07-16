@@ -979,6 +979,7 @@ namespace blib {
 
 		/// @fn connect
 		/// @brief Connect with the proper connection strings
+		template<typename DbType = blib::bun::__private::DbGenericType>
 		inline bool connect(std::string const& connection_string) {
 			const auto ret = blib::bun::__private::DbBackend<blib::bun::__private::DbGenericType>::i().connect(connection_string);
 			return ret;
