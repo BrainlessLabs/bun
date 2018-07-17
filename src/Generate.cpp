@@ -8,6 +8,7 @@
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/bun.hpp"
+#include "blib/bun/kv.hpp"
 
 using namespace soci;
 using namespace std;
@@ -132,7 +133,7 @@ void persistPerson() {
 		"where id = :ID", use(p);
 }
 
-int main() {
+int ormTest() {
 	namespace bun = blib::bun;
 	namespace query = blib::bun::query;
 
@@ -241,5 +242,14 @@ int main() {
 		bun.del();
 	}
 	
+	return 1;
+}
+
+int kvTest() {
+	return 1;
+}
+
+int main() {
+	namespace bun = blib::bun;
 	return 1;
 }
