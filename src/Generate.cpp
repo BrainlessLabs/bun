@@ -8,6 +8,7 @@
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/bun.hpp"
+#include "blib/bun/kv.hpp"
 
 using namespace soci;
 using namespace std;
@@ -132,14 +133,17 @@ void persistPerson() {
 		"where id = :ID", use(p);
 }
 
-int main() {
+int ormTest() {
 	namespace bun = blib::bun;
 	namespace query = blib::bun::query;
 
 	auto str = blib::bun::__private::SqlString<bakery::Bun>::create_table_sql();
 	str = blib::bun::__private::SqlString<bakery::Bun>::insert_row_sql();
-
+#if defined(BUN_SQLITE)
+	bun::connect("obj.db");
+#elif defined(BUN_POSTGRES)
 	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
+#endif
 	try {
 		//persistPerson();
 	}
@@ -238,5 +242,33 @@ int main() {
 		bun.del();
 	}
 	
+	return 1;
+}
+
+int kvTest() {
+	blib::bun::KVDb<> db("kv.db");
+	db.put("test", "test");
+	std::string val;
+	db.get("test", val);
+	std::cout << val << std::endl;
+
+	const int size = 100000;
+	for (int i = 0; i < size; ++i) {
+		const std::string s = fmt::format("Value: {}", i);
+		db.put(i, s);
+	}
+
+	for (int i = 0; i < size; ++i) {
+		std::string val;
+		db.get(i, val);
+		std::cout << val << std::endl;
+	}
+	
+	return 1;
+}
+
+int main() {
+	namespace bun = blib::bun;
+	kvTest();
 	return 1;
 }
