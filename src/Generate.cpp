@@ -246,10 +246,29 @@ int ormTest() {
 }
 
 int kvTest() {
+	blib::bun::KVDb<> db("kv.db");
+	db.put("test", "test");
+	std::string val;
+	db.get("test", val);
+	std::cout << val << std::endl;
+
+	const int size = 100000;
+	for (int i = 0; i < size; ++i) {
+		const std::string s = fmt::format("Value: {}", i);
+		db.put(i, s);
+	}
+
+	for (int i = 0; i < size; ++i) {
+		std::string val;
+		db.get(i, val);
+		std::cout << val << std::endl;
+	}
+	
 	return 1;
 }
 
 int main() {
 	namespace bun = blib::bun;
+	kvTest();
 	return 1;
 }

@@ -468,11 +468,11 @@ namespace blib {
 			template<typename Key>
 			bool get(Key const& key, ByteVctorType& value) {
 				const auto key_vec = to_byte_vec(key);
-				size_t buff_size = 0;
+				unqlite_int64 buff_size = 0;
 				auto rc = unqlite_kv_fetch(_db, key_vec.data(), key_vec.size(), NULL, &buff_size);
 				if ( UNQLITE_OK == rc) {
 					std::unique_ptr<std::uint8_t[]> buffer = std::make_unique<std::uint8_t[]>(buff_size);	
-					rc = unqlite_kv_fetch(_db, key_vec.data(), key_vec.size(), buffer.get(), buff_size);
+					rc = unqlite_kv_fetch(_db, key_vec.data(), key_vec.size(), buffer.get(), &buff_size);
 					value.reserve(buff_size);
 					for (int i = 0; i < buff_size; ++i) {
 						value.push_back(buffer[i]);
@@ -485,11 +485,14 @@ namespace blib {
 
 			template<typename Key, typename Value>
 			bool get(Key const& key, Value& value) {
+				bool ret = false;
 				ByteVctorType vec;
 				const bool rc = get(key, vec);
 				if (true == rc) {
 					from_byte_vec(vec, value);
+					ret = true;
 				}
+				return ret;
 			}
 
 			template<typename Key>
