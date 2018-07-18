@@ -416,15 +416,24 @@ namespace blib {
 			__private::FromByte<T>::from_byte(vec, value);
 		}
 
+		/// @class KVDb
+		/// @brief The main class for the key value store
 		template<typename T = DBKVStoreUnqlite>
 		class KVDb {
 		public:
 			using ByteVctorType = std::vector<std::uint8_t>;
 		private:
+			/// @var _db
+			/// @brief The default is of type unqlite
 			unqlite* _db;
+			/// @var _ok
+			/// @brief The value is true if all things is right with the database else it is false
 			bool _ok;
 
 		public:
+			/// @fn KVDb
+			/// @param param
+			/// @brief The constructor for the KV class
 			KVDb(std::string const& param) :_db(nullptr), _ok(false) {
 				const auto rc = unqlite_open(&_db, param.c_str(), UNQLITE_OPEN_CREATE);
 				if ( UNQLITE_OK == rc) {
@@ -432,17 +441,24 @@ namespace blib {
 				}
 			}
 
+			/// @fn KVDb
+			/// @param other. The other KVDb from which we can copy values.
+			/// @brief The copy constructor for the KV class
 			KVDb(KVDb const& other) {
 				_db = other._db;
 				_ok = other._ok;
 			}
 
+			/// @fn ~KVDb
+			/// @brief destructor for the KV class
 			~KVDb() {
 				if (nullptr != _db) {
 					unqlite_close(_db);
 				}
 			}
 
+			/// @fn ok
+			/// @brief Returns Ok
 			bool ok() const {
 				return _ok;
 			}
@@ -455,9 +471,13 @@ namespace blib {
 				return ret;
 			}
 
+			/// @fn put
+			/// @param key The key
+			/// @param value the value that needs to be stored
+			/// @details Put stores the key and value and returns true of the store is done, else it returns false
+			///          All primary C++ data types including std::string is supported as key and value
 			template<typename Key, typename Value>
 			bool put(Key const& key, Value const& value) {
-				
 				const auto key_vec = to_byte_vec(key);
 				const auto val_vec = to_byte_vec(value);
 				const auto rc = unqlite_kv_store(_db, key_vec.data(), key_vec.size(), val_vec.data(), val_vec.size());
@@ -465,6 +485,11 @@ namespace blib {
 				return ret;
 			}
 
+			/// @fn get
+			/// @param key The key
+			/// @param value the value is of type ByteVctorType. This carries the out value
+			/// @details Gets the value corresponding the key. If the retrieval it returns true else it returns false.
+			///          All primary C++ data types including std::string is supported as key. The value is a byte (std::uint8_t) value
 			template<typename Key>
 			bool get(Key const& key, ByteVctorType& value) {
 				const auto key_vec = to_byte_vec(key);
@@ -483,6 +508,12 @@ namespace blib {
 				return ret;
 			}
 
+			/// @fn get
+			/// @param key The key
+			/// @param value the value is of type ByteVctorType. This carries the out value
+			/// @details Gets the value corresponding the key. If the retrieval it returns true else it returns false.
+			///          All primary C++ data types including std::string is supported as key. The value C++ primary datatype.
+			///          This function is a wrapper on top of the previous function which returns the byte vector.
 			template<typename Key, typename Value>
 			bool get(Key const& key, Value& value) {
 				bool ret = false;
@@ -495,6 +526,10 @@ namespace blib {
 				return ret;
 			}
 
+			/// @fn del
+			/// @param key The key
+			/// @details Delete the value corresponding to key. If delete is success then returns true else returns false.
+			///          All primary C++ data types including std::string is supported as key. 
 			template<typename Key>
 			bool del(Key const& key) {
 				const auto key_vec = to_byte_vec(key);
