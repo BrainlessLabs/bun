@@ -33,7 +33,6 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
 #include <third_party/fmt/format.hpp>
-#include <msgpack.hpp>
 #include "blib/utils/MD5.hpp"
 #include "blib/bun/DbBackend.hpp"
 #include "blib/bun/DbLogger.hpp"
@@ -246,7 +245,7 @@ namespace blib {
 					{
                         using ObjType = typename std::remove_const<typename std::remove_pointer<typename O::first_type>::type>::type;
 						static const std::string composite_type = blib::bun::cppTypeEnumToDbTypeString<DbTypes::kComposite>();
-						std::string type = blib::bun::cppTypeToDbTypeString<blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
+                        std::string type = blib::bun::cppTypeToDbTypeString<typename blib::bun::__private::ConvertCPPTypeToSOCISupportType<ObjType>::type>();
 						// If the type is of an object type then we will use VARCHAR to store the hash value
 						if (composite_type == type) {
 							type = "VARCHAR";
@@ -624,27 +623,28 @@ namespace blib {
 				}
 
 				
-				template<typename T, bool IsComposite>
+                template<typename TA, bool IsComposite>
 				struct GetAllObjectsImpl {
-					inline static void impl(T& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
-						x = row.get<ConvertCPPTypeToSOCISupportType<T>::type>(member_name);
+                    inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
+                        x = row.get<typename ConvertCPPTypeToSOCISupportType<TA>::type>(member_name);
 					}
 				};
 
-				template<typename T>
-				struct GetAllObjectsImpl<T, true> {
-					inline static void impl(T& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
+                template<typename TA>
+                struct GetAllObjectsImpl<TA, true> {
+                    inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
 						const std::string sql = fmt::format("oid_ref = {} AND parent_column_name = {}",
 							to_valid_query_string(oid_ref, "'"),
 							to_valid_query_string(member_name, "'"));
-						std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> objs = QueryHelper<T>::getAllObjectsWithQuery(sql);
+                        using ObjectRetType = std::pair<std::unique_ptr <TA>, SimpleOID>;
+                        std::vector<ObjectRetType> objs = QueryHelper<TA>::getAllObjectsWithQuery(sql);
 						if (objs.empty()) {
 							l().error("GetAllObjectsImpl() for member name:{} has no elements ", member_name);
 						}
 						else {
-							std::pair<std::unique_ptr <T>, SimpleOID>& obj = objs.at(0);
+                            ObjectRetType& obj = objs.at(0);
 							boost::fusion::copy(*obj.first, x);
-							x;
+                            //x;
 						}
 					}
 				};
@@ -1163,7 +1163,7 @@ namespace blib {
 						/// @param The index of the variable for lookup
 						/// @brief returns the name from the mapping
 						template<std::uint32_t I>
-						result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> in_term) const {
+                        result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> /*in_term*/) const {
 							const auto ret = mapping<T>(I);
 							return ret;
 						}
@@ -1358,8 +1358,8 @@ namespace blib {
 					/// @param The index of the variable for lookup
 					/// @brief returns the name from the mapping
 					template<std::uint32_t I>
-					result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> in_term) const {
-						const auto ret = blib::bun::query::__private::mapping<T>(I);
+                    result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> /*in_term*/) const {
+                        const auto ret = blib::bun::query::__private::mapping<T>(I);
 						return ret;
 					}
 

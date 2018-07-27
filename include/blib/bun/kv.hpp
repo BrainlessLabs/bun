@@ -466,7 +466,7 @@ namespace blib {
 			std::string last_status() const {
 				const char *zBuf = nullptr;
 				int iLen = 0;
-				unqlite_config(pDb, UNQLITE_CONFIG_ERR_LOG, &zBuf, &iLen);
+                unqlite_config(_db, UNQLITE_CONFIG_ERR_LOG, &zBuf, &iLen);
 				const std::string ret(zBuf);
 				return ret;
 			}
@@ -533,7 +533,7 @@ namespace blib {
 			template<typename Key>
 			bool del(Key const& key) {
 				const auto key_vec = to_byte_vec(key);
-				const auto rc = unqlite_kv_delete(pDb, key_vec.data(), key_vec.size());
+                const auto rc = unqlite_kv_delete(_db, key_vec.data(), key_vec.size());
 				const bool ret = rc == UNQLITE_OK ? true : false;
 				return ret;
 			}
