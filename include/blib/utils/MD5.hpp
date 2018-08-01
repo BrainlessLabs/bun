@@ -400,6 +400,6 @@ namespace blib {
   /// @param the string for which md5 needs to be calculated.
   inline std::string md5( const std::string& str ) {
     const MD5 md5( str );
-    return std::move(md5.hexdigest());
+    return md5.hexdigest();
   }
 }

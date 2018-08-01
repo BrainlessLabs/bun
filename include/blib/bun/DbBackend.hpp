@@ -100,13 +100,13 @@ namespace blib {
 			/// @brief Works for all stuff where the default type conversion operator is overloaded.
 			template<typename T>
 			typename ConvertCPPTypeToSOCISupportType<T>::type convertToSOCISupportedType(T const& val) {
-				const auto ret = static_cast<ConvertCPPTypeToSOCISupportType<T>::type>(val);
+                                const auto ret = static_cast<typename ConvertCPPTypeToSOCISupportType<T>::type>(val);
 				return ret;
 			}
 
 			std::string convertToSOCISupportedType( char const* val) {
 				const std::string ret = val;
-				return std::move(ret);
+                                return ret;
 			}
         }
 
