@@ -1401,7 +1401,7 @@ namespace blib {
                         auto ctx = *this;
                         const auto left_string = boost::proto::eval(in_l, ctx);
                         //const auto right_string = boost::proto::eval(in_r, ctx);
-                        //TODO - ConfigurationOptions<T>::unique_constraint_set().insert(left_string);
+                        ConfigurationOptions<T>::unique_constraint_set().insert(left_string);
                         const result_type ret = left_string;
                         return ret;
                     }
