@@ -177,7 +177,7 @@ int ormTest() {
 	bunn.save();
 
 	// This will throw exceptions due to duplicate key.
-	for (int i = 0; i < 5; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		blib::bun::PRef<bakery::A> a = new bakery::A;
 		a->i = 10;
 	}
@@ -199,6 +199,7 @@ int ormTest() {
 		std::cout << "Added to db: \n" << bunn.toJson() << std::endl;
 		blib::bun::l().info("===============End===================\n");
 	}
+	return 1;
 
 	blib::bun::createSchema<Child>();
 	blib::bun::createSchema<Parent>();
@@ -252,7 +253,7 @@ int kvTest() {
 	db.get("test", val);
 	std::cout << val << std::endl;
 
-	const int size = 100000;
+	const int size = 1000;
 	for (int i = 0; i < size; ++i) {
 		const std::string s = fmt::format("Value: {}", i);
 		db.put(i, s);
@@ -269,6 +270,7 @@ int kvTest() {
 
 int main() {
 	namespace bun = blib::bun;
-	kvTest();
+	//kvTest();
+	ormTest();
 	return 1;
 }
