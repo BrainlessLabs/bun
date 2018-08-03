@@ -310,7 +310,7 @@ namespace blib {
                         boost::fusion::for_each(vecs, SqlString<T>::CreateTable(sql));
                         const auto& unique_constraint_set = ConfigurationOptions<T>::unique_constraint_set();
                         if (!unique_constraint_set.empty()) {
-                            std::string unique_str = ", CONSTRAINT \"unique_constraint" + TypeMetaData<T>::class_name() + "\" UNIQUE (";
+                            std::string unique_str = ", CONSTRAINT \"unique_constraint_" + TypeMetaData<T>::class_name() + "\" UNIQUE (";
                             bool include_comma = false;
                             for (const auto& elem : unique_constraint_set) {
                                 if (include_comma) {
@@ -672,18 +672,18 @@ namespace blib {
                 /// @fn getAllObjectsWithQuery
                 /// @param in_query Queries for which the objects will be returned.
                 /// @brief The function will get all the objects that match the passed query
-				/// @details https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/
-				///			 Limit and Offset have its merits and demerits. Follow the page to learn them
-				///          We will be using Limit and Offset to start with the query building
+                /// @details https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/
+                ///			 Limit and Offset have its merits and demerits. Follow the page to learn them
+                ///          We will be using Limit and Offset to start with the query building
                 inline static std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> getAllObjectsWithQuery(
-					const std::string& in_query = std::string(), 
-					const std::size_t limit = 0,
-					const std::size_t offset = 0) {
+                    const std::string& in_query = std::string(),
+                    const std::size_t limit = 0,
+                    const std::size_t offset = 0) {
                     std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
                     const std::string& class_name = TypeMetaData<T>::class_name();
                     const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), class_name) + "{} {}";
                     const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query + "ORDER BY 'oid'";
-					const std::string limit_query = limit && offset ? "" : fmt::format("LIMIT {} OFFSET {}", limit, offset);
+                    const std::string limit_query = limit && offset ? "" : fmt::format("LIMIT {} OFFSET {}", limit, offset);
                     const std::string sql = fmt::format(select_sql, where_clasue, limit_query);
                     QUERY_LOG(sql);
                     try {
@@ -731,14 +731,14 @@ namespace blib {
                 /// @param in_query Queries for which the objects will be returned.
                 /// @brief Get all the oids with that match the query.
                 inline static std::vector<SimpleOID> getAllOidsWithQuery(
-					std::string const in_query = std::string(),
-					const std::size_t limit = 0,
-					const std::size_t offset = 0) {
+                    std::string const in_query = std::string(),
+                    const std::size_t limit = 0,
+                    const std::size_t offset = 0) {
                     std::vector<SimpleOID> oids;
                     const static std::string& class_name = TypeMetaData<T>::class_name();
                     const static std::string select_oid_sql = fmt::format(SqlString<T>::select_all_oid_sql(), class_name) + " {} ORDER BY oid {}";
                     const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query;
-					const std::string limit_query = limit && offset ? "" : fmt::format("LIMIT {} OFFSET {}", limit, offset);
+                    const std::string limit_query = limit && offset ? "" : fmt::format("LIMIT {} OFFSET {}", limit, offset);
                     const std::string sql = fmt::format(select_oid_sql, where_clasue, limit_query);
                     QUERY_LOG(sql);
                     try {
@@ -969,9 +969,9 @@ namespace blib {
         /// @brief Get all the objects as PRef that satisfy the query
         template<typename T>
         inline static std::vector <PRef<T>> getAllObjWithQuery(
-			std::string const &in_query,
-			const std::size_t limit = 0,
-			const std::size_t offset = 0) {
+            std::string const &in_query,
+            const std::size_t limit = 0,
+            const std::size_t offset = 0) {
             soci::transaction t(blib::bun::__private::DbBackend<>::i().session());
             std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> values = blib::bun::__private::QueryHelper<T>::getAllObjectsWithQuery(in_query, limit, offset);
             std::vector <PRef<T>> ret_vals;
@@ -1018,8 +1018,8 @@ namespace blib {
         namespace query {
             namespace __private {
 
-                template<std::int32_t I>
-                struct QueryVariablePlaceholderIndex : std::integral_constant <std::int32_t, I> {
+                template<std::uint32_t I>
+                struct QueryVariablePlaceholderIndex : std::integral_constant <std::uint32_t, I> {
                     QueryVariablePlaceholderIndex() {}
                 };
 
@@ -1300,18 +1300,18 @@ namespace blib {
             template<typename T>
             struct From {
             private:
-				/// @var _query
-				/// @brief The sql query generated
+                /// @var _query
+                /// @brief The sql query generated
                 std::string _query;
-				/// @var _objects
-				/// @brief The object cache. The objects at this current instance
+                /// @var _objects
+                /// @brief The object cache. The objects at this current instance
                 decltype(blib::bun::getAllObjWithQuery<T>("")) _objects;
-				/// @var _page_start
-				/// @brief The pagination
-				std::size_t _page_start;
-				/// @var _progress
-				/// @brief How much the page should progress
-				const std::size_t _progress;
+                /// @var _page_start
+                /// @brief The pagination
+                std::size_t _page_start;
+                /// @var _progress
+                /// @brief How much the page should progress
+                const std::size_t _progress;
 
             private:
                 template<typename ExpressionType>
@@ -1327,12 +1327,12 @@ namespace blib {
                 }
 
             public:
-				From():_page_start(0), _progress(1000){}
+                From():_page_start(0), _progress(1000){}
 
                 From(From& in_other) :_query(in_other._query),
-					_objects(in_other._objects),
-					_page_start(in_other._page_start),
-					_progress(in_other._progress){}
+                    _objects(in_other._objects),
+                    _page_start(in_other._page_start),
+                    _progress(in_other._progress){}
 
                 template<typename ExpressionType>
                 From& where(ExpressionType const& in_expr) {
@@ -1384,11 +1384,11 @@ namespace blib {
                     /// @param The terminal tag
                     /// @param the terminal name
                     /// @brief returns valid terminal name
-                    template<typename E>
+                    /*template<typename E>
                     result_type operator ()(boost::proto::tag::terminal, E in_term) const {
                         const auto ret = std::to_string(blib::bun::__private::to_valid_query_string(in_term));
                         return ret;
-                    }
+                    }*/
 
                     /// @fn operator()
                     /// @param The terminal tag
@@ -1413,12 +1413,12 @@ namespace blib {
                     /// @param The index of the variable for lookup
                     /// @brief returns the name from the mapping
                     template<std::uint32_t I>
-                    result_type operator()(boost::proto::tag::terminal, bun::query::__private::QueryVariablePlaceholderIndex<I> /*in_term*/) const {
+                    result_type operator()(boost::proto::tag::terminal, ::blib::bun::query::__private::QueryVariablePlaceholderIndex<I> /*in_term*/) const {
                         const result_type ret = ::blib::bun::query::__private::mapping<T>(I);
                         return ret;
                     }
 
-                    result_type operator()(boost::proto::tag::terminal, blib::bun::UniqueConstraint /*in_term*/) const {
+                    result_type operator()(boost::proto::tag::terminal, blib::bun::UniqueConstraint& /*in_term*/) const {
                         static const result_type ret = "UNIQUE";
                         return ret;
                     }
