@@ -31,7 +31,7 @@
 .DS_Store
 *.suo
 *.db
-.vs
-*/x64/*
+*/.vs/*
+**/x64/*
 Release
-bin/*
+*/bin/*
