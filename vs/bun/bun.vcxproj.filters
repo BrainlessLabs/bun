@@ -79,6 +79,9 @@
     <Filter Include="Header Files\third_party\unqlite">
       <UniqueIdentifier>{43a41ccd-db38-4e91-b2eb-24a8a4f21c9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\blib\bun\iterators">
+      <UniqueIdentifier>{710680e4-76f8-475f-89c0-2f8fbcabfe94}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -380,6 +383,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\endian.hpp">
       <Filter>Header Files\blib\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\Iterators.hpp">
+      <Filter>Header Files\blib\bun</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

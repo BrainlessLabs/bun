@@ -11,6 +11,8 @@ Global
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseOptimized|x64 = ReleaseOptimized|x64
+		ReleaseOptimized|x86 = ReleaseOptimized|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{202BCE3E-B311-4BD3-8054-931C229ADF25}.Debug|x64.ActiveCfg = Debug|x64
@@ -21,8 +23,15 @@ Global
 		{202BCE3E-B311-4BD3-8054-931C229ADF25}.Release|x64.Build.0 = Release|x64
 		{202BCE3E-B311-4BD3-8054-931C229ADF25}.Release|x86.ActiveCfg = Release|Win32
 		{202BCE3E-B311-4BD3-8054-931C229ADF25}.Release|x86.Build.0 = Release|Win32
+		{202BCE3E-B311-4BD3-8054-931C229ADF25}.ReleaseOptimized|x64.ActiveCfg = ReleaseOptimized|x64
+		{202BCE3E-B311-4BD3-8054-931C229ADF25}.ReleaseOptimized|x64.Build.0 = ReleaseOptimized|x64
+		{202BCE3E-B311-4BD3-8054-931C229ADF25}.ReleaseOptimized|x86.ActiveCfg = ReleaseOptimized|Win32
+		{202BCE3E-B311-4BD3-8054-931C229ADF25}.ReleaseOptimized|x86.Build.0 = ReleaseOptimized|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F69B811B-F3D6-48FA-BB65-5F08834ED602}
 	EndGlobalSection
 EndGlobal
