@@ -268,9 +268,56 @@ int kvTest() {
 	return 1;
 }
 
+namespace dbg {
+	struct C {
+		int c;
+		C(const int i = 0) :c(i) {}
+	};
+
+	struct P {
+		int p;
+		C c;
+		P() :p(1), c(0) {}
+	};
+}
+SPECIALIZE_BUN_HELPER((dbg::C, c));
+SPECIALIZE_BUN_HELPER((dbg::P, p, c));
+
+int ormDbg() {
+	namespace bun = blib::bun;
+	namespace query = blib::bun::query;
+
+#if defined(BUN_SQLITE)
+	bun::connect("obj.db");
+#elif defined(BUN_POSTGRES)
+	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
+#endif
+	// We can also define constraints naturally as follows
+	using CFields = query::F<dbg::C>;
+	blib::bun::Configuration<dbg::C> a_config;
+	// This is a unique key constrains thats applied.
+	// Constraint are applied globally. They need to be set before the
+	// execution of the create schema statement
+	a_config.set(CFields::c = blib::bun::unique_constraint);
+	//blib::bun::connect("objects.db");
+	blib::bun::l().info("===============createSchema Start===================\n");
+	blib::bun::createSchema<dbg::C>();
+	blib::bun::createSchema<dbg::P>();
+	blib::bun::l().info("===============createSchema End===================\n");
+	blib::bun::PRef<dbg::P> p = new dbg::P;
+	p->p = 1;
+	p->c.c = 0;
+	blib::bun::l().info("===============save p Start===================\n");
+	p.save();
+	blib::bun::l().info("===============save p End===================\n");
+	std::cout << "Deleting: " << p.toJson() << std::endl;
+	p.del();
+	return 1;
+}
 int main() {
 	namespace bun = blib::bun;
 	//kvTest();
-	ormTest();
+	//ormTest();
+	ormDbg();
 	return 1;
 }
