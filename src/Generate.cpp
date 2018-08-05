@@ -145,11 +145,7 @@ int ormTest() {
 		"postgresql://localhost/postgres?user=postgres&password=postgres";
 #endif
 	bun::connect("obj.db");
-#if defined(BUN_SQLITE)
-	bun::connect("obj.db");
-#elif defined(BUN_POSTGRES)
-	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
-#endif
+
 	try {
 		//persistPerson();
 	}
@@ -164,7 +160,7 @@ int ormTest() {
 	// This is a unique key constrains thats applied.
 	// Constraint are applied globally. They need to be set before the
 	// execution of the create schema statement
-	a_config.set(AFields::i = blib::bun::unique_constraint);
+	//a_config.set(AFields::i = blib::bun::unique_constraint);
 	str = blib::bun::__private::SqlString<bakery::A>::create_table_sql();
 	//blib::bun::connect("objects.db");
 	blib::bun::createSchema<bakery::A>();
@@ -205,7 +201,6 @@ int ormTest() {
 		std::cout << "Added to db: \n" << bunn.toJson() << std::endl;
 		blib::bun::l().info("===============End===================\n");
 	}
-	return 1;
 
 	blib::bun::createSchema<Child>();
 	blib::bun::createSchema<Parent>();
@@ -243,7 +238,11 @@ int ormTest() {
 	std::cout << "Press any key to delete" << std::endl;
 	char c;
 	std::cin >> c;
+	auto where = fromBun.where(valid_query);
 	auto buns = fromBun.where(valid_query).objects();
+	//while (where.hasNext()) {
+		//std::cout << where.next().toJson() << std::endl;
+	//}
 	for (auto bun : buns) {
 		std::cout << "Delete from db: \n" << bun.toJson() << std::endl;
 		bun.del();
@@ -304,7 +303,7 @@ int ormDbg() {
 	// This is a unique key constrains thats applied.
 	// Constraint are applied globally. They need to be set before the
 	// execution of the create schema statement
-	a_config.set(CFields::c = blib::bun::unique_constraint);
+	//a_config.set(CFields::c = blib::bun::unique_constraint);
 	//blib::bun::connect("objects.db");
 	blib::bun::l().info("===============createSchema Start===================\n");
 	blib::bun::createSchema<dbg::C>();
@@ -318,12 +317,66 @@ int ormDbg() {
 	blib::bun::l().info("===============save p End===================\n");
 	std::cout << "Deleting: " << p.toJson() << std::endl;
 	p.del();
+	for (int i = 0; i < 5; i++) {
+		blib::bun::PRef<dbg::P> p = new dbg::P;
+		p->p = i * i;
+		p->c.c = i;
+		p.save();
+	}
+	using PFields = query::F<dbg::P>;
+	auto valid_query = PFields::p > 1;
+	using FromP = query::From<dbg::P>;
+	FromP fromp;
+	auto where = fromp.where(valid_query);
+	while (where.hasNext()) {
+		std::cout << where.next().toJson() << std::endl;
+	}
 	return 1;
 }
+
+int ormDbgSimple() {
+	namespace bun = blib::bun;
+	namespace query = blib::bun::query;
+
+#if defined(BUN_SQLITE)
+	bun::connect("obj.db");
+#elif defined(BUN_POSTGRES)
+	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
+#endif
+	// We can also define constraints naturally as follows
+	using CFields = query::F<dbg::C>;
+	blib::bun::Configuration<dbg::C> a_config;
+	blib::bun::l().info("===============createSchema Start===================\n");
+	blib::bun::createSchema<dbg::C>();
+	blib::bun::l().info("===============createSchema End===================\n");
+	int count = 0;
+	std::cout << "How many objects to insert? " << std::endl;
+	std::cin >> count;
+	for (int i = 0; i < count; i++) {
+		blib::bun::PRef<dbg::C> c = new dbg::C;
+		c->c = i;
+		blib::bun::l().info("===============save p Start===================\n");
+		c.save();
+		blib::bun::l().info("===============save p End===================\n");
+	}
+	using CFields = query::F<dbg::C>;
+	auto valid_query = CFields::c > 1;
+	using FromC = query::From<dbg::C>;
+	FromC from;
+	auto where = from.where(valid_query);
+	count = 0;
+	while (where.hasNext()) {
+		++count;
+		std::cout << where.next().toJson() << std::endl;
+	}
+	return 1;
+}
+
 int main() {
 	namespace bun = blib::bun;
 	//kvTest();
 	//ormTest();
-	ormDbg();
+	//ormDbg();
+	ormDbgSimple();
 	return 1;
 }

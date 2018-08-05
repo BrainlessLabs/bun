@@ -235,7 +235,7 @@
       <MinimalRebuild>true</MinimalRebuild>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <EnableModules>false</EnableModules>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <ConformanceMode>false</ConformanceMode>

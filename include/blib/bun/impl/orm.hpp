@@ -33,6 +33,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
 #include <third_party/fmt/format.hpp>
+#include <soci/error.h>
 #include "blib/utils/MD5.hpp"
 #include "blib/bun/impl/DbBackend.hpp"
 #include "blib/bun/impl/DbLogger.hpp"
@@ -682,7 +683,7 @@ namespace blib {
 					std::vector<std::pair<std::unique_ptr <T>, SimpleOID>> ret_values;
 					const std::string& class_name = TypeMetaData<T>::class_name();
 					const static std::string select_sql = fmt::format(SqlString<T>::select_rows_sql(), class_name) + "{} {}";
-					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query + "ORDER BY 'oid'";
+					const std::string where_clasue = in_query.empty() ? "" : "WHERE " + in_query + " ORDER BY 'oid'";
 					const std::string limit_query = limit && offset ? "" : fmt::format("LIMIT {} OFFSET {}", limit, offset);
 					const std::string sql = fmt::format(select_sql, where_clasue, limit_query);
 					QUERY_LOG(sql);
@@ -859,13 +860,22 @@ namespace blib {
 			///          the object is not going to be updated in database.
 			/// @return OidType Returns the OID of the persisted object.
 			OidType persist() {
-				if (_md5.empty()) {
-					oid = blib::bun::__private::QueryHelper<ObjType>::persistObj(_obj.get());
+				try {
+					if (_md5.empty()) {
+						oid = blib::bun::__private::QueryHelper<ObjType>::persistObj(_obj.get());
+					}
+					else {
+						blib::bun::__private::QueryHelper<ObjType>::updateObj(_obj.get(), oid);
+					}
+					_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
 				}
-				else {
-					blib::bun::__private::QueryHelper<ObjType>::updateObj(_obj.get(), oid);
+				catch (std::exception const & e) {
+					blib::bun::l().error(fmt::format("Exception while persisting: {}", e.what()));
 				}
-				_md5 = blib::bun::__private::QueryHelper<ObjType>::md5(*_obj.get(), oid);
+				catch (...) {
+					blib::bun::l().error(fmt::format("Unknown Exception while persisting: {}"));
+				}
+
 				return oid;
 			}
 
@@ -1300,18 +1310,23 @@ namespace blib {
 			template<typename T>
 			struct From {
 			private:
+					using ObjPRefVecType = decltype(blib::bun::getAllObjWithQuery<T>(""));
+					using ObjPRefType = typename ObjPRefVecType::value_type;
+			private:
 				/// @var _query
 				/// @brief The sql query generated
 				std::string _query;
 				/// @var _objects
 				/// @brief The object cache. The objects at this current instance
-				decltype(blib::bun::getAllObjWithQuery<T>("")) _objects;
+				ObjPRefVecType _objects;
 				/// @var _page_start
 				/// @brief The pagination
-				std::size_t _page_start;
+				std::size_t _offset;
 				/// @var _progress
 				/// @brief How much the page should progress
-				const std::size_t _progress;
+				const std::size_t _limit;
+
+				typename ObjPRefVecType::iterator _cur_itr;
 
 			private:
 				template<typename ExpressionType>
@@ -1326,29 +1341,94 @@ namespace blib {
 					return table_name;
 				}
 
-			public:
-				From() :_page_start(0), _progress(1000) {}
-
-				From(From& in_other) :_query(in_other._query),
-					_objects(in_other._objects),
-					_page_start(in_other._page_start),
-					_progress(in_other._progress) {}
-
+				/// @fn append_query
+				/// @param in_expr The query expression
+				/// @param and_query if the value is true then the query is an and query, if and_query is false its an or query
+				/// @brief Generates the query string
 				template<typename ExpressionType>
-				From& where(ExpressionType const& in_expr) {
+				From& append_query(ExpressionType const& in_expr, const bool and_query = true) {
 					static_assert(boost::proto::matches<ExpressionType, __private::BunQueryGrammar>::value, "Syntax error in Bun Query");
 					const std::string query_string = eval(in_expr);
-					const std::string add_string = _query.empty() ? "" : " AND ";
+					const std::string and_or_str = and_query ? " AND " : " OR ";
+					const std::string add_string = _query.empty() ? "" : and_or_str;
 					_query += add_string + query_string;
 					return *this;
 				}
 
-				std::string const& query() const {
-					l().info(_query);
-					return _query;
+			public:
+				From() :_offset(0),
+					_limit(1000),
+					_cur_itr(_objects.end()) {}
+
+				From(From& in_other) :_query(in_other._query),
+					_objects(in_other._objects),
+					_offset(in_other._offset),
+					_limit(in_other._limit),
+					_cur_itr(_objects.end()) {}
+
+				template<typename ExpressionType>
+				From& and(ExpressionType const& in_expr) {
+					return append_query(in_expr);
 				}
 
-				auto objects()->decltype(_objects)& {
+				template<typename ExpressionType>
+				From& or(ExpressionType const& in_expr) {
+					return append_query(in_expr, false);
+				}
+
+				template<typename ExpressionType>
+				From& where(ExpressionType const& in_expr) {
+					return append_query(in_expr);
+				}
+
+				template<typename ExpressionType>
+				From& operator()(ExpressionType const& in_expr) {
+					return append_query(in_expr);
+				}
+
+				bool hasNext() {
+					bool has_next = false;
+					if (0 == _offset && _objects.empty()) {
+						_objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
+						if (_objects.empty() == false) {
+							has_next = true;
+							_cur_itr = _objects.begin();
+						}
+					}
+					else if (_objects.end() == _cur_itr) {
+						_offset += _limit;
+						_objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
+						if (_objects.empty() == false) {
+							has_next = true;
+							_cur_itr = _objects.begin();
+						}
+					}
+					else {
+						has_next = true;
+					}
+					return has_next;
+				}
+
+				auto next()->ObjPRefType {
+					static const ObjPRefType empty_ret;
+					if (hasNext()) {
+						const ObjPRefType& ret = *_cur_itr;
+						++_cur_itr;
+						return ret;
+					}
+					else {
+						return empty_ret;
+					}
+				}
+
+				std::string const& query() const {
+					//l().info(_query);
+					return _query;
+				}
+				
+				/// @fn objects
+				/// @brief Gets all the objects
+				auto objects()->ObjPRefVecType& {
 					_objects = blib::bun::getAllObjWithQuery<T>(_query);
 					return _objects;
 				}
