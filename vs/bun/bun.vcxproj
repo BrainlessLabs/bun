@@ -304,13 +304,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\blib\bun\bun.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\CppTypeToSQLString.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\DbBackend.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\DbLogger.hpp" />
     <ClInclude Include="..\..\include\blib\bun\endian.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\Iterators.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\kv.hpp" />
-    <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\CppTypeToSQLString.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\DbBackend.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\DbLogger.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\endian.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\Iterators.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\kv.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\SimpleOID.hpp" />
     <ClInclude Include="..\..\include\blib\utils\debug.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />
     <ClInclude Include="..\..\include\blib\utils\Singleton.hpp" />

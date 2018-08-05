@@ -2,6 +2,5 @@
 
 namespace blib {
 	namespace bun {
-
 	}
 }
