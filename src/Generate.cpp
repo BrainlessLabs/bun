@@ -8,7 +8,6 @@
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
 #include "blib/bun/bun.hpp"
-#include "blib/bun/kv.hpp"
 
 using namespace soci;
 using namespace std;

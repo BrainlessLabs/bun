@@ -390,6 +390,9 @@
     <ClInclude Include="..\..\include\blib\bun\impl\SimpleOID.hpp">
       <Filter>Header Files\blib\bun\impl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\orm.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />

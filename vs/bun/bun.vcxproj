@@ -311,6 +311,7 @@
     <ClInclude Include="..\..\include\blib\bun\impl\endian.hpp" />
     <ClInclude Include="..\..\include\blib\bun\impl\Iterators.hpp" />
     <ClInclude Include="..\..\include\blib\bun\impl\kv.hpp" />
+    <ClInclude Include="..\..\include\blib\bun\impl\orm.hpp" />
     <ClInclude Include="..\..\include\blib\bun\impl\SimpleOID.hpp" />
     <ClInclude Include="..\..\include\blib\utils\debug.hpp" />
     <ClInclude Include="..\..\include\blib\utils\MD5.hpp" />
