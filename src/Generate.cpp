@@ -138,6 +138,13 @@ int ormTest() {
 
 	auto str = blib::bun::__private::SqlString<bakery::Bun>::create_table_sql();
 	str = blib::bun::__private::SqlString<bakery::Bun>::insert_row_sql();
+	const std::string conn_str =
+#if defined(BUN_SQLITE)
+		"obj.db";
+#elif defined(BUN_POSTGRES)
+		"postgresql://localhost/postgres?user=postgres&password=postgres";
+#endif
+	bun::connect("obj.db");
 #if defined(BUN_SQLITE)
 	bun::connect("obj.db");
 #elif defined(BUN_POSTGRES)
