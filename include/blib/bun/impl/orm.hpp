@@ -1022,8 +1022,8 @@ namespace blib {
 namespace blib {
     namespace bun {
         namespace __private {
-        /// @class FetchResultsForQuery
-        /// @brief This class fetches the data from the database.
+			/// @class FetchResultsForQuery
+			/// @brief This class fetches the data from the database.
             template<typename T>
             class FetchResultsForQuery{
             public:
@@ -1052,6 +1052,11 @@ namespace blib {
                 }
 
             public:
+				FetchResultsForQuery() :
+					_offset(0),
+					_limit(1000),
+					_cur_itr(_objects.end()) {}
+
                 FetchResultsForQuery(std::string& query):
                     _query(query),
                     _offset(0),
@@ -1123,11 +1128,32 @@ namespace blib {
             using FetchResultType = blib::bun::__private::FetchResultsForQuery<ValueType>;;
         private:
             friend class boost::iterator_core_access;
-            FetchResultType& _fetch_result;
+            std::unique_ptr<FetchResultType> _pfetch_result;
+			RefType* _pval;
 
         public:
-            ObjectIterator(FetchResultType& in_other):_fetch_result(in_other._fetch_result){}
-            void increment() { _fetch_result.next();}
+			ObjectIterator(): _pfetch_result(nullptr), _pval(nullptr){
+			}
+
+			ObjectIterator(std::string& query_string) :
+				_pfetch_result(std::make_unique<FetchResultType>(query_string)), _pval(nullptr) {
+			}
+
+			ObjectIterator(ObjectIterator& in_other) :
+				_pfetch_result(in_other._pfetch_result.release()), _pval(in_other._pval) {
+			}
+
+            void increment() {
+				_pval = &_pfetch_result->next();
+			}
+
+			bool equal(ObjectIterator const& other) const {
+				return this->_pval == other._pval && this->_pfetch_result == other._pfetch_result;
+			}
+
+			RefType& dereference() const {
+				return *_pval;
+			}
         };
     }
 }
@@ -1425,9 +1451,10 @@ namespace blib {
             /////////////////////////////////////////////////
             template<typename T>
             struct From {
-            private:
+            public:
                     using ObjPRefVecType = typename blib::bun::__private::FetchResultsForQuery<T>::ObjPRefVecType;
                     using ObjPRefType = typename blib::bun::__private::FetchResultsForQuery<T>::ObjPRefType;
+					using ObjectIteratorType = blib::bun::ObjectIterator<T>;
             private:
                 /// @var _query
                 /// @brief The sql query generated
@@ -1504,6 +1531,16 @@ namespace blib {
                 auto objects()->ObjPRefVecType& {
                     return _from_query.objects();
                 }
+
+				ObjectIteratorType& begin() {
+					ObjectIteratorType ret(_query);
+					return ret;
+				}
+
+				ObjectIteratorType& end() {
+					static ObjectIteratorType ret;
+					return ret;
+				}
             };
 
             template<typename ExpressionType>

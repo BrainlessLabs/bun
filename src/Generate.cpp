@@ -369,6 +369,10 @@ int ormDbgSimple() {
 		++count;
 		std::cout << where.next().toJson() << std::endl;
 	}
+	auto wherei = from.where(valid_query);
+	for (auto it = wherei.begin(); it != wherei.end(); ++it) {
+		std::cout << it->toJson() << std::endl;
+	}
 	return 1;
 }
 
