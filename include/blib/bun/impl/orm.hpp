@@ -1018,6 +1018,121 @@ namespace blib {
     }
 }
 
+/// ======================Fetch results and iterator helper Start========================
+namespace blib {
+    namespace bun {
+        namespace __private {
+        /// @class FetchResultsForQuery
+        /// @brief This class fetches the data from the database.
+            template<typename T>
+            class FetchResultsForQuery{
+            public:
+                    using ObjPRefVecType = decltype(blib::bun::getAllObjWithQuery<T>(""));
+                    using ObjPRefType = typename ObjPRefVecType::value_type;
+            private:
+                /// @var _query
+                /// @brief The sql query generated
+                std::string& _query;
+                /// @var _objects
+                /// @brief The object cache. The objects at this current instance
+                ObjPRefVecType _objects;
+                /// @var _page_start
+                /// @brief The pagination
+                std::size_t _offset;
+                /// @var _progress
+                /// @brief How much the page should progress
+                const std::size_t _limit;
+                /// @var _cur_itr
+                /// @brief The current iterator, that holds the current value
+                typename ObjPRefVecType::iterator _cur_itr;
+
+            private:
+                void initialize(){
+
+                }
+
+            public:
+                FetchResultsForQuery(std::string& query):
+                    _query(query),
+                    _offset(0),
+                    _limit(1000),
+                    _cur_itr(_objects.end()) {}
+
+                FetchResultsForQuery(FetchResultsForQuery& in_other) :_query(in_other._query),
+                    _objects(in_other._objects),
+                    _offset(in_other._offset),
+                    _limit(in_other._limit),
+                    _cur_itr(_objects.end()) {}
+
+                std::string const& query(){
+                    return _query;
+                }
+
+                bool hasNext() {
+                    bool has_next = false;
+                    if (0 == _offset && _objects.empty()) {
+                        _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
+                        if (_objects.empty() == false) {
+                            has_next = true;
+                            _cur_itr = _objects.begin();
+                        }
+                    }
+                    else if (_objects.end() == _cur_itr) {
+                        _offset += _limit;
+                        _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
+                        if (_objects.empty() == false) {
+                            has_next = true;
+                            _cur_itr = _objects.begin();
+                        }
+                    }
+                    else {
+                        has_next = true;
+                    }
+                    return has_next;
+                }
+
+                auto next()->ObjPRefType {
+                    static const ObjPRefType empty_ret;
+                    if (hasNext()) {
+                        const ObjPRefType& ret = *_cur_itr;
+                        ++_cur_itr;
+                        return ret;
+                    }
+                    else {
+                        return empty_ret;
+                    }
+                }
+
+                /// @fn objects
+                /// @brief Gets all the objects
+                auto objects()->ObjPRefVecType& {
+                    _objects = blib::bun::getAllObjWithQuery<T>(_query);
+                    return _objects;
+                }
+            };
+        }
+
+        template<typename ValueType, typename RefType=blib::bun::PRef<ValueType>>
+        class ObjectIterator :
+            public boost::iterator_facade<
+            ObjectIterator<ValueType, RefType>,
+            RefType,
+            boost::forward_traversal_tag
+            > {
+        public:
+            using FetchResultType = blib::bun::__private::FetchResultsForQuery<ValueType>;;
+        private:
+            friend class boost::iterator_core_access;
+            FetchResultType& _fetch_result;
+
+        public:
+            ObjectIterator(FetchResultType& in_other):_fetch_result(in_other._fetch_result){}
+            void increment() { _fetch_result.next();}
+        };
+    }
+}
+/// ======================Fetch results and iterator helper End========================
+
 /// ======================Query Start========================
 /// @brief The query templates starts here
 /// @details This block of code refpresents the grammar and the structure of the
@@ -1311,23 +1426,13 @@ namespace blib {
             template<typename T>
             struct From {
             private:
-                    using ObjPRefVecType = decltype(blib::bun::getAllObjWithQuery<T>(""));
-                    using ObjPRefType = typename ObjPRefVecType::value_type;
+                    using ObjPRefVecType = typename blib::bun::__private::FetchResultsForQuery<T>::ObjPRefVecType;
+                    using ObjPRefType = typename blib::bun::__private::FetchResultsForQuery<T>::ObjPRefType;
             private:
                 /// @var _query
                 /// @brief The sql query generated
                 std::string _query;
-                /// @var _objects
-                /// @brief The object cache. The objects at this current instance
-                ObjPRefVecType _objects;
-                /// @var _page_start
-                /// @brief The pagination
-                std::size_t _offset;
-                /// @var _progress
-                /// @brief How much the page should progress
-                const std::size_t _limit;
-
-                typename ObjPRefVecType::iterator _cur_itr;
+                blib::bun::__private::FetchResultsForQuery<T> _from_query;
 
             private:
                 template<typename ExpressionType>
@@ -1357,15 +1462,9 @@ namespace blib {
                 }
 
             public:
-                From() :_offset(0),
-                    _limit(1000),
-                    _cur_itr(_objects.end()) {}
+                From():_from_query(_query){}
 
-                From(From& in_other) :_query(in_other._query),
-                    _objects(in_other._objects),
-                    _offset(in_other._offset),
-                    _limit(in_other._limit),
-                    _cur_itr(_objects.end()) {}
+                From(From& in_other) :_query(in_other._query), _from_query(in_other._query){}
 
                 template<typename ExpressionType>
                 From& And(ExpressionType const& in_expr) {
@@ -1388,38 +1487,11 @@ namespace blib {
                 }
 
                 bool hasNext() {
-                    bool has_next = false;
-                    if (0 == _offset && _objects.empty()) {
-                        _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
-                        if (_objects.empty() == false) {
-                            has_next = true;
-                            _cur_itr = _objects.begin();
-                        }
-                    }
-                    else if (_objects.end() == _cur_itr) {
-                        _offset += _limit;
-                        _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
-                        if (_objects.empty() == false) {
-                            has_next = true;
-                            _cur_itr = _objects.begin();
-                        }
-                    }
-                    else {
-                        has_next = true;
-                    }
-                    return has_next;
+                    return _from_query.hasNext();
                 }
 
                 auto next()->ObjPRefType {
-                    static const ObjPRefType empty_ret;
-                    if (hasNext()) {
-                        const ObjPRefType& ret = *_cur_itr;
-                        ++_cur_itr;
-                        return ret;
-                    }
-                    else {
-                        return empty_ret;
-                    }
+                    return _from_query.next();
                 }
 
                 std::string const& query() const {
@@ -1430,8 +1502,7 @@ namespace blib {
                 /// @fn objects
                 /// @brief Gets all the objects
                 auto objects()->ObjPRefVecType& {
-                    _objects = blib::bun::getAllObjWithQuery<T>(_query);
-                    return _objects;
+                    return _from_query.objects();
                 }
             };
 
