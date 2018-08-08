@@ -1243,7 +1243,7 @@ namespace blib {
 
             /// @todo Chack why the boost operator doesnt work only with this function in place.
             bool equal(ObjectIterator const& in_other) const {
-                return _fetch_result == in_other._fetch_result;
+                return _fetch_result.hasNext() == in_other._fetch_result.hasNext();
             }
 
             PRef& dereference() const {

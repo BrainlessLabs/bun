@@ -374,11 +374,12 @@ int ormDbgSimple() {
     for (auto it = where.begin();
          it != ite;
          ++it) {
-        std::cout << "Itr: " <<it->toJson() << std::endl;
+		auto v = *it;
+        std::cout << "Itr: " << v->c << std::endl;
     }
 
     for(auto v: where){
-        std::cout << "foreach: " <<v.toJson() << std::endl;
+        std::cout << "foreach: " <<v->c << std::endl;
     }
     return 1;
 }
