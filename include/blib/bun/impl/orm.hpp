@@ -498,7 +498,7 @@ namespace blib {
                     DeleteObjects(SimpleOID const& oid) :_oid(oid) {}
 
                     template <typename O>
-                    void operator()(O const& x) const {
+                    void operator()(O const& /*x*/) const {
                         QueryHelper<O>::deleteObjWithParentInfo(_oid);
                     }
                 };
@@ -626,7 +626,7 @@ namespace blib {
 
                 template<typename TA, bool IsComposite>
                 struct GetAllObjectsImpl {
-                    inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
+                    inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& /*oid_ref*/) {
                         x = row.get<typename ConvertCPPTypeToSOCISupportType<TA>::type>(member_name);
                     }
                 };
@@ -801,9 +801,10 @@ namespace blib {
                 load(oid);
             }
 
-            PRef(PRef &in_other) : oid(in_other.oid),
+            PRef(PRef &in_other) :
+                _obj(in_other._obj.release()),
                 _md5(in_other._md5),
-                _obj(in_other._obj.release()) {
+                oid(in_other.oid) {
             }
 
             PRef(ObjType *in_obj) : _obj(in_obj) {}
@@ -832,7 +833,7 @@ namespace blib {
                 return _obj.release();
             }
 
-            ~PRef() {};
+            ~PRef() {}
 
             auto operator*()->decltype(*_obj) {
                 return *_obj;
@@ -905,11 +906,16 @@ namespace blib {
                 return *this;
             }
 
-            bool operator==(PRef const &in_other) {
+            /*PRef& operator=(PRef const& in_other) {
+                in_other.copyToOther(*this);
+                return *this;
+            }*/
+
+            bool operator==(PRef const &in_other) const {
                 return oid == in_other.oid;
             }
 
-            bool operator!=(PRef const &in_other) {
+            bool operator!=(PRef const &in_other) const {
                 return oid != in_other.oid;
             }
 
@@ -920,6 +926,12 @@ namespace blib {
             }
 
         private:
+            void copyToOther(PRef& in_other) {
+                in_other.oid = oid;
+                in_other._obj.reset(const_cast<SelfType*>(this)->_obj.release());
+                in_other._md5 = _md5;
+            }
+
             /// @fn oad(OidType const &in_oid)
             /// @brief Loads an object from Database.
             /// @param in_oid A valid OID for the object.
@@ -931,10 +943,10 @@ namespace blib {
 
             /// @fn copyFrom(PRef &in_other)
             /// @brief Create a exact clone of another PRef
-            void copyFrom(PRef &in_other) {
+            void copyFrom(PRef& in_other) {
                 oid = in_other.oid;
                 _md5 = in_other._md5;
-                _obj = in_other._obj;
+                _obj.reset(in_other._obj.release());
             }
         };
     }
@@ -1022,17 +1034,19 @@ namespace blib {
 namespace blib {
     namespace bun {
         namespace __private {
-			/// @class FetchResultsForQuery
-			/// @brief This class fetches the data from the database.
+            /// @class FetchResultsForQuery
+            /// @brief This class fetches the data from the database.
             template<typename T>
-            class FetchResultsForQuery{
+            class FetchResultsForQuery {
             public:
-                    using ObjPRefVecType = decltype(blib::bun::getAllObjWithQuery<T>(""));
-                    using ObjPRefType = typename ObjPRefVecType::value_type;
+                using ObjPRefVecType = decltype(blib::bun::getAllObjWithQuery<T>(""));
+                    //using ObjPRefType = typename ObjPRefVecType::value_type;
+                using ObjPRefType = ::blib::bun::PRef<T>;
+
             private:
                 /// @var _query
                 /// @brief The sql query generated
-                std::string& _query;
+                std::string _query;
                 /// @var _objects
                 /// @brief The object cache. The objects at this current instance
                 ObjPRefVecType _objects;
@@ -1045,71 +1059,142 @@ namespace blib {
                 /// @var _cur_itr
                 /// @brief The current iterator, that holds the current value
                 typename ObjPRefVecType::iterator _cur_itr;
+                /// @var _has_next
+                /// @brief True if there is a next element and false if there is no element
+                bool _has_next;
+
+                static const std::size_t _initial_offset = 0;
+                static const std::size_t _initial_limit = 1000;
 
             private:
-                void initialize(){
+                /// @fn populateObjectsFromDb
+                /// @brief Fills the _objects with object from database. Resets the _offset to the next value and sets _has_next to true.
+                void populateObjectsFromDb() {
+                    _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
+                    if(!_objects.empty()) {
+                        _cur_itr = _objects.begin();
+                        _offset += _limit;
+                        _has_next = true;
+                    }
+                }
 
+                bool isEmpty() const {
+                    bool ret = false;
+                    if(_query.empty() || _objects.empty() ||
+                       _offset == _initial_offset || _limit == _initial_limit ||
+                       _cur_itr == _objects.end() || _has_next == false) {
+                        ret = true;
+                    }
+                    return ret;
+                }
+
+                void progressNext() {
+                    if (_objects.end() == _cur_itr) {
+                        populateObjects();
+                    }
+                    else{
+                        ++_cur_itr;
+                    }
+
+                    if(_objects.end() == _cur_itr) {
+                        _has_next = false;
+                    }
+                }
+
+                void populateObjects() {
+                    populateObjectsFromDb();
                 }
 
             public:
-				FetchResultsForQuery() :
-					_offset(0),
-					_limit(1000),
-					_cur_itr(_objects.end()) {}
+                /// @fn This is the default constructor. This does not set any values as such as the query is not set yet.
+                FetchResultsForQuery() :
+                    _offset(_initial_offset),
+                    _limit(_initial_limit),
+                    _cur_itr(_objects.end()),
+                    _has_next(false){}
 
                 FetchResultsForQuery(std::string& query):
                     _query(query),
-                    _offset(0),
-                    _limit(1000),
-                    _cur_itr(_objects.end()) {}
+                    _offset(_initial_offset),
+                    _limit(_initial_limit),
+                    _cur_itr(),
+                    _has_next(false) {
+                    populateObjects();
+                }
 
-                FetchResultsForQuery(FetchResultsForQuery& in_other) :_query(in_other._query),
+                FetchResultsForQuery(FetchResultsForQuery& in_other) :
+                    _query(in_other._query),
                     _objects(in_other._objects),
                     _offset(in_other._offset),
                     _limit(in_other._limit),
-                    _cur_itr(_objects.end()) {}
+                    _cur_itr(_objects.begin()),
+                    _has_next(in_other._has_next) {}
 
-                std::string const& query(){
+                FetchResultsForQuery& operator=(FetchResultsForQuery const& in_other) {
+                    _objects = in_other._objects;
+                    _offset = in_other._offset;
+                    _limit = in_other._limit;
+                    _cur_itr = _objects.begin();
+                    _has_next = in_other._has_next;
+                    return *this;
+                }
+
+                bool operator==(FetchResultsForQuery const& in_other) const {
+                    bool is_same = false;
+                    if(_objects == in_other._objects && _offset == in_other._offset &&
+                    _limit == in_other._limit && _cur_itr == in_other._cur_itr && in_other._has_next == _has_next) {
+                         is_same = true;
+                    }
+                    return is_same;
+                }
+
+                std::string const& query() const {
                     return _query;
                 }
 
-                bool hasNext() {
-                    bool has_next = false;
-                    if (0 == _offset && _objects.empty()) {
-                        _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
-                        if (_objects.empty() == false) {
-                            has_next = true;
-                            _cur_itr = _objects.begin();
-                        }
-                    }
-                    else if (_objects.end() == _cur_itr) {
-                        _offset += _limit;
-                        _objects = blib::bun::getAllObjWithQuery<T>(_query, _limit, _offset);
-                        if (_objects.empty() == false) {
-                            has_next = true;
-                            _cur_itr = _objects.begin();
-                        }
-                    }
-                    else {
-                        has_next = true;
-                    }
-                    return has_next;
+                bool ok() const{
+                    return !isEmpty() || _cur_itr != _objects.end();
                 }
 
-                auto next()->ObjPRefType {
-                    static const ObjPRefType empty_ret;
-                    if (hasNext()) {
-                        const ObjPRefType& ret = *_cur_itr;
-                        ++_cur_itr;
-                        return ret;
-                    }
-                    else {
-                        return empty_ret;
-                    }
+                /// @fn reset
+                /// @brief resets the query and all the objects fetched
+                void reset(const std::string& query) {
+                    _query = query;
+                    _offset = _initial_offset;
+                    _limit = _initial_limit;
+                    _objects.clear();
+                    _cur_itr = _objects.end();
+                    _has_next = false;
+                    populateObjects();
+                }
+
+                /// @fn hasNext
+                /// @brief returns true if there are still objects in database
+                /// else it returns false
+                bool hasNext() const {
+                    return _has_next;
+                }
+
+                /// @fn next
+                /// @brief Returns the next element in the database
+                /// @return The PRef value if the object is present or an empty PRef
+                ObjPRefType& next() {
+                    static ObjPRefType null_ref;
+                    ObjPRefType& ret = hasNext() ? *_cur_itr : null_ref;
+                    progressNext();
+                    return ret;
+                }
+
+                /// @fn current
+                /// @brief Returns the current object
+                /// /// @return The PRef value if the object is present or an empty PRef
+                ObjPRefType& current() const {
+                    static ObjPRefType null_ref;
+                    return ok() ? *_cur_itr : null_ref;;
                 }
 
                 /// @fn objects
-                /// @brief Gets all the objects
+                /// @brief Gets all the objects in the database. Should be used cautiously
                 auto objects()->ObjPRefVecType& {
                     _objects = blib::bun::getAllObjWithQuery<T>(_query);
                     return _objects;
@@ -1117,43 +1202,53 @@ namespace blib {
             };
         }
 
-        template<typename ValueType, typename RefType=blib::bun::PRef<ValueType>>
+        template<typename ValueType/*, typename PRefType=blib::bun::PRef<ValueType>*/>
         class ObjectIterator :
             public boost::iterator_facade<
-            ObjectIterator<ValueType, RefType>,
-            RefType,
+            ObjectIterator<ValueType>,
+            blib::bun::PRef<ValueType>/*PRefType*/,
             boost::forward_traversal_tag
             > {
         public:
-            using FetchResultType = blib::bun::__private::FetchResultsForQuery<ValueType>;;
+            using SelfType = ObjectIterator<ValueType>;
+            using FetchResultType = blib::bun::__private::FetchResultsForQuery<ValueType>;
+            using PRef = blib::bun::PRef<ValueType>;
+
         private:
             friend class boost::iterator_core_access;
-            std::unique_ptr<FetchResultType> _pfetch_result;
-			RefType* _pval;
+            FetchResultType _fetch_result;
 
         public:
-			ObjectIterator(): _pfetch_result(nullptr), _pval(nullptr){
-			}
+            ObjectIterator() = default;
+            ObjectIterator(std::string& query_string) :
+                _fetch_result(query_string) {
+            }
 
-			ObjectIterator(std::string& query_string) :
-				_pfetch_result(std::make_unique<FetchResultType>(query_string)), _pval(nullptr) {
-			}
+            ObjectIterator(ObjectIterator& in_other) :
+                _fetch_result(in_other._fetch_result) {
+            }
 
-			ObjectIterator(ObjectIterator& in_other) :
-				_pfetch_result(in_other._pfetch_result.release()), _pval(in_other._pval) {
-			}
+            bool operator!=(ObjectIterator const& in_other) const{
+                return !equal(in_other);
+            }
 
+            bool operator==(ObjectIterator const& in_other) const{
+                return equal(in_other);
+            }
+
+        private:
             void increment() {
-				_pval = &_pfetch_result->next();
-			}
+                _fetch_result.next();
+            }
 
-			bool equal(ObjectIterator const& other) const {
-				return this->_pval == other._pval && this->_pfetch_result == other._pfetch_result;
-			}
+            /// @todo Chack why the boost operator doesnt work only with this function in place.
+            bool equal(ObjectIterator const& in_other) const {
+                return _fetch_result == in_other._fetch_result;
+            }
 
-			RefType& dereference() const {
-				return *_pval;
-			}
+            PRef& dereference() const {
+                return _fetch_result.current();
+            }
         };
     }
 }
@@ -1454,12 +1549,13 @@ namespace blib {
             public:
                     using ObjPRefVecType = typename blib::bun::__private::FetchResultsForQuery<T>::ObjPRefVecType;
                     using ObjPRefType = typename blib::bun::__private::FetchResultsForQuery<T>::ObjPRefType;
-					using ObjectIteratorType = blib::bun::ObjectIterator<T>;
+                    using ObjectIteratorType = blib::bun::ObjectIterator<T>;
             private:
                 /// @var _query
                 /// @brief The sql query generated
                 std::string _query;
                 blib::bun::__private::FetchResultsForQuery<T> _from_query;
+                std::unique_ptr<ObjectIteratorType> _itr;
 
             private:
                 template<typename ExpressionType>
@@ -1489,9 +1585,9 @@ namespace blib {
                 }
 
             public:
-                From():_from_query(_query){}
+                From():_from_query(_query), _itr(nullptr){}
 
-                From(From& in_other) :_query(in_other._query), _from_query(in_other._query){}
+                From(From& in_other) :_query(in_other._query), _from_query(in_other._query), _itr(nullptr){}
 
                 template<typename ExpressionType>
                 From& And(ExpressionType const& in_expr) {
@@ -1532,15 +1628,15 @@ namespace blib {
                     return _from_query.objects();
                 }
 
-				ObjectIteratorType& begin() {
-					ObjectIteratorType ret(_query);
-					return ret;
-				}
+                ObjectIteratorType& begin() {
+                    _itr = std::make_unique<ObjectIteratorType>(_query);
+                    return *_itr;
+                }
 
-				ObjectIteratorType& end() {
-					static ObjectIteratorType ret;
-					return ret;
-				}
+                ObjectIteratorType& end() const {
+                    static std::unique_ptr<ObjectIteratorType> end_itr = std::make_unique<ObjectIteratorType>();
+                    return *end_itr;
+                }
             };
 
             template<typename ExpressionType>
