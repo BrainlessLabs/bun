@@ -499,7 +499,7 @@ namespace blib {
 			}
 
 			void populate_key() {
-				unqlite_int64 buff_size = 0;
+				int buff_size = 0;
 				const auto rc = unqlite_kv_cursor_key(_pcursor, NULL, &buff_size);
 				if (rc == UNQLITE_OK) {
 					std::unique_ptr<std::uint8_t[]> buffer = std::make_unique<std::uint8_t[]>(buff_size);
@@ -514,7 +514,7 @@ namespace blib {
 			}
 
 			void populate_value() {
-				unqlite_int64 buff_size = 0;
+				int buff_size = 0;
 				const auto rc = unqlite_kv_cursor_data(_pcursor, NULL, &buff_size);
 				if (rc == UNQLITE_OK) {
 					std::unique_ptr<std::uint8_t[]> buffer = std::make_unique<std::uint8_t[]>(buff_size);
@@ -652,8 +652,12 @@ namespace blib {
 				return ret;
 			}
 
-			KVIterator begin() {
+			KVIterator<> begin() {
+				return KVIterator<>(_db);
+			}
 
+			KVIterator<> end() {
+				return KVIterator<>();
 			}
 		};
 	}

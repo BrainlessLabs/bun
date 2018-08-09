@@ -270,7 +270,11 @@ int kvTest() {
         std::cout << val << std::endl;
     }
 
-
+	for (auto kv : db) {
+		std::string key;
+		blib::bun::from_byte_vec(kv.first, key);
+		std::cout << "key: "<< key << std::endl;
+	}
 
     return 1;
 }
