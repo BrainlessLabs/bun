@@ -35,7 +35,7 @@ namespace blib {
             /// @brief Holds the UUID generated.
 			TagType tag;
 
-			SimpleOID() : tag() {}
+			SimpleOID() noexcept : tag() {}
 
             ~SimpleOID() = default;
 

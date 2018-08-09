@@ -795,7 +795,7 @@ namespace blib {
             OidType oid;
 
         public:
-            PRef() : _obj(), _md5(), oid() {}
+            PRef() noexcept : _obj(), _md5(), oid() {}
 
             PRef(PRef const &in_other) : oid(in_other.oid) {
                 load(oid);
@@ -1107,7 +1107,7 @@ namespace blib {
 
             public:
                 /// @fn This is the default constructor. This does not set any values as such as the query is not set yet.
-                FetchResultsForQuery() :
+                FetchResultsForQuery() noexcept :
                     _offset(_initial_offset),
                     _limit(_initial_limit),
                     _cur_itr(_objects.end()),
@@ -1219,7 +1219,7 @@ namespace blib {
             FetchResultType _fetch_result;
 
         public:
-            ObjectIterator() = default;
+            ObjectIterator() noexcept = default;
             ObjectIterator(std::string& query_string) :
                 _fetch_result(query_string) {
             }
@@ -1267,7 +1267,7 @@ namespace blib {
 
                 template<std::uint32_t I>
                 struct QueryVariablePlaceholderIndex : std::integral_constant <std::uint32_t, I> {
-                    QueryVariablePlaceholderIndex() {}
+                    QueryVariablePlaceholderIndex() noexcept {}
                 };
 
                 /// @brief Grammar for the query Start
@@ -1363,7 +1363,7 @@ namespace blib {
                 ///   return ret.at( in_index );
                 /// }
                 template<typename T>
-                inline std::string const& mapping(const std::uint32_t in_index) {
+                inline std::string const& mapping(const std::size_t in_index) {
                     static const auto vals = blib::bun::__private::TypeMetaData<T>::member_names();
                     return vals.at(in_index + 2); // member_names start from oid_high and oid_low
                 }
@@ -1388,7 +1388,7 @@ namespace blib {
 
                         /// @fn BunQueryFilterContex
                         /// @brief default constructor
-                        BunQueryFilterContex() {}
+                        BunQueryFilterContex() noexcept {}
 
                         /// @fn operator()
                         /// @param The terminal tag
@@ -1585,7 +1585,7 @@ namespace blib {
                 }
 
             public:
-                From():_from_query(_query), _itr(nullptr){}
+                From() noexcept :_from_query(_query), _itr(nullptr){}
 
                 From(From& in_other) :_query(in_other._query), _from_query(in_other._query), _itr(nullptr){}
 
@@ -1778,7 +1778,7 @@ namespace blib {
             soci::transaction _t;
 
         public:
-            Transaction() :_t(blib::bun::__private::DbBackend<>::i().session()) {
+            Transaction() noexcept :_t(blib::bun::__private::DbBackend<>::i().session()) {
             }
 
             ~Transaction() {

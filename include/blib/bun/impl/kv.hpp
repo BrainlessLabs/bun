@@ -3,6 +3,7 @@
 #include <vector>
 #include <unqlite.h>
 #include <memory>
+#include <boost/iterator/iterator_facade.hpp>
 
 namespace blib {
 	namespace bun {
@@ -228,7 +229,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) :v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -248,7 +249,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val):v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -268,7 +269,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) : v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -288,7 +289,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) :v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -308,7 +309,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) :v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -328,7 +329,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) :v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -348,7 +349,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) :v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -368,7 +369,7 @@ namespace blib {
 					union V {
 						std::uint8_t c[size];
 						T v;
-						V(ByteVctorType const& val) {
+						V(ByteVctorType const& val) :v() {
 							for (int i = 0; i < size && i < val.size(); ++i) {
 								c[i] = val[i];
 							}
@@ -416,12 +417,125 @@ namespace blib {
 			__private::FromByte<T>::from_byte(vec, value);
 		}
 
+		template<typename T = DBKVStoreUnqlite>
+		class KVIterator : public boost::iterator_facade<
+			KVIterator<DBKVStoreUnqlite>,
+			std::pair<ByteVctorType, ByteVctorType>,
+			boost::forward_traversal_tag
+		> {
+		public:
+			using ByteVecPair = std::pair<ByteVctorType, ByteVctorType>;
+
+		private:
+			std::unique_ptr<ByteVecPair> _val;
+			unqlite* _db;
+			unqlite_kv_cursor* _pcursor;
+
+		public:
+			KVIterator() noexcept :
+				_val(),
+				_db(nullptr),
+				_pcursor(nullptr) {}
+
+			KVIterator(unqlite* db) :
+				_val(std::make_unique<ByteVecPair>()),
+				_db(db),
+				_pcursor(nullptr) {
+				open();
+			}
+
+			KVIterator(KVIterator const& in_other) : 
+				_val(in_other._val),
+				_db(in_other._db),
+				_pcursor(in_other._pcursor) {
+
+			}
+
+			~KVIterator() {
+				close();
+			}
+
+		private:
+			friend class boost::iterator_core_access;
+
+			void open() {
+				const auto rc = unqlite_kv_cursor_init(_db, &_pcursor);
+				if (rc != UNQLITE_OK) {
+					close();
+				}
+				else {
+					const auto rc = unqlite_kv_cursor_first_entry(_pcursor);
+					if (rc != UNQLITE_OK) {
+						close();
+					}
+				}
+			}
+
+			void close() {
+				unqlite_kv_cursor_release(_db, _pcursor);
+				_pcursor = nullptr;
+				_db = nullptr;
+			}
+
+			void increment() {
+				_val->first.clear();
+				_val->second.clear();
+				const auto rc = unqlite_kv_cursor_valid_entry(_pcursor);
+				if (rc != UNQLITE_OK) {
+					close();
+				}
+				else {
+					populate_key();
+					populate_value();
+				}
+			}
+
+			bool equal(KVIterator const& other) const {
+				return _pcursor == other._pcursor;
+			}
+
+			ByteVecPair& dereference() const {
+				return *_val;
+			}
+
+			void populate_key() {
+				unqlite_int64 buff_size = 0;
+				const auto rc = unqlite_kv_cursor_key(_pcursor, NULL, &buff_size);
+				if (rc == UNQLITE_OK) {
+					std::unique_ptr<std::uint8_t[]> buffer = std::make_unique<std::uint8_t[]>(buff_size);
+					const auto rc = unqlite_kv_cursor_key(_pcursor, buffer.get(), &buff_size);
+					if (rc == UNQLITE_OK) {
+						_val->first.reserve(buff_size);
+						for (int i = 0; i < buff_size; ++i) {
+							_val->first.push_back(buffer[i]);
+						}
+					}
+				}
+			}
+
+			void populate_value() {
+				unqlite_int64 buff_size = 0;
+				const auto rc = unqlite_kv_cursor_data(_pcursor, NULL, &buff_size);
+				if (rc == UNQLITE_OK) {
+					std::unique_ptr<std::uint8_t[]> buffer = std::make_unique<std::uint8_t[]>(buff_size);
+					const auto rc = unqlite_kv_cursor_data(_pcursor, buffer.get(), &buff_size);
+					if (rc == UNQLITE_OK) {
+						_val->second.reserve(buff_size);
+						for (int i = 0; i < buff_size; ++i) {
+							_val->second.push_back(buffer[i]);
+						}
+					}
+				}
+			}
+		};
+
 		/// @class KVDb
 		/// @brief The main class for the key value store
 		template<typename T = DBKVStoreUnqlite>
 		class KVDb {
 		public:
 			using ByteVctorType = std::vector<std::uint8_t>;
+
 		private:
 			/// @var _db
 			/// @brief The default is of type unqlite
@@ -536,6 +650,10 @@ namespace blib {
                 const auto rc = unqlite_kv_delete(_db, key_vec.data(), key_vec.size());
 				const bool ret = rc == UNQLITE_OK ? true : false;
 				return ret;
+			}
+
+			KVIterator begin() {
+
 			}
 		};
 	}
