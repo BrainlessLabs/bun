@@ -79,6 +79,9 @@
     <Filter Include="Header Files\third_party\unqlite">
       <UniqueIdentifier>{43a41ccd-db38-4e91-b2eb-24a8a4f21c9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\blib\bun\impl">
+      <UniqueIdentifier>{5154b261-eb0d-4d1b-9931-e22d270039ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -342,18 +345,6 @@
     <ClInclude Include="..\..\include\third_party\spdlog\fmt\bundled\printf.h">
       <Filter>Header Files\third_party\spdlog\fmt\bundled</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\CppTypeToSQLString.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\DbBackend.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\DbLogger.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\SimpleOID.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\blib\utils\debug.hpp">
       <Filter>Header Files\blib\util</Filter>
     </ClInclude>
@@ -375,11 +366,32 @@
     <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h">
       <Filter>Header Files\third_party\unqlite</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\blib\bun\kv.hpp">
-      <Filter>Header Files\blib\bun</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\blib\bun\endian.hpp">
       <Filter>Header Files\blib\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\CppTypeToSQLString.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\DbBackend.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\DbLogger.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\endian.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\Iterators.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\kv.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\SimpleOID.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\blib\bun\impl\orm.hpp">
+      <Filter>Header Files\blib\bun\impl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,7 +20,7 @@ namespace blib {
     /////////////////////////////////////////////////
     inline spdlog::logger& l() {
       static const std::size_t q_size = 1048576; //queue size must be power of 2
-      spdlog::set_async_mode( q_size );
+      //spdlog::set_async_mode( q_size );
       static auto ret = spdlog::daily_logger_st( "bun_logger",
                                                  "query_log.txt" );
 	  static bool initialized = false;

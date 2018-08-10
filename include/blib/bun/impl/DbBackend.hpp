@@ -8,7 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <soci/soci.h>
 #include "blib/utils/Singleton.hpp"
-#include "blib/bun/DbLogger.hpp"
+#include "blib/bun/impl/DbLogger.hpp"
 #include <memory>
 
 #ifdef BUN_SQLITE
