@@ -258,23 +258,25 @@ int kvTest() {
     db.get("test", val);
     std::cout << val << std::endl;
 
-    const int size = 1000;
+    const int size = 5;
     for (int i = 0; i < size; ++i) {
         const std::string s = fmt::format("Value: {}", i);
         db.put(i, s);
     }
 
+    std::cout << "Start iteration Via size "<< std::endl;
     for (int i = 0; i < size; ++i) {
         std::string val;
         db.get(i, val);
         std::cout << val << std::endl;
     }
 
-	for (auto kv : db) {
-		std::string key;
-		blib::bun::from_byte_vec(kv.first, key);
-		std::cout << "key: "<< key << std::endl;
-	}
+    std::cout << "Start iteration via foreach "<< std::endl;
+    for (auto kv : db) {
+        std::string key;
+        blib::bun::from_byte_vec(kv.first, key);
+        std::cout << "key: "<< key << std::endl;
+    }
 
     return 1;
 }
@@ -380,7 +382,7 @@ int ormDbgSimple() {
     for (auto it = where.begin();
          it != ite;
          ++it) {
-		auto v = *it;
+        auto v = *it;
         std::cout << "Itr: " << v->c << std::endl;
     }
 
@@ -392,12 +394,9 @@ int ormDbgSimple() {
 
 int main() {
     namespace bun = blib::bun;
-    //kvTest();
+    kvTest();
     //ormTest();
     //ormDbg();
-    blib::bun::PRef<dbg::C> p1;
-    blib::bun::PRef<dbg::C> p2;
-    p1 = p2;
-    ormDbgSimple();
+    //ormDbgSimple();
     return 1;
 }
