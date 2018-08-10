@@ -399,7 +399,7 @@ int ormDbgSimple() {
 int main() {
     namespace bun = blib::bun;
     kvTest();
-    //ormTest();
+    ormTest();
     //ormDbg();
     //ormDbgSimple();
     return 1;
