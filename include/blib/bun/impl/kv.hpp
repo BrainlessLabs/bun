@@ -490,6 +490,8 @@ namespace blib {
 
             void increment() {
                 const auto rc = unqlite_kv_cursor_next_entry(_pcursor);
+				_val->first.clear();
+				_val->second.clear();
                 if (rc != UNQLITE_OK) {
                     close();
                 }

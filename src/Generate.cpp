@@ -258,9 +258,9 @@ int kvTest() {
     db.get("test", val);
     std::cout << val << std::endl;
 
-    const int size = 5;
+    const int size = 3;
     for (int i = 0; i < size; ++i) {
-        const std::string s = fmt::format("Value: {}", i);
+        const std::string s = fmt::format("storing number: {}", i);
         db.put(i, s);
     }
 
@@ -272,10 +272,14 @@ int kvTest() {
     }
 
     std::cout << "Start iteration via foreach "<< std::endl;
+	int count = 0;
     for (auto kv : db) {
-        std::string key;
+        int key = 0;
         blib::bun::from_byte_vec(kv.first, key);
-        std::cout << "key: "<< key << std::endl;
+
+		std::string value;
+		blib::bun::from_byte_vec(kv.second, value);
+        std::cout << count++ << ")> key: "<< key << "\n Value: " << value << std::endl;
     }
 
     return 1;
