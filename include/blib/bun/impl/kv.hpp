@@ -1,10 +1,9 @@
 #pragma once
-
-#include <unqlite.h>
-#include <cstdint>
-#include <cmath>
 #include <string>
 #include <vector>
+#include <cstdint>
+#include <cmath>
+#include <unqlite.h>
 #include <memory>
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -38,7 +37,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (std::size_t i = 0; i < size; ++i) {
+                    for (std::size_t  i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -49,7 +48,7 @@ namespace blib {
             struct ToByte<std::int16_t> {
                 static std::vector<std::uint8_t> to_byte(std::int16_t const val) {
                     using T = std::int16_t;
-                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t  size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -493,6 +492,8 @@ namespace blib {
 
             void increment() {
                 const auto rc = unqlite_kv_cursor_next_entry(_pcursor);
+                _val->first.clear();
+                _val->second.clear();
                 if (rc != UNQLITE_OK) {
                     close();
                 }
@@ -672,3 +673,4 @@ namespace blib {
         };
     }
 }
+
