@@ -1,7 +1,10 @@
 #pragma once
+
+#include <unqlite.h>
+#include <cstdint>
+#include <cmath>
 #include <string>
 #include <vector>
-#include <unqlite.h>
 #include <memory>
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -17,7 +20,7 @@ namespace blib {
                     for (const auto v : val) {
                         ret.push_back(static_cast<std::uint8_t>(v));
                     }
-                    return std::move(ret);
+                    return ret;
                 }
             };
 
@@ -25,7 +28,7 @@ namespace blib {
             struct ToByte<std::uint16_t> {
                 static std::vector<std::uint8_t> to_byte(std::uint16_t const val) {
                     using T = std::uint16_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -35,7 +38,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -46,7 +49,7 @@ namespace blib {
             struct ToByte<std::int16_t> {
                 static std::vector<std::uint8_t> to_byte(std::int16_t const val) {
                     using T = std::int16_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -56,7 +59,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -67,7 +70,7 @@ namespace blib {
             struct ToByte<std::uint32_t> {
                 static std::vector<std::uint8_t> to_byte(std::uint32_t const val) {
                     using T = std::uint32_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -77,7 +80,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -88,7 +91,7 @@ namespace blib {
             struct ToByte<std::int32_t> {
                 static std::vector<std::uint8_t> to_byte(std::int32_t const val) {
                     using T = std::int32_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -98,7 +101,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -109,7 +112,7 @@ namespace blib {
             struct ToByte<std::uint64_t> {
                 static std::vector<std::uint8_t> to_byte(std::uint64_t const val) {
                     using T = std::uint64_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -119,7 +122,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -130,7 +133,7 @@ namespace blib {
             struct ToByte<std::int64_t> {
                 static std::vector<std::uint8_t> to_byte(std::int64_t const val) {
                     using T = std::int64_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -140,7 +143,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -151,7 +154,7 @@ namespace blib {
             struct ToByte<std::float_t> {
                 static std::vector<std::uint8_t> to_byte(std::float_t const val) {
                     using T = std::float_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -161,7 +164,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -172,7 +175,7 @@ namespace blib {
             struct ToByte<std::double_t> {
                 static std::vector<std::uint8_t> to_byte(std::double_t const val) {
                     using T = std::double_t;
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     std::vector<std::uint8_t> ret(size);
                     union V {
                         std::uint8_t c[size];
@@ -182,7 +185,7 @@ namespace blib {
                         }
                     };
                     const V v = val;
-                    for (int i = 0; i < size; ++i) {
+                    for (std::size_t i = 0; i < size; ++i) {
                         ret[i] = v.c[i];
                     }
                     return ret;
@@ -225,12 +228,12 @@ namespace blib {
             struct FromByte<std::uint16_t> {
                 using T = std::uint16_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) :v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -245,12 +248,12 @@ namespace blib {
             struct FromByte<std::int16_t> {
                 using T = std::int16_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val):v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -265,12 +268,12 @@ namespace blib {
             struct FromByte<std::uint32_t> {
                 using T = std::uint32_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) : v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -285,12 +288,12 @@ namespace blib {
             struct FromByte<std::int32_t> {
                 using T = std::int32_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) :v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -305,12 +308,12 @@ namespace blib {
             struct FromByte<std::uint64_t> {
                 using T = std::uint64_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) :v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -325,12 +328,12 @@ namespace blib {
             struct FromByte<std::int64_t> {
                 using T = std::int64_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) :v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -345,12 +348,12 @@ namespace blib {
             struct FromByte<std::float_t> {
                 using T = std::float_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) :v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -365,12 +368,12 @@ namespace blib {
             struct FromByte<std::double_t> {
                 using T = std::double_t;
                 static void from_byte(ByteVctorType const& vec, T& value) {
-                    static const int size = sizeof(T) / sizeof(std::uint8_t);
+                    static const std::size_t size = sizeof(T) / sizeof(std::uint8_t);
                     union V {
                         std::uint8_t c[size];
                         T v;
                         V(ByteVctorType const& val) :v() {
-                            for (int i = 0; i < size && i < val.size(); ++i) {
+                            for (std::size_t i = 0; i < size && i < val.size(); ++i) {
                                 c[i] = val[i];
                             }
                         }
@@ -490,8 +493,6 @@ namespace blib {
 
             void increment() {
                 const auto rc = unqlite_kv_cursor_next_entry(_pcursor);
-				_val->first.clear();
-				_val->second.clear();
                 if (rc != UNQLITE_OK) {
                     close();
                 }
