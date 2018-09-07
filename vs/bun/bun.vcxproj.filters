@@ -398,5 +398,6 @@
     <None Include="..\..\.gitignore" />
     <None Include="..\..\LICENSE" />
     <None Include="..\..\README.md" />
+    <None Include="..\..\qt\qt.pro" />
   </ItemGroup>
 </Project>

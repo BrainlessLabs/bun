@@ -400,6 +400,7 @@
   <ItemGroup>
     <None Include="..\..\.gitignore" />
     <None Include="..\..\LICENSE" />
+    <None Include="..\..\qt\qt.pro" />
     <None Include="..\..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
