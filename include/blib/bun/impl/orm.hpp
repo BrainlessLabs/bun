@@ -145,8 +145,8 @@ namespace blib {
                 return value;
             }
 
-            auto tojson_string(std::string& value)->std::string {
-                const std::string quote("'");
+            inline auto tojson_string(std::string const& value)->std::string {
+                const std::string quote("\"");
                 const std::string ret = quote + value + quote;
                 return ret;
             }
@@ -598,16 +598,40 @@ namespace blib {
                     std::string& _str;
                     const std::vector<std::string>& _member_names;
                     int _count;
+					bool _apply_comma;
+
+					template<typename IT, bool IsCompositeType>
+					struct _ToJsonImpl {
+					public:
+						static void impl(IT const& obj, const std::string& obj_name, bool const apply_comma, std::string& str) {
+							const std::string comma = apply_comma ? "," : "";
+							str += fmt::format("{}\"{}\": {}", comma, obj_name, tojson_string(obj));
+						}
+					};
+
+					template<typename IT>
+					struct _ToJsonImpl<IT, true> {
+					public:
+						static void impl(IT const& obj, const std::string& obj_name, bool const apply_comma, std::string& str) {
+							const std::string comma = apply_comma ? "," : "";
+							str += fmt::format("{}\"{}\":{}", comma, obj_name, to_json<IT>(obj));
+						}
+					};
 
                 public:
-                    ToJson(std::string & str) :_str(str), _member_names(TypeMetaData<T>::member_names()), _count(2) {
+                    ToJson(std::string & str) :
+						_str(str),
+						_member_names(TypeMetaData<T>::member_names()),
+						_count(2),
+						_apply_comma(false) {
                     }
 
                     template <typename O>
                     void operator()(O const& x) const {
                         const std::string member_name = _member_names.at(const_cast<ToJson*>(this)->_count++);
                         const std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
-                        _str += fmt::format("{} : {}", obj_name, to_json<O>(x));
+						ToJson::_ToJsonImpl<O, IsComposite<O>::value>::impl(x, member_name, _apply_comma, _str);
+						const_cast<ToJson*>(this)->_apply_comma = true;
                     }
                 };
 
@@ -619,8 +643,8 @@ namespace blib {
                 inline static std::string objToJson(T const& obj) {
                     std::string str;
                     boost::fusion::for_each(obj, QueryHelper<T>::ToJson(str));
-                    str += "{" + str + "}";
-                    return str;
+                    const std::string ret_string = "{" + str + "}";
+                    return ret_string;
                 }
 
 
