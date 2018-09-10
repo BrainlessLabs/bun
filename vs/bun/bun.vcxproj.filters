@@ -82,6 +82,9 @@
     <Filter Include="Header Files\blib\bun\impl">
       <UniqueIdentifier>{5154b261-eb0d-4d1b-9931-e22d270039ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\third_party\json">
+      <UniqueIdentifier>{bbad4ca5-50e4-4885-aa2e-87976c7074c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -393,10 +396,15 @@
     <ClInclude Include="..\..\include\blib\bun\impl\orm.hpp">
       <Filter>Header Files\blib\bun\impl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\third_party\json\json.hpp">
+      <Filter>Header Files\third_party\json</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitignore" />
     <None Include="..\..\LICENSE" />
     <None Include="..\..\README.md" />
+    <None Include="..\..\qt\qt.pro" />
+    <None Include="..\..\.gitattributes" />
   </ItemGroup>
 </Project>

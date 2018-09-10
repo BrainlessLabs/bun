@@ -286,19 +286,54 @@ int kvTest() {
 }
 
 namespace dbg {
+	struct C1 {
+		int c1;
+		C1() :c1(2) {}
+	};
+
     struct C {
         int c;
-        C(const int i = 0) :c(i) {}
+		C1 c1;
+        C(const int i = 1) :c(i) {}
     };
 
     struct P {
-        int p;
+        std::string p;
         C c;
-        P() :p(1), c(0) {}
+        P() :p("s1"), c(1) {}
     };
 }
-SPECIALIZE_BUN_HELPER((dbg::C, c));
+SPECIALIZE_BUN_HELPER((dbg::C1, c1));
+SPECIALIZE_BUN_HELPER((dbg::C, c, c1));
 SPECIALIZE_BUN_HELPER((dbg::P, p, c));
+
+int jsonTest() {
+	namespace bun = blib::bun;
+	namespace query = blib::bun::query;
+
+#if defined(BUN_SQLITE)
+	bun::connect("obj.db");
+#elif defined(BUN_POSTGRES)
+	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
+#endif
+	blib::bun::createSchema<dbg::C1>();
+	blib::bun::createSchema<dbg::C>();
+	blib::bun::createSchema<dbg::P>();
+
+	blib::bun::PRef<dbg::P> p = new dbg::P;
+	p->p = "s11";
+	p->c.c = 10;
+
+	p->c.c1.c1 = 12;
+
+
+	blib::bun::PRef<dbg::C> c = new dbg::C;
+	c->c = 666;
+
+	std::cout << p.toJson() << std::endl;
+
+	return 1;
+}
 
 int ormDbg() {
     namespace bun = blib::bun;
@@ -398,8 +433,9 @@ int ormDbgSimple() {
 
 int main() {
     namespace bun = blib::bun;
-    kvTest();
-    ormTest();
+	jsonTest();
+    //kvTest();
+    //ormTest();
     //ormDbg();
     //ormDbgSimple();
     return 1;

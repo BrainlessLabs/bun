@@ -323,6 +323,7 @@
     <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\boost_uuid.hpp" />
     <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\extensions\std_time_t.hpp" />
     <ClInclude Include="..\..\include\third_party\hdr\sqlite_modern_cpp\utility\function_traits.hpp" />
+    <ClInclude Include="..\..\include\third_party\json\json.hpp" />
     <ClInclude Include="..\..\include\third_party\msgpack\msgpack.h" />
     <ClInclude Include="..\..\include\third_party\msgpack\msgpack.hpp" />
     <ClInclude Include="..\..\include\third_party\rapidjson\allocators.h" />
@@ -398,8 +399,10 @@
     <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
     <None Include="..\..\LICENSE" />
+    <None Include="..\..\qt\qt.pro" />
     <None Include="..\..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
