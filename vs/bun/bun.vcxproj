@@ -399,6 +399,7 @@
     <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
     <None Include="..\..\LICENSE" />
     <None Include="..\..\qt\qt.pro" />

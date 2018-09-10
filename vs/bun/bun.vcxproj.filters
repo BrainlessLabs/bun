@@ -405,5 +405,6 @@
     <None Include="..\..\LICENSE" />
     <None Include="..\..\README.md" />
     <None Include="..\..\qt\qt.pro" />
+    <None Include="..\..\.gitattributes" />
   </ItemGroup>
 </Project>
