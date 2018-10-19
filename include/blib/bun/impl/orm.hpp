@@ -33,6 +33,8 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
 #include <third_party/fmt/format.hpp>
+#include <third_party/rapidjson/rapidjson.h>
+#include <third_party/rapidjson/document.h>
 #include <soci/error.h>
 #include "blib/utils/MD5.hpp"
 #include "blib/bun/impl/DbBackend.hpp"
@@ -159,6 +161,11 @@ namespace blib {
                 const std::string ret = fmt::format("{}", value);
                 return ret;
             }
+
+			template<typename T>
+			inline void from_json(std::string const& json_string, T const& obj) {
+
+			}
         }
     }
 }
@@ -593,6 +600,8 @@ namespace blib {
                     return QueryHelper<T>::objToJson(obj);
                 }
 
+				/// @class ToJson
+				/// @brief Helper class to convert an object into a json representation.
                 struct ToJson {
                 private:
                     std::string& _str;
@@ -602,7 +611,6 @@ namespace blib {
 
 					template<typename IT, bool IsCompositeType>
 					struct _ToJsonImpl {
-					public:
 						static void impl(IT const& obj, const std::string& obj_name, bool const apply_comma, std::string& str) {
 							const std::string comma = apply_comma ? "," : "";
 							str += fmt::format("{}\"{}\": {}", comma, obj_name, tojson_string(obj));
@@ -611,7 +619,6 @@ namespace blib {
 
 					template<typename IT>
 					struct _ToJsonImpl<IT, true> {
-					public:
 						static void impl(IT const& obj, const std::string& obj_name, bool const apply_comma, std::string& str) {
 							const std::string comma = apply_comma ? "," : "";
 							str += fmt::format("{}\"{}\":{}", comma, obj_name, to_json<IT>(obj));
@@ -629,7 +636,6 @@ namespace blib {
                     template <typename O>
                     void operator()(O const& x) const {
                         const std::string member_name = _member_names.at(const_cast<ToJson*>(this)->_count++);
-                        const std::string obj_name = blib::bun::__private::to_valid_query_string(member_name, "'");
 						ToJson::_ToJsonImpl<O, IsComposite<O>::value>::impl(x, member_name, _apply_comma, _str);
 						const_cast<ToJson*>(this)->_apply_comma = true;
                     }
@@ -640,12 +646,96 @@ namespace blib {
                 /// @param obj The object which we need to create to string
                 /// @brief Converts the object to a json representation and
                 ///		   returns the json representation as a string
+				/// @return JSON representation
                 inline static std::string objToJson(T const& obj) {
                     std::string str;
                     boost::fusion::for_each(obj, QueryHelper<T>::ToJson(str));
                     const std::string ret_string = "{" + str + "}";
                     return ret_string;
                 }
+
+
+				struct FromJson {
+				private:
+					rapidjson::Value const& _document;
+					std::vector<std::string> const& _member_names;
+					int _count;
+
+				private:
+					template<typename CppType>
+					static CppType jsonTypeToCppType(rapidjson::Value const& val);
+
+					template<>
+					static int jsonTypeToCppType<int>(rapidjson::Value const& val) {
+						return val.GetInt();
+					}
+
+					template<>
+					static std::int64_t jsonTypeToCppType<std::int64_t>(rapidjson::Value const& val) {
+						return val.GetInt64();
+					}
+
+					template<>
+					static unsigned int jsonTypeToCppType<unsigned int>(rapidjson::Value const& val) {
+						return val.GetUint();
+					}
+
+					template<>
+					static std::uint64_t jsonTypeToCppType<std::uint64_t>(rapidjson::Value const& val) {
+						return val.GetUint64();
+					}
+
+					template<>
+					static bool jsonTypeToCppType<bool>(rapidjson::Value const& val) {
+						return val.GetBool();
+					}
+
+					template<>
+					static double jsonTypeToCppType<double>(rapidjson::Value const& val) {
+						return val.GetDouble();
+					}
+
+					template<>
+					static float jsonTypeToCppType<float>(rapidjson::Value const& val) {
+						return val.GetFloat();
+					}
+
+					template<>
+					static std::string jsonTypeToCppType<std::string>(rapidjson::Value const& val) {
+						return val.GetString();
+					}
+
+					template<typename IT, bool isComplex>
+					struct _FromJson {
+						static void impl(IT& field, std::string const& field_name, rapidjson::Value const& doc) {
+							field = jsonTypeToCppType<IT>(doc.FindMember(field_name.c_str())->value);
+						}
+					};
+
+					template<typename IT>
+					struct _FromJson<IT, true> {
+						static void impl(IT& field, std::string const& field_name, rapidjson::Value const& doc) {
+							QueryHelper<IT>::jsonToObject(doc.FindMember(field_name.c_str())->value, field);
+						}
+					};
+
+				public:
+					FromJson(rapidjson::Value const& document):_document(document),
+						_member_names(TypeMetaData<T>::member_names()),
+						_count(2){}
+
+					template <typename O>
+					void operator()(O& x) const {
+						const std::string member_name = _member_names.at(const_cast<FromJson*>(this)->_count++);
+						FromJson::_FromJson<O, IsComposite<O>::value>::impl(x, member_name, _document);
+					}
+				};
+				/// @fn jsonToObject
+				/// @brief This function converts 
+				inline static void jsonToObject(rapidjson::Value const& json, T& obj) {
+					QueryHelper<T>::FromJson fromJson(json);
+					boost::fusion::for_each(obj, fromJson);
+				}
 
 
                 template<typename TA, bool IsComposite>
@@ -946,8 +1036,17 @@ namespace blib {
             /// @fn toJson
             /// @brief Returns a JSON representation of the object.
             std::string toJson() const {
-                return blib::bun::__private::QueryHelper<T>::objToJson(*_obj.get());
+                return blib::bun::__private::QueryHelper<ObjType>::objToJson(*_obj.get());
             }
+
+			/// @fn fromJson
+			/// @brief Creates the object from the given json string
+			void fromJson(const std::string& json) {
+				rapidjson::Document document;
+				document.Parse(json.c_str());
+				_obj = std::make_unique<ObjType>();
+				blib::bun::__private::QueryHelper<ObjType>::jsonToObject(document, *_obj.get());
+			}
 
         private:
             void copyToOther(PRef& in_other) {
