@@ -309,16 +309,6 @@ SPECIALIZE_BUN_HELPER((dbg::P, p, c));
 
 int jsonTest() {
 	namespace bun = blib::bun;
-	namespace query = blib::bun::query;
-
-#if defined(BUN_SQLITE)
-	bun::connect("obj.db");
-#elif defined(BUN_POSTGRES)
-	bun::connect("postgresql://localhost/postgres?user=postgres&password=postgres");
-#endif
-	blib::bun::createSchema<dbg::C1>();
-	blib::bun::createSchema<dbg::C>();
-	blib::bun::createSchema<dbg::P>();
 
 	blib::bun::PRef<dbg::P> p = new dbg::P;
 	p->p = "s11";
@@ -329,9 +319,12 @@ int jsonTest() {
 
 	blib::bun::PRef<dbg::C> c = new dbg::C;
 	c->c = 666;
-
-	std::cout << p.toJson() << std::endl;
-
+	const std::string json_string = p.toJson();
+	std::cout << "Object1:" << json_string << std::endl;
+	// Construct the new object out of json
+	blib::bun::PRef<dbg::P> p1;
+	p1.fromJson(json_string);
+	std::cout << "Object2:" << p1.toJson() << std::endl;
 	return 1;
 }
 
@@ -433,6 +426,8 @@ int ormDbgSimple() {
 
 int main() {
     namespace bun = blib::bun;
+	//rapidjson::Document d;
+	//rapidjson::Value v = d.GetObjectW();
 	jsonTest();
     //kvTest();
     //ormTest();
