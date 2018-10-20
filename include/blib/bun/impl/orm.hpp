@@ -16,6 +16,10 @@
 #include <cstddef>
 #include <memory>
 #include <bitset>
+#include <third_party/fmt/format.hpp>
+#include <third_party/rapidjson/rapidjson.h>
+#include <third_party/rapidjson/document.h>
+#include <third_party/json/json.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/fusion/sequence.hpp>
@@ -32,9 +36,6 @@
 #include <boost/preprocessor/tuple/rem.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/proto/proto.hpp>
-#include <third_party/fmt/format.hpp>
-#include <third_party/rapidjson/rapidjson.h>
-#include <third_party/rapidjson/document.h>
 #include <soci/error.h>
 #include "blib/utils/MD5.hpp"
 #include "blib/bun/impl/DbBackend.hpp"
@@ -908,6 +909,7 @@ namespace blib {
             ///        This will distinguish them from other object.
             OidType oid;
 
+			using ByteArray = std::vector<std::uint8_t>;
         public:
             PRef() noexcept : _obj(), _md5(), oid() {}
 
@@ -1046,6 +1048,18 @@ namespace blib {
 				document.Parse(json.c_str());
 				_obj = std::make_unique<ObjType>();
 				blib::bun::__private::QueryHelper<ObjType>::jsonToObject(document, *_obj.get());
+			}
+
+			ByteArray toMesssagepack() const {
+				const std::string json_str = toJson();
+				const auto json_obj = nlohmann::json::parse(json_str);
+				return nlohmann::json::to_msgpack(json_obj);
+			}
+
+			void fromMessagepack(ByteArray const& messagePack) {
+				const auto json = nlohmann::json::from_msgpack(messagePack);
+				const std::string json_str = json.dump();
+				fromJson(json_str);
 			}
 
         private:
