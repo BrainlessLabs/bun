@@ -1,3 +1,4 @@
+#include "blib/bun/bun.hpp"
 #include <boost/core/noncopyable.hpp>
 #include <boost/optional.hpp>
 #include <boost/preprocessor.hpp>
@@ -7,7 +8,6 @@
 #include <soci/sqlite3/soci-sqlite3.h>
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
-#include "blib/bun/bun.hpp"
 
 using namespace soci;
 using namespace std;
@@ -319,12 +319,24 @@ int jsonTest() {
 
 	blib::bun::PRef<dbg::C> c = new dbg::C;
 	c->c = 666;
+	// Convert the object to JSON
 	const std::string json_string = p.toJson();
-	std::cout << "Object1:" << json_string << std::endl;
-	// Construct the new object out of json
+	// Construct the new object out of JSON
 	blib::bun::PRef<dbg::P> p1;
 	p1.fromJson(json_string);
-	std::cout << "Object2:" << p1.toJson() << std::endl;
+	const auto msgpack = p1.toMesssagepack();
+	// Construct another object out of messagepack
+	blib::bun::PRef<dbg::P> p2;
+	p2.fromMessagepack(p1.toMesssagepack());
+	// messagepack to string
+	std::string msgpack_string;
+	for (auto c : msgpack) {
+		msgpack_string.push_back(c);
+	}
+	std::cout << "1. Original object Object:" << json_string << std::endl;
+	std::cout << "2. Object from JSON      :" << p1.toJson() << std::endl;
+	std::cout << "3. Object to Messagepack :" << msgpack_string << std::endl;
+	std::cout << "4. Object from Messagepck:" << p2.toJson() << std::endl;
 	return 1;
 }
 
