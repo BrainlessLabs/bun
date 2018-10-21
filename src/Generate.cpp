@@ -8,6 +8,7 @@
 #include <soci/sqlite3/soci-sqlite3.h>
 #include <boost/preprocessor.hpp>
 #include <third_party/fmt/format.hpp>
+#include <third_party/xxhash/xxhash.hpp>
 
 using namespace soci;
 using namespace std;
