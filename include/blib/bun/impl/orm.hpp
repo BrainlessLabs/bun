@@ -738,7 +738,8 @@ namespace blib {
 					boost::fusion::for_each(obj, fromJson);
 				}
 
-
+				/// @fn GetAllObjectsImpl
+				/// @brief This function is called if the type is a regular type.
                 template<typename TA, bool IsComposite>
                 struct GetAllObjectsImpl {
                     inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& /*oid_ref*/) {
@@ -746,6 +747,8 @@ namespace blib {
                     }
                 };
 
+				/// @fn GetAllObjectsImpl
+				/// @brief Specialization that is called when the type is a composite type
                 template<typename TA>
                 struct GetAllObjectsImpl<TA, true> {
                     inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {
