@@ -732,6 +732,7 @@ namespace blib {
 						FromJson::_FromJson<O, IsComposite<O>::value>::impl(x, member_name, _document);
 					}
 				};
+
 				/// @fn jsonToObject
 				/// @brief This function converts 
 				inline static void jsonToObject(rapidjson::Value const& json, T& obj) {
