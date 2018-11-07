@@ -655,7 +655,8 @@ namespace blib {
                     return ret_string;
                 }
 
-
+				/// @class FromJson
+				/// @brief This class is a utility class used for conversion of JSON to object
 				struct FromJson {
 				private:
 					rapidjson::Value const& _document;
