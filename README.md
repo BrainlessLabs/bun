@@ -215,7 +215,7 @@ Its easy to retrieve values from database and iterate over them. The iteration i
     auto parents_where = from_parents.where(ParentFields::f2 == "Delete Me");
     // Fetch all the objects satisfying the query. This is a lazy fetch. It will be fetched
     // only when it is called. And not all the objects are fetched.
-    // Here v is a PRef so it can be used to modify and persist the object.
+ï¿½   // Here v is a PRef so it can be used to modify and persist the object.
     for(auto v : parents_where) {
         std::cout << v.toJson() << std::endl;
     }
@@ -322,6 +322,17 @@ int kvTest() {
     return 1;
 }
 ```
+# Help Wanted
+Considering the work needed to make this library further enrich I will be needing any help needed.
+Help is needed in the following areas.
+
+1. Enhancement
+2. Fix bugs.
+3. Restructure and cleanup code.
+4. Enhance documentation.
+5. Constructive criticism and feature suggestions.
+6. Write tests.
+7. Use Bun
 
 # History
 ### Alpha 1 (16th May 2016)
