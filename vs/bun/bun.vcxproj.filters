@@ -85,6 +85,9 @@
     <Filter Include="Header Files\third_party\json">
       <UniqueIdentifier>{bbad4ca5-50e4-4885-aa2e-87976c7074c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\third_party\xxhash">
+      <UniqueIdentifier>{709098cd-3014-42bb-89f5-e132cceef121}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -114,6 +117,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\unqlite.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\third_party\xxhash\xxhash.c">
+      <Filter>Header Files\third_party\xxhash</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -398,6 +404,15 @@
     </ClInclude>
     <ClInclude Include="..\..\include\third_party\json\json.hpp">
       <Filter>Header Files\third_party\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\third_party\xxhash\xxhash_cpp17.hpp">
+      <Filter>Header Files\third_party\xxhash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\third_party\xxhash\xxhash.h">
+      <Filter>Header Files\third_party\xxhash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\third_party\xxhash\xxhash.hpp">
+      <Filter>Header Files\third_party\xxhash</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

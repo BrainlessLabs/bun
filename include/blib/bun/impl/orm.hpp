@@ -626,6 +626,24 @@ namespace blib {
 						}
 					};
 
+					template<typename IT, bool IsCompositeType>
+					struct _ToJsonImpl<std::vector<IT>, IsCompositeType> {
+						static void impl(std::vector<IT> const& obj_vec, const std::string& obj_name, bool const apply_comma, std::string& str) {
+							str += fmt::format("\"{}\":[", obj_name);
+							bool add_comma = false;
+							std::string array_string;
+							for (const auto& obj : obj_vec) {
+								if (false == add_comma) {
+									add_comma = true;
+								}
+								else {
+									array_string += ",";
+								}
+								array_string += to_json<IT>(obj);
+							}
+							str += array_string + "]";
+						}
+					};
                 public:
                     ToJson(std::string & str) :
 						_str(str),
@@ -655,7 +673,8 @@ namespace blib {
                     return ret_string;
                 }
 
-
+				/// @class FromJson
+				/// @brief This class is a utility class used for conversion of JSON to object
 				struct FromJson {
 				private:
 					rapidjson::Value const& _document;
@@ -720,6 +739,19 @@ namespace blib {
 						}
 					};
 
+					template<typename IT, bool IsCompositeType>
+					struct _FromJson<std::vector<IT>, IsCompositeType> {
+						static void impl(std::vector<IT>& field_vec, std::string const& field_name, rapidjson::Value const& doc) {
+							if (doc.HasMember(field_name.c_str())) {
+								auto const& val = doc[field_name.c_str()];
+								for (auto p = val.Begin(); p != val.End(); ++p) {
+									const auto val = p->Get<IT>();
+									field_vec.push_back(val);
+								}
+							}
+						}
+					};
+
 				public:
 					FromJson(rapidjson::Value const& document):_document(document),
 						_member_names(TypeMetaData<T>::member_names()),
@@ -731,6 +763,7 @@ namespace blib {
 						FromJson::_FromJson<O, IsComposite<O>::value>::impl(x, member_name, _document);
 					}
 				};
+
 				/// @fn jsonToObject
 				/// @brief This function converts 
 				inline static void jsonToObject(rapidjson::Value const& json, T& obj) {
@@ -738,7 +771,8 @@ namespace blib {
 					boost::fusion::for_each(obj, fromJson);
 				}
 
-
+				/// @fn GetAllObjectsImpl
+				/// @brief This function is called if the type is a regular type.
                 template<typename TA, bool IsComposite>
                 struct GetAllObjectsImpl {
                     inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& /*oid_ref*/) {
@@ -746,6 +780,8 @@ namespace blib {
                     }
                 };
 
+				/// @fn GetAllObjectsImpl
+				/// @brief Specialization that is called when the type is a composite type
                 template<typename TA>
                 struct GetAllObjectsImpl<TA, true> {
                     inline static void impl(TA& x, const soci::row& row, const std::string& member_name, const std::string& oid_ref) {

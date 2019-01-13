@@ -262,6 +262,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseOptimized|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\include\third_party\xxhash\xxhash.c" />
     <ClCompile Include="..\..\src\BoostHeaders.cpp">
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessToFile>
       <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='ReleaseOptimized|x64'">false</PreprocessToFile>
@@ -397,6 +398,9 @@
     <ClInclude Include="..\..\include\third_party\sqlite\sqlite3.h" />
     <ClInclude Include="..\..\include\third_party\sqlite\sqlite3ext.h" />
     <ClInclude Include="..\..\include\third_party\unqlite\unqlite.h" />
+    <ClInclude Include="..\..\include\third_party\xxhash\xxhash.h" />
+    <ClInclude Include="..\..\include\third_party\xxhash\xxhash.hpp" />
+    <ClInclude Include="..\..\include\third_party\xxhash\xxhash_cpp17.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.gitattributes" />
