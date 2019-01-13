@@ -19,6 +19,11 @@ namespace bakery {
         A(const int i = -1):i(i) {};
     };
 
+	struct B {
+		std::vector<int> i;
+		std::string j;
+	};
+
     struct Bun1 {
         std::string bun_name;
         float sugar_quantity;
@@ -42,7 +47,8 @@ namespace bakery {
     };
 }
 
-SPECIALIZE_BUN_HELPER((bakery::A, i));
+SPECIALIZE_BUN_HELPER((bakery::A, i))
+SPECIALIZE_BUN_HELPER((bakery::B, i, j));
 SPECIALIZE_BUN_HELPER((bakery::Bun, bun_name, sugar_quantity, bun_length, json, a));
 
 struct Child {
@@ -334,10 +340,20 @@ int jsonTest() {
 	for (auto c : msgpack) {
 		msgpack_string.push_back(c);
 	}
+
 	std::cout << "1. Original object Object:" << json_string << std::endl;
 	std::cout << "2. Object from JSON      :" << p1.toJson() << std::endl;
 	std::cout << "3. Object to Messagepack :" << msgpack_string << std::endl;
 	std::cout << "4. Object from Messagepck:" << p2.toJson() << std::endl;
+	std::cout << "=== Vector JSON Conversion ===" << std::endl;
+	blib::bun::PRef<bakery::B> b = new bakery::B;
+	b->j = "test";
+	b->i.push_back(12);
+	b->i.push_back(23);
+	std::cout << "5. Object with Vector: " << b.toJson() << std::endl;
+	blib::bun::PRef<bakery::B> b1 = new bakery::B;
+	b1.fromJson(b.toJson());
+	std::cout << "6. Object copy with Vector: " << b1.toJson();
 	return 1;
 }
 
