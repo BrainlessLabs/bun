@@ -1,10 +1,11 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <cstdint>
 #include <cmath>
-#include <unqlite.h>
 #include <memory>
+#include <unqlite.h>
 #include <boost/iterator/iterator_facade.hpp>
 
 namespace blib {

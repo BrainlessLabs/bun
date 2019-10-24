@@ -4,6 +4,7 @@
 #include <boost/proto/proto.hpp>
 //#include "blib/utils/MD5.hpp"
 #include <soci/soci.h>
+#include <memory>
 #include <string>
 #include <soci/sqlite3/soci-sqlite3.h>
 #include <boost/preprocessor.hpp>
