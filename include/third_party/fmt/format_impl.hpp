@@ -35,6 +35,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstddef>  // for std::ptrdiff_t
+#include <memory>
 
 #if defined(_WIN32) && defined(__MINGW32__)
 # include <cstring>

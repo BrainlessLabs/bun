@@ -666,43 +666,43 @@ namespace blib {
 					template<typename CppType>
 					static CppType jsonTypeToCppType(rapidjson::Value const& val);
 
-					template<>
-					static int jsonTypeToCppType<int>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, int>::value>::type>
+					static int jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetInt();
 					}
 
-					template<>
-					static std::int64_t jsonTypeToCppType<std::int64_t>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, std::int64_t>::value>::type>
+					static std::int64_t jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetInt64();
 					}
 
-					template<>
-					static unsigned int jsonTypeToCppType<unsigned int>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, unsigned int>::value>::type>
+					static unsigned int jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetUint();
 					}
 
-					template<>
-					static std::uint64_t jsonTypeToCppType<std::uint64_t>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, std::uint64_t>::value>::type>
+					static std::uint64_t jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetUint64();
 					}
 
-					template<>
-					static bool jsonTypeToCppType<bool>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, bool>::value>::type>
+					static bool jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetBool();
 					}
 
-					template<>
-					static double jsonTypeToCppType<double>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, double>::value>::type>
+					static double jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetDouble();
 					}
 
-					template<>
-					static float jsonTypeToCppType<float>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, float>::value>::type>
+					static float jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetFloat();
 					}
 
-					template<>
-					static std::string jsonTypeToCppType<std::string>(rapidjson::Value const& val) {
+					template<typename JT, typename std::enable_if<std::is_same<JT, std::string>::value>::type>
+					static std::string jsonTypeToCppType(rapidjson::Value const& val) {
 						return val.GetString();
 					}
 
